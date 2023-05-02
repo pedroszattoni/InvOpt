@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "invopt"
+version = "0.0.1"
+authors = [
+  { name="Pedro Zattoni Scroccaro", email="pedroszattoni@gmail.com" },
+]
+description = "Inverse Optimization with Python"
+readme = "README.md"
+keywords = ["inverse-optimization"]
+requires-python = ">=3.7"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "numpy",
+    "gurobipy",
+    "cvxpy"
+]
+
+[project.urls]
+"Homepage" = "https://github.com/pedroszattoni/invopt"
+"Bug Tracker" = "https://github.com/pedroszattoni/inverse-optimization/issues"

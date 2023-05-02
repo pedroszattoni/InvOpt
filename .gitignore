@@ -1,0 +1,11 @@
+backups/
+
+dist/
+
+experimental/
+
+old/
+
+src/invopt.egg-info/
+
+examples/__pycache__/
