@@ -24,7 +24,7 @@ Alternatevely, the `discrete_model_consistent` function also implements the so-c
 $$
 \begin{aligned} \min_ {\theta} \quad & 0 \\
 \text{s.t.} \quad & \theta^\top \big(\phi(\hat{s}_ i,\hat{x}_ i) - \phi(\hat{s}_ i,x_ i) \big) \leq 0 \quad\quad \forall x_ i \in \mathbb{X}(\hat{s}_ i), \ \forall i \in [N] \\
-& \theta \in \Theta, \quad \| \theta \| = 1,\end{aligned}
+& \theta \in \Theta, \quad \rVert \theta \rVert = 1,\end{aligned}
 $$
 
 where the norm equality constraint is the $\ell_ 1$ norm if $\Theta = \{\theta \in \mathbb{R}^p : \theta \geq 0\}$, and the $\ell_ \infty$ norm otherwise.
