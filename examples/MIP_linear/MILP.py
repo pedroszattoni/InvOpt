@@ -4,6 +4,9 @@ InvOpt package example: mixed-integer linear program.
 Author: Pedro Zattoni Scroccaro
 """
 
+from os.path import dirname, abspath
+import sys
+sys.path.append(dirname(dirname(abspath(__file__))))  # nopep8
 import time
 import numpy as np
 from gurobipy import Model, GRB, quicksum

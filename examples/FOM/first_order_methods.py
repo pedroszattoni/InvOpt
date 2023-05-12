@@ -4,6 +4,9 @@ InvOpt package example: first-order methods.
 Author: Pedro Zattoni Scroccaro
 """
 
+from os.path import dirname, abspath
+import sys
+sys.path.append(dirname(dirname(abspath(__file__))))  # nopep8
 import time
 import numpy as np
 import matplotlib.pyplot as plt

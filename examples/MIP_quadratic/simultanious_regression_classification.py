@@ -7,6 +7,9 @@ https://archive.ics.uci.edu/ml/datasets/breast+cancer+wisconsin+(Prognostic)
 Author: Pedro Zattoni Scroccaro
 """
 
+from os.path import dirname, abspath
+import sys
+sys.path.append(dirname(dirname(abspath(__file__))))  # nopep8
 import time
 import numpy as np
 from gurobipy import Model, GRB, quicksum

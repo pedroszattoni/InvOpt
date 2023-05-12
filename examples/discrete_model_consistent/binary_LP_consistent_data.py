@@ -3,7 +3,9 @@ InvOpt package example: binary LP with consistent data.
 
 Author: Pedro Zattoni Scroccaro
 """
-
+from os.path import dirname, abspath
+import sys
+sys.path.append(dirname(dirname(abspath(__file__))))  # nopep8
 import time
 import numpy as np
 from gurobipy import Model, GRB, quicksum
@@ -11,6 +13,7 @@ import polytope as pc
 from utils_examples import (binary_linear_FOP, linear_X, linear_phi, L2,
                             plot_results)
 import invopt as iop
+
 
 np.random.seed(1)
 
@@ -61,6 +64,7 @@ def circumcenter(dataset):
 
     C = []
     d = []
+    # Set of consistent vector
     for t in range(N):
         s_hat, x_hat = dataset[t]
         A, b = s_hat
@@ -72,13 +76,17 @@ def circumcenter(dataset):
                 C.append(x_hat - x_bin)
                 d.append(0)
 
+    # Theta is assumed to be nonnegative
     for i in range(n):
         C.append([-1 if i == j else 0 for j in range(n)])
         d.append(0)
 
+    # Add sum(theta) = 1, i.e., the nonnegative faced of the L1 sphere
     C.append([1]*n)
     d.append(1)
 
+    # Compute the extreme points of the set of consistent cost vector, and
+    # exclude theta=0
     poly = pc.Polytope(np.array(C), np.array(d))
     extreme_p = pc.extreme(poly)
     z_i = np.where(np.all(extreme_p <= 1e-10, axis=1))
@@ -87,6 +95,7 @@ def circumcenter(dataset):
     mdl.setObjective(r, GRB.MINIMIZE)
 
     for w in extreme_p:
+        # Rescale extreme points so that they lie on the L2-sphere
         w = w/np.linalg.norm(w, 2)
         mdl.addConstr(quicksum((w[i] - theta[i])**2 for i in range(n)) <= r)
 

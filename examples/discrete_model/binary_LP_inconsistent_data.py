@@ -4,6 +4,9 @@ InvOpt package example: binary LP with inconsistent data.
 Author: Pedro Zattoni Scroccaro
 """
 
+from os.path import dirname, abspath
+import sys
+sys.path.append(dirname(dirname(abspath(__file__))))  # nopep8
 import time
 import numpy as np
 from utils_examples import (binary_linear_FOP, linear_X, linear_phi, L2,

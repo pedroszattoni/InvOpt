@@ -880,8 +880,8 @@ def FOM(dataset, phi, theta_0, FOP, step_size, T,
         an augmented FOP should be used. Syntax: FOP(theta, s), or
         FOP(theta, s, x) for an augmented FOP.
     step_size : callable
-        Step-size function. Takes as input the iteration counter t and returns
-        the step-size. Syntax: step_size(t).
+        Step-size function. Takes as input the iteration counter t = 0,...,T-1
+        and returns the step-size. Syntax: step_size(t).
     T : int
         Number of iterations the algorithm is run.
     Theta : {None, 'nonnegative'}, optional

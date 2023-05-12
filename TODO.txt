@@ -23,11 +23,12 @@
 
 - Implement/test  Shor’s r-Algorithm (Space Dilation Method). see "Introduction to Nonsmooth Optimization Theory, Practice and Software".
 
-- Test continuous LP with augmented loss. Even without total unimodular
-constraint matrix, does it performe well in practice (compared to the SL)?
+- Test continuous LP with augmented loss. Even without total unimodular constraint matrix, does it performe well in practice (compared to the SL)?
 
 - Add other options for a priori constraint set Theta.
 
 - Add option for consistent data for mixed-integer programs?
 
 - Add support to theta_hat for MIP cases?
+
+- Implement proximal bundle-methods.
