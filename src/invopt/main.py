@@ -5,8 +5,6 @@ Author: Pedro Zattoni Scroccaro
 """
 
 import numpy as np
-import gurobipy as gp
-import cvxpy as cp
 import warnings
 
 
@@ -338,6 +336,8 @@ def discrete_model_consistent(dataset, phi, decision_space,
         An optimal cost vector according to the chosen strategy.
 
     """
+    import gurobipy as gp
+
     # Check if inputs are valid
     check_Theta(Theta)
     check_decision_space(decision_space)
@@ -510,6 +510,8 @@ def discrete_model(dataset, phi, decision_space,
         An optimal cost vector according to the chosen strategy.
 
     """
+    import gurobipy as gp
+
     # Check if inputs are valid
     check_Theta(Theta)
     check_decision_space(decision_space)
@@ -682,6 +684,8 @@ def MIP_linear(dataset, decision_space,
         An optimal cost vector according to the chosen strategy.
 
     """
+    import gurobipy as gp
+
     # Check if inputs are valid
     check_Theta(Theta)
     check_decision_space(decision_space)
@@ -1242,6 +1246,8 @@ def MIP_quadratic(dataset, decision_space,
         An optimal cost vector according to the chosen strategy.
 
     """
+    import cvxpy as cp
+
     # Check if inputs are valid
     check_Theta(Theta)
     check_decision_space(decision_space)
