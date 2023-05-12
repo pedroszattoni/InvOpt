@@ -2,7 +2,7 @@
 
 $$
 \begin{aligned}
- p & = \hbar k & = 44 \\ 
- E & = \hbar \omega & = 55 \\ 
+ \min_ {\theta} \quad & \mathcal{R} (\theta - \hat{\theta}) \\ 
+ E & = \hbar \omega \\ 
 \end{aligned}
 $$
