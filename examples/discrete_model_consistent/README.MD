@@ -2,12 +2,7 @@
 
 Given the a dataset of signal-response data $\mathcal{D} = \{(\hat{s}_ i, \hat{x}_ i)\}_ {i=1}^N$, the FOP
 $$\min_ {x \in \mathbb{X}(\hat{s}_ i)} \ \theta^\top \phi(\hat{s}_ i,x),$$ and assuming there exists a cost vector $\theta^\star$ consistent with the dataset, that is, such that $x_ i \in \arg\min_ {x \in \mathbb{X}(\hat{s}_ i)} \ {\theta^\star}^\top \phi(\hat{s}_ i,x)$. The `discrete_model_consistent` function solves the IO problem (by default) using the *incenter stratety*
-$$
-\begin{split}
-2x - 4 &= 6 \\ 2x &= 10 \\ x &= 5
-\end{slipt}
-$$
-test
+$$\begin{split} 2x - 4 &= 6 \\ 2x &= 10 \\ x &= 5 \end{slipt}$$ test
 $$\begin{aligned} \min_ {\theta} \quad & \mathcal{R} (\theta - \hat{\theta}) \\ \text{s.t.} \quad & \theta^\top \big(\phi(\hat{s}_ i,\hat{x}_ i) - \phi(\hat{s}_ i,x_ i) \big) + d(\hat{x}_ i,x_ i)\leq 0 \quad\quad \forall x_ i \in \mathbb{X}(\hat{s}_ i), \ \forall i \in [N] \\ & \theta \in \Theta, \end{aligned}$$ where
 - $\hat{\theta}$ is an a priory belief or estimate of the true cost vector.
 - $\mathcal{R} : \mathbb{R}^p \to \mathbb{R}$ is a regularization function.
