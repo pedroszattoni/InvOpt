@@ -2,7 +2,7 @@
 
 $$
 \begin{aligned}
- p & = \hbar k \\ 
- E & = \hbar \omega \\ 
+ p & = \hbar k & = 44 \\ 
+ E & = \hbar \omega & = 55 \\ 
 \end{aligned}
 $$
