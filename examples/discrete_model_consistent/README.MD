@@ -37,7 +37,7 @@ $$
 \begin{aligned}
 \min_ {x} \quad & \langle \theta, x \rangle \\
 \text{s.t.} \quad & Ax \leq b \\
-& x \in \{0,1\}^n.
+& x \in \{0,1\}^n,
 \end{aligned}
 $$
 
