@@ -336,7 +336,11 @@ def discrete_model_consistent(dataset, phi, decision_space,
         An optimal cost vector according to the chosen strategy.
 
     """
-    import gurobipy as gp
+    try:
+        import gurobipy as gp
+    except ImportError:
+        print("gurobipy is required for invopt's discrete_model_consistent " +
+              "function.")
 
     # Check if inputs are valid
     check_Theta(Theta)
@@ -510,7 +514,10 @@ def discrete_model(dataset, phi, decision_space,
         An optimal cost vector according to the chosen strategy.
 
     """
-    import gurobipy as gp
+    try:
+        import gurobipy as gp
+    except ImportError:
+        print("gurobipy is required for invopt's discrete_model function.")
 
     # Check if inputs are valid
     check_Theta(Theta)
@@ -684,7 +691,10 @@ def MIP_linear(dataset, decision_space,
         An optimal cost vector according to the chosen strategy.
 
     """
-    import gurobipy as gp
+    try:
+        import gurobipy as gp
+    except ImportError:
+        print("gurobipy is required for invopt's MIP_linear function.")
 
     # Check if inputs are valid
     check_Theta(Theta)
@@ -1246,7 +1256,10 @@ def MIP_quadratic(dataset, decision_space,
         An optimal cost vector according to the chosen strategy.
 
     """
-    import cvxpy as cp
+    try:
+        import cvxpy as cp
+    except ImportError:
+        print("cvxpy is required for invopt's MIP_quadratic function.")
 
     # Check if inputs are valid
     check_Theta(Theta)
