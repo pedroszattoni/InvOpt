@@ -24,12 +24,12 @@ $$
 ___
 **First-order algorithm**
 > **for** $t=1, \ldots, T$ **do**:  
-$\quad$ Sample a batch of examples  $B \subset \\{1, \ldots, N\\}$   
-$\quad$ Compute $x_ j = \text{A-FOP}(\theta_ t, \hat{s}_ j, \hat{x}_ j)$ (or $x_ j = \text{FOP}(\theta_ t, \hat{s}_ j)$) for all $j \in B$
-$\quad$ Compute $g = \sum_ {j \in B} \left( \kappa \nabla\mathcal{R}(\theta_ t - \hat{\theta}) + \phi(\hat{s}_ j,\hat{x}_ j) - \phi(\hat{s}_ j,x_ j) \right)$
-$\quad$ Update step: $\theta_ {t+1} = \Pi_ \Theta \left( \theta_ t - \eta_ t g  \right)$    
-**end for** 
-**Output**: $\\{ \theta_t \\}_ {t=1}^T$,
+> $\quad$ Sample a batch of examples  $B \subset \\{1, \ldots, N\\}$   
+> $\quad$ Compute $x_ j = \text{A-FOP}(\theta_ t, \hat{s}_ j, \hat{x}_ j)$ (or $x_ j = \text{FOP}(\theta_ t, \hat{s}_ j)$) for all $j \in B$
+> $\quad$ Compute $g = \sum_ {j \in B} \left( \kappa \nabla\mathcal{R}(\theta_ t - \hat{\theta}) + \phi(\hat{s}_ j,\hat{x}_ j) - \phi(\hat{s}_ j,x_ j) \right)$
+> $\quad$ Update step: $\theta_ {t+1} = \Pi_ \Theta \left( \theta_ t - \eta_ t g  \right)$    
+> **end for** 
+> **Output**: $\\{ \theta_t \\}_ {t=1}^T$,
 ___
 
 where
@@ -47,15 +47,15 @@ When the regularization parameter $\kappa > 0$ and $\mathcal{R}(\theta) = \rVert
 ___
 **Exponentiated first-order algorithm**
 > **for** $t=1, \ldots, T$ **do**:  
-$\quad$ Sample a batch of examples  $B \subset \\{1, \ldots, N\\}$   
-$\quad$ Compute $x_ j = \text{A-FOP}(\theta_ t, \hat{s}_ j, \hat{x}_ j)$ (or $x_ j = \text{FOP}(\theta_ t, \hat{s}_ j)$) for all $j \in B$
-$\quad$ Compute $g = \sum_ {j \in B} \left( \kappa \nabla\mathcal{R}(\theta_ t - \hat{\theta}) + \phi(\hat{s}_ j,\hat{x}_ j) - \phi(\hat{s}_ j,x_ j) \right)$
-$\quad$ Update step: $\theta_ {t+1} = \begin{cases}
+> $\quad$ Sample a batch of examples  $B \subset \\{1, \ldots, N\\}$   
+> $\quad$ Compute $x_ j = \text{A-FOP}(\theta_ t, \hat{s}_ j, \hat{x}_ j)$ (or $x_ j = \text{FOP}(\theta_ t, \hat{s}_ j)$) for all $j \in B$
+> $\quad$ Compute $g = \sum_ {j \in B} \left( \kappa \nabla\mathcal{R}(\theta_ t - \hat{\theta}) + \phi(\hat{s}_ j,\hat{x}_ j) - \phi(\hat{s}_ j,x_ j) \right)$
+> $\quad$ Update step: $\theta_ {t+1} = \begin{cases}
     \theta_t \odot \exp(-\eta_t g) & \text{if} \quad \kappa\|\theta_t \odot \exp(-\eta_t g)\|_1 \leq 1\\
     \frac{\tilde{\theta}_t \odot \exp(-\eta_t g)}{\kappa\|\theta_t \odot \exp(-\eta_t g)\|_1} & \text{otherwise}
-\end{cases}$    
-**end for** 
-**Output**: $\\{ \theta_t \\}_ {t=1}^T$,
+> \end{cases}$    
+> **end for** 
+> **Output**: $\\{ \theta_t \\}_ {t=1}^T$,
 ___
 where $\odot$ means element-wise multiplication.
 
