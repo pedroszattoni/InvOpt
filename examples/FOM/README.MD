@@ -65,7 +65,7 @@ $$
 ___
 where $\odot$ means element-wise multiplication.
 
-**Note**: for the (A-)FOP oracles, ties in the argmin can be broken arbitrarily. Moreover, approximate oracles can also be used. For more details on the algorithms implement in the InvOpt package, please see [Zattoni Scroccaro et al. (2023)](https://arxiv.org/abs/0000.00000) and the documentation of the `FOM` function.
+**Note**: for the (A-)FOP oracles, ties in the argmin can be broken arbitrarily. Moreover, approximate oracles can also be used (see [Zattoni Scroccaro et al. (2023)](https://arxiv.org/abs/0000.00000)). For more details on the algorithms implemented in the InvOpt package, and their possible modifications, please see the documentation of the `FOM` function. For instance, there are different options on how to choose the batch of examples $B$, different options on what value exactly the algorithm returns (e.g., last iterate or some kind of average), or the option to normalize the subgradients.
 
 ## Example: binary linear program
 

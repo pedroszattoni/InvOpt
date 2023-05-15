@@ -1141,8 +1141,8 @@ def FOM(dataset, phi, theta_0, FOP, step_size, T,
     normalize_grad : bool, optional
         If True, subgradient vectors are normalized before each iteration of
         the algorithm. If step='standard', the L2 norm of the subgradient is
-        used. If step='standard', the L-infinity norm of the subgradient is
-        used. The default is False.
+        used. If step='exponentiated', the L-infinity norm of the subgradient
+        is used. The default is False.
     verbose : bool, optional
         If True, prints iteration counter. The default is False.
 
