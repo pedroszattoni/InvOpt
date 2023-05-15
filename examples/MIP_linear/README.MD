@@ -26,14 +26,14 @@ where $x = (y,z)$, $\theta = (\text{vec}(Q), q)$, and $\phi_ 1$ and $\phi_ 2$ ar
 
 ## Solution method
 
-We define $M_ i = |\mathbb{Z}(\hat{w}_ i)|$ and use the following indexing notation for the elements of $\mathbb{Z}(\hat{w}_ i) = \{z_ {i1},\ldots,z_ {ij},\ldots,z_ {iM_ i}\}$. Given the a dataset of signal-response data $\mathcal{D} = \\{(\hat{s}_ i, \hat{x}_ i)\\}_ {i=1}^N$,  the `MIP_linear` function solves the IO problem using
+We define $M_ i = |\mathbb{Z}(\hat{w}_ i)|$ and use the following indexing notation for the elements of $\mathbb{Z}(\hat{w}_ i) = \\{z_ {i1},\ldots,z_ {ij},\ldots,z_ {iM_ i}\\}$. Given the a dataset of signal-response data $\mathcal{D} = \\{(\hat{s}_ i, \hat{x}_ i)\\}_ {i=1}^N$,  the `MIP_linear` function solves the IO problem using
 
 $$
 \begin{aligned}
 \min_{\theta, \beta_ i, \lambda_ {ij}} \quad & \kappa\mathcal{R}(\theta) + \frac{1}{N}\sum_ {i=1}^N \beta_ i  \\
-\text{s.t.} \ \quad & \theta \in \Theta, \quad \lambda_ {ij} \geq 0, \quad \beta_i \geq 0 & \forall i \in [N], \forall j \in [M_ i] \\
-& \theta^\top \phi(\hat{s}_ i,\hat{x}_ i) + \lambda_ {ij}^\top (\hat{c}_ i - \hat{B}_ i z_ {ij}) - q^\top \phi_ 2(\hat{w}_ i, z_ {ij}) + d(\hat{z}_ i, z_ {ij}) \leq \beta_ i & \forall i \in [N], \forall j \in [M_ i] \\
-& Q \phi_ 1(\hat{w}_ i, z_ {ij}) + \hat{A}_ i^\top \lambda_ {ij} = 0 & \forall i \in [N], \forall j \in [M_ i],
+\text{s.t.} \ \quad & \theta^\top \phi(\hat{s}_ i,\hat{x}_ i) + \lambda_ {ij}^\top (\hat{c}_ i - \hat{B}_ i z_ {ij}) - q^\top \phi_ 2(\hat{w}_ i, z_ {ij}) + d(\hat{z}_ i, z_ {ij}) \leq \beta_ i & \forall i \in [N], \ \forall j \in [M_ i] \\
+& Q \phi_ 1(\hat{w}_ i, z_ {ij}) + \hat{A}_ i^\top \lambda_ {ij} = 0 & \forall i \in [N], \ \forall j \in [M_ i] \\
+& \theta \in \Theta, \quad \beta_i \geq 0, \quad \lambda_ {ij} \geq 0 & \forall i \in [N], \ \forall j \in [M_ i],
 \end{aligned}
 $$
 
@@ -51,9 +51,9 @@ Alternatively, the `discrete_model` function also implements a *Suboptimality lo
 $$
 \begin{aligned}
 \min_{\theta, \beta_ i, \lambda_ {ij}} \quad & \frac{1}{N}\sum_ {i=1}^N \beta_ i  \\
-\text{s.t.} \ \quad & \theta \in \Theta, \quad \rVert \theta \rVert = 1, \quad \lambda_ {ij} \geq 0, \quad \beta_ i \geq 0 & \forall i \in [N], \forall j \in [M_ i] \\
-& \theta^\top \phi(\hat{s}_ i,\hat{x}_ i) + \lambda_ {ij}^\top (\hat{c}_ i - \hat{B}_ i z_ {ij}) - q^\top \phi_ 2(\hat{w}_ i, z_ {ij})  \leq \beta_ i & \forall i \in [N], \forall j \in [M_ i] \\
-& Q \phi_ 1(\hat{w}_ i, z_ {ij}) + \hat{A}_ i^\top \lambda_ {ij} = 0 & \forall i \in [N], \forall j \in [M_ i],
+\text{s.t.} \ \quad & \theta^\top \phi(\hat{s}_ i,\hat{x}_ i) + \lambda_ {ij}^\top (\hat{c}_ i - \hat{B}_ i z_ {ij}) - q^\top \phi_ 2(\hat{w}_ i, z_ {ij})  \leq \beta_ i & \forall i \in [N], \ \forall j \in [M_ i] \\
+& Q \phi_ 1(\hat{w}_ i, z_ {ij}) + \hat{A}_ i^\top \lambda_ {ij} = 0 & \forall i \in [N], \ \forall j \in [M_ i] \\
+& \theta \in \Theta, \quad \rVert \theta \rVert = 1, \quad \beta_ i \geq 0, \quad \lambda_ {ij} \geq 0 & \forall i \in [N], \ \forall j \in [M_ i],
 \end{aligned}
 $$
 

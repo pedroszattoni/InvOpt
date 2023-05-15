@@ -20,8 +20,7 @@ $$
 \begin{aligned}
  \min_ {\theta, \beta_1, \ldots, \beta_N} \quad & \kappa\mathcal{R} (\theta - \hat{\theta}) + \frac{1}{N}\sum_ {i = 1}^N \beta_ i \\ 
  \text{s.t.} \ \ \ \quad & \theta^\top \big(\phi(\hat{s}_ i,\hat{x}_ i) - \phi(\hat{s}_ i,x_ i) \big) + d(\hat{x}_ i,x_ i)\leq \beta_i & \forall x_ i \in \mathbb{X}(\hat{s}_ i), \ \forall i \in [N] \\
- & \beta_i \geq 0 & \forall i \in [N] \\
- & \theta \in \Theta, 
+ & \theta \in \Theta, \quad \beta_i \geq 0 & \forall i \in [N],
 \end{aligned}
 $$
 
@@ -39,11 +38,11 @@ Alternatively, the `discrete_model` function also implements the epigraph reform
 $$
 \begin{aligned} \min_ {\theta, \beta_1, \ldots, \beta_N} \quad & \frac{1}{N}\sum_ {i = 1}^N \beta_i \\
 \text{s.t.} \ \ \ \quad & \theta^\top \big(\phi(\hat{s}_ i,\hat{x}_ i) - \phi(\hat{s}_ i,x_ i) \big) \leq \beta_i & \forall x_ i \in \mathbb{X}(\hat{s}_ i), \ \forall i \in [N] \\
-& \beta_i \geq 0 & \forall i \in [N] \\
-& \theta \in \Theta, \quad \rVert \theta \rVert = 1,\end{aligned}
+& \theta \in \Theta, \quad \rVert \theta \rVert = 1, \quad \beta_i \geq 0 & \forall i \in [N],
+\end{aligned}
 $$
 
-where the norm equality constraint is the $\ell_ 1$ norm if $\Theta = \\{\theta \in \mathbb{R}^p : \theta \geq 0\\}$, and the $\ell_ \infty$ norm otherwise.
+where the norm equality constraint uses the $\ell_ 1$ norm if $\Theta = \\{\theta \in \mathbb{R}^p : \theta \geq 0\\}$, and the $\ell_ \infty$ norm otherwise.
 
 ## Example: binary linear program with inconsistent data
 
