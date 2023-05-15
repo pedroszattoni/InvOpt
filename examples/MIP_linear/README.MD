@@ -13,7 +13,7 @@ $$
 with a mixed-integer constraint set
 
 $$
-\mathbb{X}(\hat{s}) = \big\{ x=(y,z) \in \mathbb{R}^u \times \mathbb{Z}^v : \hat{A}y + \hat{B}z \leq \hat{c}, \ z \in \mathbb{Z}(\hat{w}) \big\},
+\mathbb{X}(\hat{s}) = \left\\{ x=(y,z) \in \mathbb{R}^u \times \mathbb{Z}^v : \hat{A}y + \hat{B}z \leq \hat{c}, \ z \in \mathbb{Z}(\hat{w}) \right\\},
 $$
 
 where $\hat{s} = (\hat{A}, \hat{B}, \hat{c}, \hat{w})$ and $\mathbb{Z}(\hat{w})$ is a bounded set that may depend on a signal $\hat{w}$, and hypothesis function
