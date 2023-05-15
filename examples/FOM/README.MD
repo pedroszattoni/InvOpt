@@ -63,9 +63,21 @@ $$
 ___
 where $\odot$ means element-wise multiplication.
 
->$$\theta_ {t+1} = \begin{cases} \theta_ t \odot \exp(-\eta_ t g) & \text{if} \quad \kappa \rVert \theta_ t \odot \exp(-\eta_t g) \rVert_ 1 \leq 1 \\ \frac{\theta_ t \odot \exp(\eta_ t g)}{\kappa \rVert \theta_ t \odot \exp(-\eta_ t g) \rVert_ 1} & \text{otherwise} \end{cases}$$ 
+>$$
+\theta_ {t+1} =
+\begin{cases}
+\theta_ t \odot \exp(-\eta_ t g) & \text{if} \quad \kappa \rVert \theta_ t \odot \exp(-\eta_t g) \rVert_ 1 \leq 1 \\
+\frac{\theta_ t \odot \exp(\eta_ t g)}{\kappa \rVert \theta_ t \odot \exp(-\eta_ t g) \rVert_ 1} & \text{otherwise}
+\end{cases}
+$$ 
 
-$$\theta_ {t+1} = \begin{cases} \theta_ t \odot \exp(-\eta_ t g) & \text{if} \quad \kappa \rVert \theta_ t \odot \exp(-\eta_t g) \rVert_ 1 \leq 1 \\ \frac{\theta_ t \odot \exp(\eta_ t g)}{\kappa \rVert \theta_ t \odot \exp(-\eta_ t g) \rVert_ 1} & \text{otherwise} \end{cases}$$ 
+$$
+\theta_ {t+1} =
+\begin{cases}
+\theta_ t \odot \exp(-\eta_ t g) & \text{if} \quad \kappa \rVert \theta_ t \odot \exp(-\eta_t g) \rVert_ 1 \leq 1 \\
+\frac{\theta_ t \odot \exp(\eta_ t g)}{\kappa \rVert \theta_ t \odot \exp(-\eta_ t g) \rVert_ 1} & \text{otherwise}
+\end{cases}
+$$ 
 
 **Note**: for the (A-)FOP oracles, ties in the argmin can be broken arbitrarily. Moreover, approximate oracles can also be used. For more details on the algorithms implement in the InvOpt package, please see [Zattoni Scroccaro et al. (2023)](https://arxiv.org/abs/0000.00000) and the documentation of the `FOM` function.
 
