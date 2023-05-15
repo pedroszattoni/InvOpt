@@ -55,8 +55,8 @@ ___
 >$$
 \theta_ {t+1} =
 \begin{cases}
-\theta_ t \odot \exp(-\eta_ t g) & \text{if} \quad \kappa \rVert \theta_ t \odot \exp(-\eta_t g) \rVert_ 1 \leq 1 \\
-\frac{\theta_ t \odot \exp(\eta_ t g)}{\kappa \rVert \theta_ t \odot \exp(-\eta_ t g) \rVert_ 1} & \text{otherwise}
+\theta_ t \odot \exp(-\eta_ t g) \quad & \text{if} \quad \kappa \rVert \theta_ t \odot \exp(-\eta_t g) \rVert_ 1 \leq 1 \\
+\frac{\theta_ t \odot \exp(\eta_ t g)}{\kappa \rVert \theta_ t \odot \exp(-\eta_ t g) \rVert_ 1} \quad & \text{otherwise}
 \end{cases}
 $$
 >
