@@ -63,6 +63,7 @@ $$
 ___
 where $\odot$ means element-wise multiplication.
 
+>s
 >$$
 \theta_ {t+1} =
 \begin{cases}
@@ -70,7 +71,6 @@ where $\odot$ means element-wise multiplication.
 \frac{\theta_ t \odot \exp(\eta_ t g)}{\kappa \rVert \theta_ t \odot \exp(-\eta_ t g) \rVert_ 1} & \text{otherwise}
 \end{cases}
 $$ 
->s
 
 **Note**: for the (A-)FOP oracles, ties in the argmin can be broken arbitrarily. Moreover, approximate oracles can also be used. For more details on the algorithms implement in the InvOpt package, please see [Zattoni Scroccaro et al. (2023)](https://arxiv.org/abs/0000.00000) and the documentation of the `FOM` function.
 
