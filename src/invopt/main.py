@@ -295,8 +295,11 @@ def discrete_model_consistent(dataset, phi, decision_space,
         Tuple containing type and dimension of the decision space.
     X : {callable, None}, optional
         Constraint set. Given a signal s and response x, returns True if x is a
-        feasible response, and False otherwise. Syntax: X(s, x). If None, it
-        will be defined as "def X(s, x): return True". The default is None.
+        feasible response, and False otherwise. It does not need to check for
+        the type of the decision space contained in decision_space. For
+        example, if decision_space=('binary', n), X does not need to check if x
+        is a binary vector. Syntax: X(s, x). If None, it will be defined as
+        "def X(s, x): return True". The default is None.
     dist_func : {callable, None}, optional
         Distance function. Given two responses x1 and x2, returns the distance
         between them according to some distance metric. Not required when
@@ -474,8 +477,11 @@ def discrete_model(dataset, phi, decision_space,
         Tuple containing type and dimension of the decision space.
     X : {callable, None}, optional
         Constraint set. Given a signal s and response x, returns True if x is a
-        feasible response, and False otherwise. Syntax: X(s, x). If None, it
-        will be defined as "def X(s, x): return True". The default is None.
+        feasible response, and False otherwise. It does not need to check for
+        the type of the decision space contained in decision_space. For
+        example, if decision_space=('binary', n), X does not need to check if x
+        is a binary vector. Syntax: X(s, x). If None, it will be defined as
+        "def X(s, x): return True". The default is None.
     dist_func : {callable, None}, optional
         Distance function. Given two responses x1 and x2, returns the distance
         between them according to some distance metric. Not required when
@@ -639,12 +645,16 @@ def MIP_linear(dataset, decision_space,
     dataset : list of tuples
         List of tuples (s, x), where s is the signal and x is the response.
     decision_space : {tuple('binary', n)}
-        Tuple containing type and dimension of the decision space.
+        Tuple containing type and dimension of the decision space fo the
+        integer part of the decision vector.
     Z : {callable, None}, optional
         Constraint set of the integer part of the decision vector. Given a
         signal s = (A, B, c, w) and response x = (y, z), returns True if z
         (i.e., the integer part of x) is a feasible response, and False
-        otherwise. Syntax: Z(w, z). If None, it will be defined as
+        otherwise. It does not need to check for the type of the decision space
+        contained in decision_space. For example, if
+        decision_space=('binary', n), Z does not need to check if z
+        is a binary vector. Syntax: Z(w, z). If None, it will be defined as
         "def Z(w, x): return True". The default is None.
     phi1 : {callable, None}, optional
         Feature function. Given w and response z, returns a 1D
@@ -858,6 +868,195 @@ def MIP_linear(dataset, decision_space,
         q_opt = np.array([q[i].X for i in range(u2)])
 
     theta_opt = np.concatenate((Q_opt.flatten('F'), q_opt))
+    return theta_opt
+
+
+def MIP_quadratic(dataset, decision_space,
+                  Z=None,
+                  phi1=None,
+                  phi2=None,
+                  dist_func=None,
+                  Theta=None,
+                  regularizer='L2_squared',
+                  reg_param=0,
+                  sub_loss=False,
+                  verbose=False,
+                  solver='mosek'):
+    """
+    Inverse optimization for quadratic models with mixed-integer feasible sets.
+
+    See an example usage at
+    https://github.com/pedroszattoni/invopt/tree/main/examples
+
+    Parameters
+    ----------
+    dataset : list of tuples
+        List of tuples (s, x), where s is the signal and x is the response.
+    decision_space : {tuple('binary', n)}
+        Tuple containing type and dimension of the decision space.
+    Z : {callable, None}, optional
+        Constraint set of the integer part of the decision vector. Given a
+        signal s = (A, B, c, w) and response x = (y, z), returns True if z
+        (i.e., the integer part of x) is a feasible response, and False
+        otherwise. It does not need to check for the type of the decision space
+        contained in decision_space. For example, if
+        decision_space=('binary', n), Z does not need to check if z
+        is a binary vector. Syntax: Z(w, z). If None, it will be defined as
+        "def Z(w, x): return True". The default is None.
+    phi1 : {callable, None}, optional
+        Feature function. Given w and response z, returns a 1D
+        ndarray feature vector. Syntax: phi1(w, z). If None, it will be defined
+        as "def phi1(w, z): return np.array([0])". The default is None.
+    phi2 : {callable, None}, optional
+        Feature function. Given w and response z, returns a 1D
+        ndarray feature vector. Syntax: phi1(w, z). If None, it will be defined
+        as "def phi2(w, z): return np.array([0])". The default is None.
+    dist_func : {callable, None}, optional
+        Distance function. Given two responses x1=(y1,z1) and x2=(y2,z2),
+        returns the distance of their integer parts according to some distance
+        metric. Not required when sub_loss=True. Syntax: dist_func(z1, z2).
+        The default is None.
+    Theta : {None, 'nonnegative'}, optional
+        Constraints on cost vector theta. The default is None.
+    regularizer : {'L2_squared', 'L1'}, optional
+        Type of regularization on cost vector theta. The default is
+        'L2_squared'.
+    reg_param : float, optional
+        Nonnegative regularization parameter. The default is 0.
+    sub_loss : bool, optional
+        If True, solve the problem using the Suboptimality loss. Namely,
+        searches over the facts of the unit L-infinity sphere for the cost
+        vector with the smallest loss. If Theta='nonnegative', only searches
+        over the nonnegative facet of the L-1 sphere. If False, solve the
+        problem using the Augmented Suboptimality loss. The default is False.
+    verbose : bool, optional
+        If True, print solver's output. The default is False.
+
+    Raises
+    ------
+    Exception
+        If unsupported Theta, regularizer, or decision_space. If Gurobi does
+        not find an optimal solution. If sub_loss=False and dist_func is None.
+
+    Returns
+    -------
+    theta_opt : 1D ndarray
+        An optimal cost vector according to the chosen strategy.
+
+    """
+    try:
+        import cvxpy as cp
+    except ImportError:
+        print("cvxpy is required for invopt's MIP_quadratic function.")
+
+    # Check if inputs are valid
+    check_Theta(Theta)
+    check_decision_space(decision_space)
+    check_regularizer(regularizer)
+    check_reg_parameter(reg_param)
+
+    # Warnings
+    warning_large_decision_space(decision_space)
+    warning_dist_func_reg_param_sub_loss(dist_func, reg_param, sub_loss)
+
+    N = len(dataset)
+
+    if Z is None:
+        def Z(s, z): return True
+
+    if phi1 is None:
+        def phi1(w, z): return np.array([0])
+    if phi2 is None:
+        def phi2(w, z): return np.array([0])
+
+    # Sample signal and response to get the the dimensions of the problem
+    s_test, x_test = dataset[0]
+    A_test, _, _, w_test = s_test
+    y_test, z_test = x_test
+    u1 = len(phi1(w_test, z_test))
+    u2 = len(phi2(w_test, z_test))
+    m1, m2 = A_test.shape
+
+    Qyy = cp.Variable((m2, m2), symmetric=True)
+    Q = cp.Variable((m2, u1))
+    q = cp.Variable((u2, 1))
+    beta = cp.Variable(N)
+
+    constraints = []
+
+    sum_beta = (1/N)*cp.sum(beta)
+
+    if Theta == 'nonnegative':
+        constraints += [Q >= 0, q >= 0]
+
+    for i in range(N):
+        s_hat, x_hat = dataset[i]
+        y_hat, z_hat = x_hat
+        A, B, c, w_hat = s_hat
+        if decision_space[0] == 'binary':
+            n = decision_space[1]
+            for k in range(2**n):
+                z = dec_to_bin(k, n)
+                if Z(w_hat, z):
+                    alpha = cp.Variable((1, 1))
+                    lamb = cp.Variable((m1, 1))
+
+                    if sub_loss:
+                        dist = 0
+                    else:
+                        dist = dist_func(z_hat, z)
+
+                    theta_phi_hat = (y_hat.T @ Qyy @ y_hat
+                                     + y_hat.T @ Q @ phi1(w_hat, z_hat)
+                                     + q.T @ phi2(w_hat, z_hat))
+
+                    lambcBz = lamb.T @ (c - B @ z)
+
+                    qphi2 = q.T @ phi2(w_hat, z)
+
+                    constraints += [theta_phi_hat + alpha + lambcBz - qphi2
+                                    <= beta[i] - dist]
+
+                    off_diag = Q @ phi1(w_hat, z).reshape((u1, 1)) + A.T @ lamb
+                    constraints += [cp.bmat([[Qyy, off_diag],
+                                             [off_diag.T, 4*alpha]]) >> 0]
+                    constraints += [lamb >= 0]
+
+    if sub_loss:
+        constraints += [cp.trace(Qyy) == 1]
+        obj = cp.Minimize(sum_beta)
+    else:
+        if regularizer == 'L2_squared':
+            Qyy_sum = cp.sum_squares(Qyy)
+            Q_sum = cp.sum_squares(Q)
+            q_sum = cp.sum_squares(q)
+            reg_term = (reg_param/2)*(Qyy_sum + Q_sum + q_sum)
+        elif regularizer == 'L1':
+            tQyy = cp.Variable((m2, m2), symmetric=True)
+            tQ = cp.Variable((m2, u1))
+            tq = cp.Variable((u2, 1))
+            reg_term = reg_param*(cp.sum(tQyy) + cp.sum(tQ) + cp.sum(tq))
+            constraints += [Qyy <= tQyy, -Qyy <= tQyy]
+            constraints += [Q <= tQ, -Q <= tQ]
+            constraints += [q <= tq, -q <= tq]
+
+        obj = cp.Minimize(reg_term + sum_beta)
+
+    prob = cp.Problem(obj, constraints)
+    prob.solve(verbose=verbose)
+
+    if prob.status != 'optimal':
+        raise Exception('Optimal solution not found. CVXPY status code '
+                        f'= {prob.status}. Set the flag verbose=True for more '
+                        'details.')
+
+    Qyy_opt = Qyy.value
+    Q_opt = Q.value
+    q_opt = q.value
+
+    theta_opt = np.concatenate((Qyy_opt.flatten('F'),
+                                Q_opt.flatten('F'),
+                                q_opt.flatten('F')))
     return theta_opt
 
 
@@ -1184,189 +1383,3 @@ def grad_step(theta_t, eta_t, reg_grad, loss_grad, reg_param, Theta, step,
         theta_t = np.clip(theta_t, 0, None)
 
     return theta_t1
-
-
-def MIP_quadratic(dataset, decision_space,
-                  Z=None,
-                  phi1=None,
-                  phi2=None,
-                  dist_func=None,
-                  Theta=None,
-                  regularizer='L2_squared',
-                  reg_param=0,
-                  sub_loss=False,
-                  verbose=False,
-                  solver='mosek'):
-    """
-    Inverse optimization for quadratic models with mixed-integer feasible sets.
-
-    See an example usage at
-    https://github.com/pedroszattoni/invopt/tree/main/examples
-
-    Parameters
-    ----------
-    dataset : list of tuples
-        List of tuples (s, x), where s is the signal and x is the response.
-    decision_space : {tuple('binary', n)}
-        Tuple containing type and dimension of the decision space.
-    Z : {callable, None}, optional
-        Constraint set of the integer part of the decision vector. Given a
-        signal s = (A, B, c, w) and response x = (y, z), returns True if z
-        (i.e., the integer part of x) is a feasible response, and False
-        otherwise. Syntax: Z(w, z). If None, it will be defined as
-        "def Z(w, x): return True". The default is None.
-    phi1 : {callable, None}, optional
-        Feature function. Given w and response z, returns a 1D
-        ndarray feature vector. Syntax: phi1(w, z). If None, it will be defined
-        as "def phi1(w, z): return np.array([0])". The default is None.
-    phi2 : {callable, None}, optional
-        Feature function. Given w and response z, returns a 1D
-        ndarray feature vector. Syntax: phi1(w, z). If None, it will be defined
-        as "def phi2(w, z): return np.array([0])". The default is None.
-    dist_func : {callable, None}, optional
-        Distance function. Given two responses x1=(y1,z1) and x2=(y2,z2),
-        returns the distance of their integer parts according to some distance
-        metric. Not required when sub_loss=True. Syntax: dist_func(z1, z2).
-        The default is None.
-    Theta : {None, 'nonnegative'}, optional
-        Constraints on cost vector theta. The default is None.
-    regularizer : {'L2_squared', 'L1'}, optional
-        Type of regularization on cost vector theta. The default is
-        'L2_squared'.
-    reg_param : float, optional
-        Nonnegative regularization parameter. The default is 0.
-    sub_loss : bool, optional
-        If True, solve the problem using the Suboptimality loss. Namely,
-        searches over the facts of the unit L-infinity sphere for the cost
-        vector with the smallest loss. If Theta='nonnegative', only searches
-        over the nonnegative facet of the L-1 sphere. If False, solve the
-        problem using the Augmented Suboptimality loss. The default is False.
-    verbose : bool, optional
-        If True, print solver's output. The default is False.
-
-    Raises
-    ------
-    Exception
-        If unsupported Theta, regularizer, or decision_space. If Gurobi does
-        not find an optimal solution. If sub_loss=False and dist_func is None.
-
-    Returns
-    -------
-    theta_opt : 1D ndarray
-        An optimal cost vector according to the chosen strategy.
-
-    """
-    try:
-        import cvxpy as cp
-    except ImportError:
-        print("cvxpy is required for invopt's MIP_quadratic function.")
-
-    # Check if inputs are valid
-    check_Theta(Theta)
-    check_decision_space(decision_space)
-    check_regularizer(regularizer)
-    check_reg_parameter(reg_param)
-
-    # Warnings
-    warning_large_decision_space(decision_space)
-    warning_dist_func_reg_param_sub_loss(dist_func, reg_param, sub_loss)
-
-    N = len(dataset)
-
-    if Z is None:
-        def Z(s, z): return True
-
-    if phi1 is None:
-        def phi1(w, z): return np.array([0])
-    if phi2 is None:
-        def phi2(w, z): return np.array([0])
-
-    # Sample signal and response to get the the dimensions of the problem
-    s_test, x_test = dataset[0]
-    A_test, _, _, w_test = s_test
-    y_test, z_test = x_test
-    u1 = len(phi1(w_test, z_test))
-    u2 = len(phi2(w_test, z_test))
-    m1, m2 = A_test.shape
-
-    Qyy = cp.Variable((m2, m2), symmetric=True)
-    Q = cp.Variable((m2, u1))
-    q = cp.Variable((u2, 1))
-    beta = cp.Variable(N)
-
-    constraints = []
-
-    sum_beta = (1/N)*cp.sum(beta)
-
-    if Theta == 'nonnegative':
-        constraints += [Q >= 0, q >= 0]
-
-    for i in range(N):
-        s_hat, x_hat = dataset[i]
-        y_hat, z_hat = x_hat
-        A, B, c, w_hat = s_hat
-        if decision_space[0] == 'binary':
-            n = decision_space[1]
-            for k in range(2**n):
-                z = dec_to_bin(k, n)
-                if Z(w_hat, z):
-                    alpha = cp.Variable((1, 1))
-                    lamb = cp.Variable((m1, 1))
-
-                    if sub_loss:
-                        dist = 0
-                    else:
-                        dist = dist_func(z_hat, z)
-
-                    theta_phi_hat = (y_hat.T @ Qyy @ y_hat
-                                     + y_hat.T @ Q @ phi1(w_hat, z_hat)
-                                     + q.T @ phi2(w_hat, z_hat))
-
-                    lambcBz = lamb.T @ (c - B @ z)
-
-                    qphi2 = q.T @ phi2(w_hat, z)
-
-                    constraints += [theta_phi_hat + alpha + lambcBz - qphi2
-                                    <= beta[i] - dist]
-
-                    off_diag = Q @ phi1(w_hat, z).reshape((u1, 1)) + A.T @ lamb
-                    constraints += [cp.bmat([[Qyy, off_diag],
-                                             [off_diag.T, 4*alpha]]) >> 0]
-                    constraints += [lamb >= 0]
-
-    if sub_loss:
-        constraints += [cp.trace(Qyy) == 1]
-        obj = cp.Minimize(sum_beta)
-    else:
-        if regularizer == 'L2_squared':
-            Qyy_sum = cp.sum_squares(Qyy)
-            Q_sum = cp.sum_squares(Q)
-            q_sum = cp.sum_squares(q)
-            reg_term = (reg_param/2)*(Qyy_sum + Q_sum + q_sum)
-        elif regularizer == 'L1':
-            tQyy = cp.Variable((m2, m2), symmetric=True)
-            tQ = cp.Variable((m2, u1))
-            tq = cp.Variable((u2, 1))
-            reg_term = reg_param*(cp.sum(tQyy) + cp.sum(tQ) + cp.sum(tq))
-            constraints += [Qyy <= tQyy, -Qyy <= tQyy]
-            constraints += [Q <= tQ, -Q <= tQ]
-            constraints += [q <= tq, -q <= tq]
-
-        obj = cp.Minimize(reg_term + sum_beta)
-
-    prob = cp.Problem(obj, constraints)
-    prob.solve(verbose=verbose)
-
-    if prob.status != 'optimal':
-        raise Exception('Optimal solution not found. CVXPY status code '
-                        f'= {prob.status}. Set the flag verbose=True for more '
-                        'details.')
-
-    Qyy_opt = Qyy.value
-    Q_opt = Q.value
-    q_opt = q.value
-
-    theta_opt = np.concatenate((Qyy_opt.flatten('F'),
-                                Q_opt.flatten('F'),
-                                q_opt.flatten('F')))
-    return theta_opt
