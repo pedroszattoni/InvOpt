@@ -8,10 +8,10 @@
 This function is can be used when the FOP is of the form
 
 $$
-\min_ {x \in \mathbb{X}(\hat{s}_ i)} \ \theta^\top \phi(\hat{s}_ i,x),
+\min_ {x \in \mathbb{X}(\hat{s})} \ \theta^\top \phi(\hat{s},x),
 $$
 
-the constraint set $\mathbb{X}(\hat{s}_ i)$ is discrete, that is, we can list all elements in this set, and when there exists a cost vector $\theta^\star$ consistent with the dataset, that is, such that $x_ i \in \arg\min_ {x \in \mathbb{X}(\hat{s}_ i)} \ {\theta^\star}^\top \phi(\hat{s}_ i,x) \quad \forall i \in [N]$.
+the constraint set $\mathbb{X}(\hat{s})$ is discrete, that is, we can list all elements in this set, and when there exists a cost vector $\theta^\star$ consistent with the dataset $\mathcal{D}$, that is, such that $x_ i \in \arg\min_ {x \in \mathbb{X}(\hat{s}_ i)} \ {\theta^\star}^\top \phi(\hat{s}_ i,x) \quad \forall i \in [N]$.
 
 ## Solution method
 
@@ -28,12 +28,12 @@ $$
 where
 - $\hat{\theta}$ is an a priory belief or estimate of the true cost vector.
 - $\mathcal{R} : \mathbb{R}^p \to \mathbb{R}$ is a regularization function.
-- $\phi: \mathbb{S} \times \mathbb{X} \to \mathbb{R}^p$ is the feature mapping, which maps a signal-response pair $(s,x)$ to a feature vector $\phi(s,x)$. In practice, choosing a suitable mapping $\phi$ is part of the modeling of the problem.
+- $\phi: \mathbb{S} \times \mathbb{X} \to \mathbb{R}^p$ is the feature mapping, which maps a signal-response pair $(s,x)$ to a feature vector $\phi(s,x)$.
 - $d : \mathbb{X} \times \mathbb{X} \to \mathbb{R}_+$ is a distance function, which given two responses, returns the distance between them according to some distance metric.
 - $\mathbb{X}(\hat{s}_ i)$ is the constraint set of the FOP.
 - $\Theta$ is the set used to encode any prior information or assumption we may have on the expert's true cost function, e.g., nonnegativity of the cost vector.
 
-Alternatevely, the `discrete_model_consistent` function also implements the so-called *feasibility strategy*, which solves the IO problem by solving the feasibility problem
+Alternatively, the `discrete_model_consistent` function also implements the so-called *feasibility strategy*, which solves the IO problem by solving the feasibility problem
 
 $$
 \begin{aligned} \min_ {\theta} \quad & 0 \\
