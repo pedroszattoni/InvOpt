@@ -1,3 +1,4 @@
+
 # InvOpt: Inverse Optimization in Python
 
 InvOpt is a Python package for solving Inverse Optimization (IO) problems. In IO problems, our goal is to model the behavior of an expert agent, which given an exogenous signal, returns a response action. The underlying assumption of IO is that to compute its response, the expert agent solves an optimization problem parametric in the exogenous signal. We assume to know the constraints imposed on the expert, but not its cost function. Therefore, our goal is to model the cost function being optimized by the expert, using examples of exogenous signals and corresponding expert response actions. More concretely, given a dataset $\mathcal{D} = \\{(\hat{s}_ i, \hat{x}_ i)\\}_ {i=1}^N$ of exogenous signals $\hat{s}_ i$ and the respective expert's response $\hat{x}_ i$, our goal is to find a cost vector $\theta \in \mathbb{R}^p$ such that the **Forward Optimization Problem (FOP)** with feature mapping $\phi$
@@ -10,19 +11,15 @@ pip install invopt
 ```
 InvOpt depends on NumPy. Moreover, some of its functions also depend on gurobipy or cvxpy. You can get a free academic license for Gurobi [here](https://www.gurobi.com/academia/academic-program-and-licenses/).
 
-## Functions
+## Usage and examples
 
 The following functions are available in the InvOpt package to solving IO problems:
 
-- [`discrete_model_consistent`](https://github.com/pedroszattoni/invopt/tree/main/examples/discrete_model_consistent): for FOPs with dicrete decision spaces (e.g., binary), and when the dataset is consistent with some cost vector.
+- [`discrete_model_consistent`](https://github.com/pedroszattoni/invopt/tree/main/examples/discrete_model_consistent): for FOPs with dicrete decision spaces (e.g., binary), and when the dataset is consistent with some cost vector. Can be used to check if the data is consistent.
 - [`discrete_model`](https://github.com/pedroszattoni/invopt/tree/main/examples/discrete_model): for FOPs with dicrete decision spaces (e.g., binary).
-- [`MIP_linear`](https://github.com/pedroszattoni/invopt/tree/main/examples/MIP_linear): for mixed-integer FOPs, with cost function linear w.r.t. the continuous part of the decision variable.
-- [`MIP_quadratic`](https://github.com/pedroszattoni/invopt/tree/main/examples/MIP_quadratic): for mixed-integer FOPs, with cost function quadratic w.r.t. the continuous part of the decision variable.
+- [`MIP_linear`](https://github.com/pedroszattoni/invopt/tree/main/examples/MIP_linear): for FOPs with mixed-integer decision spaces and cost functions linear w.r.t. the continuous part of the decision variable.
+- [`MIP_quadratic`](https://github.com/pedroszattoni/invopt/tree/main/examples/MIP_quadratic): for FOPs with mixed-integer decision spaces and cost functions quadratic w.r.t. the continuous part of the decision variable.
 - [`FOM`](https://github.com/pedroszattoni/invopt/tree/main/examples/FOM): for general FOPs. Solves IO problem approximately using first-order methods.
-
-## Usage & examples
-
-The folder [examples](https://github.com/pedroszattoni/invopt/tree/main/examples) contains multiple examples of how to use the functions of the InvOpt package.
 
 ## Contributing
 
