@@ -52,17 +52,6 @@ ___
 > $\quad$ Compute $g = \sum_ {j \in B} \left( \kappa \nabla\mathcal{R}(\theta_ t - \hat{\theta}) + \phi(\hat{s}_ j,\hat{x}_ j) - \phi(\hat{s}_ j,x_ j) \right)$  
 > $\quad$ Update step:  
 >
->$$  
-\theta_ {t+1} = \begin{cases}  
-\theta_ t \odot \exp(-\eta_ t g) & \text{if} \quad \kappa \rVert \theta_ t \odot \exp(-\eta_t g) \rVert_ 1 \leq 1 \\  
-\frac{\theta_ t \odot \exp(\eta_ t g)}{\kappa \rVert \theta_ t \odot \exp(-\eta_ t g) \rVert_ 1} & \text{otherwise}  
-\end{cases}  
-$$  
-> **end for**  
-> **Output**: $\\{ \theta_ t \\}_ {t=1}^T$,
-___
-where $\odot$ means element-wise multiplication.
-
 >$$
 \theta_ {t+1} =
 \begin{cases}
@@ -70,6 +59,21 @@ where $\odot$ means element-wise multiplication.
 \frac{\theta_ t \odot \exp(\eta_ t g)}{\kappa \rVert \theta_ t \odot \exp(-\eta_ t g) \rVert_ 1} & \text{otherwise}
 \end{cases}
 $$ 
+>
+> **end for**  
+> **Output**: $\\{ \theta_ t \\}_ {t=1}^T$,
+___
+where $\odot$ means element-wise multiplication.
+
+>s  
+>$$
+\theta_ {t+1} =
+\begin{cases}
+\theta_ t \odot \exp(-\eta_ t g) & \text{if} \quad \kappa \rVert \theta_ t \odot \exp(-\eta_t g) \rVert_ 1 \leq 1 \\
+\frac{\theta_ t \odot \exp(\eta_ t g)}{\kappa \rVert \theta_ t \odot \exp(-\eta_ t g) \rVert_ 1} & \text{otherwise}
+\end{cases}
+$$  
+>s  
 
 **Note**: for the (A-)FOP oracles, ties in the argmin can be broken arbitrarily. Moreover, approximate oracles can also be used. For more details on the algorithms implement in the InvOpt package, please see [Zattoni Scroccaro et al. (2023)](https://arxiv.org/abs/0000.00000) and the documentation of the `FOM` function.
 
