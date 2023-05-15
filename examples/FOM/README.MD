@@ -63,7 +63,6 @@ $$
 ___
 where $\odot$ means element-wise multiplication.
 
->s
 >$$
 \theta_ {t+1} =
 \begin{cases}
