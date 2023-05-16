@@ -65,7 +65,7 @@ $$
 ___
 where $\odot$ means element-wise multiplication.
 
-**Note**: for the (A-)FOP oracles, ties in the argmin can be broken arbitrarily. Moreover, approximate oracles can also be used (see [Zattoni Scroccaro et al. (2023)](https://arxiv.org/abs/0000.00000)). For more details on the algorithms implemented in the InvOpt package, and their possible modifications, please see the documentation of the `FOM` function. For instance, there are different options on how to choose the batch of examples $B$, different options on what value exactly the algorithm returns (e.g., last iterate or some kind of average), or the option to normalize the subgradients.
+**Note**: for the (A-)FOP oracles, ties in the argmin can be broken arbitrarily. Moreover, approximate oracles can also be used (see [Zattoni Scroccaro et al. (2023)](https://arxiv.org/abs/2305.07730)). For more details on the algorithms implemented in the InvOpt package, and their possible modifications, please see the documentation of the `FOM` function. For instance, there are different options on how to choose the batch of examples $B$, different options on what value exactly the algorithm returns (e.g., last iterate or some kind of average), or the option to normalize the subgradients.
 
 ## Example: binary linear program
 
@@ -79,4 +79,4 @@ $$
 \end{aligned}
 $$
 
-where $\hat{s}_ i = (A_ i, b_ i)$ and the IO problem is solved using different versions fo the first-order algorithm and its exponentiated variant. For a detailed description of this example, please see [Zattoni Scroccaro et al. (2023)](https://arxiv.org/abs/0000.00000).
+where $\hat{s}_ i = (A_ i, b_ i)$ and the IO problem is solved using different versions fo the first-order algorithm and its exponentiated variant. For a detailed description of this example, please see [Zattoni Scroccaro et al. (2023)](https://arxiv.org/abs/2305.07730).

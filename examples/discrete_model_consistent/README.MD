@@ -56,4 +56,4 @@ $$
 \end{aligned}
 $$
 
-where $\hat{s}_ i = (A_ i, b_ i)$ and the IO problem is solved using the incenter and feasibilty strategies from `discrete_model_consistent`, as well as the circumcenter strategy from [Besbes et al. (2022)](https://arxiv.org/abs/2106.14015). For a detailed description of this example, please see [Zattoni Scroccaro et al. (2023)](https://arxiv.org/abs/0000.00000).
+where $\hat{s}_ i = (A_ i, b_ i)$ and the IO problem is solved using the incenter and feasibilty strategies from `discrete_model_consistent`, as well as the circumcenter strategy from [Besbes et al. (2022)](https://arxiv.org/abs/2106.14015). For a detailed description of this example, please see [Zattoni Scroccaro et al. (2023)](https://arxiv.org/abs/2305.07730).

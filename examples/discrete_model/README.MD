@@ -56,4 +56,4 @@ $$
 \end{aligned}
 $$
 
-where $\hat{s}_ i = (A_ i, b_ i)$, $\sigma_i$ is a Gaussian noise vector, and the IO problem is solved using the Augmented Suboptimality loss and Suboptimality loss reformulations. For a detailed description of this example, please see [Zattoni Scroccaro et al. (2023)](https://arxiv.org/abs/0000.00000).
+where $\hat{s}_ i = (A_ i, b_ i)$, $\sigma_i$ is a Gaussian noise vector, and the IO problem is solved using the Augmented Suboptimality loss and Suboptimality loss reformulations. For a detailed description of this example, please see [Zattoni Scroccaro et al. (2023)](https://arxiv.org/abs/2305.07730).

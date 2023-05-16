@@ -71,4 +71,4 @@ $$
 \end{aligned}
 $$
 
-where $\hat{s}_ i = (A_ i, B_ i, c_ i, 0)$, and the IO problem is solved using the solution methods presented above, with $\phi_ 1(w,z) = 1$ and $\phi_ 2(w,z) = z$. For a detailed description of this example, please see [Zattoni Scroccaro et al. (2023)](https://arxiv.org/abs/0000.00000).
+where $\hat{s}_ i = (A_ i, B_ i, c_ i, 0)$, and the IO problem is solved using the solution methods presented above, with $\phi_ 1(w,z) = 1$ and $\phi_ 2(w,z) = z$. For a detailed description of this example, please see [Zattoni Scroccaro et al. (2023)](https://arxiv.org/abs/2305.07730).

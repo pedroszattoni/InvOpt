@@ -77,8 +77,8 @@ $$
 \end{aligned}
 $$
 
-where $\hat{s}_ i = (A_ i, B_ i, c_ i, 0)$, and the IO problem is solved using the solution methods presented above, with $\phi_ 1(w,z) = [z^\top \ 1]^\top$ and $\phi_ 2(w,z) = z$. The way the synthetic data is generated and the way the results are evaluated follow the same template as the numerical experiments in [Zattoni Scroccaro et al. (2023)](https://arxiv.org/abs/0000.00000).
+where $\hat{s}_ i = (A_ i, B_ i, c_ i, 0)$, and the IO problem is solved using the solution methods presented above, with $\phi_ 1(w,z) = [z^\top \ 1]^\top$ and $\phi_ 2(w,z) = z$. The way the synthetic data is generated and the way the results are evaluated follow the same template as the numerical experiments in [Zattoni Scroccaro et al. (2023)](https://arxiv.org/abs/2305.07730).
 
 ## Example: simultanious classification and regression
 
-The `MIP_quadratic` function can also be used for simultanious classification and regression for supervised learning problems. In the file `simultanious_regression_classification.py`, you will find an example using the [Breast Cancer Wisconsin (Diagnostic) dataset](https://archive-beta.ics.uci.edu/dataset/17/breast+cancer+wisconsin+diagnostic). For a detailed description of this example, please see [Zattoni Scroccaro et al. (2023)](https://arxiv.org/abs/0000.00000).
+The `MIP_quadratic` function can also be used for simultanious classification and regression for supervised learning problems. In the file `simultanious_regression_classification.py`, you will find an example using the [Breast Cancer Wisconsin (Diagnostic) dataset](https://archive-beta.ics.uci.edu/dataset/17/breast+cancer+wisconsin+diagnostic). For a detailed description of this example, please see [Zattoni Scroccaro et al. (2023)](https://arxiv.org/abs/2305.07730).

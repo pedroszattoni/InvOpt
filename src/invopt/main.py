@@ -281,8 +281,8 @@ def discrete_model_consistent(dataset, phi, decision_space,
     """
     Inverse optimization for discrete models with consistent data.
 
-    Uses incenter (default) or feasibility strategy. See an example usage at
-    https://github.com/pedroszattoni/invopt/tree/main/examples
+    Uses incenter (default) or feasibility strategy. For more details, see
+    https://github.com/pedroszattoni/invopt/tree/main/examples/discrete_model_consistent
 
     Parameters
     ----------
@@ -463,8 +463,8 @@ def discrete_model(dataset, phi, decision_space,
     """
     Inverse optimization for discrete models.
 
-    See an example usage at
-    https://github.com/pedroszattoni/invopt/tree/main/examples
+    For more details, see
+    https://github.com/pedroszattoni/invopt/tree/main/examples/discrete_model
 
     Parameters
     ----------
@@ -637,8 +637,8 @@ def MIP_linear(dataset, decision_space,
     """
     Inverse optimization for linear models with mixed-integer feasible sets.
 
-    See an example usage at
-    https://github.com/pedroszattoni/invopt/tree/main/examples
+    For more details, see
+    https://github.com/pedroszattoni/invopt/tree/main/examples/MIP_linear
 
     Parameters
     ----------
@@ -885,8 +885,8 @@ def MIP_quadratic(dataset, decision_space,
     """
     Inverse optimization for quadratic models with mixed-integer feasible sets.
 
-    See an example usage at
-    https://github.com/pedroszattoni/invopt/tree/main/examples
+    For more details, see
+    https://github.com/pedroszattoni/invopt/tree/main/examples/MIP_quadratic
 
     Parameters
     ----------
@@ -1074,8 +1074,8 @@ def FOM(dataset, phi, theta_0, FOP, step_size, T,
     """
     Optimize (Augmented) Suboptimality loss using first-order methods.
 
-    See an example usage at
-    https://github.com/pedroszattoni/invopt/tree/main/examples
+    For more details, see
+    https://github.com/pedroszattoni/invopt/tree/main/examples/FOM
 
     Parameters
     ----------
