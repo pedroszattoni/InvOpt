@@ -10,7 +10,13 @@ $$
 
 ## Solution method
 
-Given the a dataset of signal-response data $\mathcal{D} = \\{(\hat{s}_ i, \hat{x}_ i)\\}_ {i=1}^N$,  the `FOM` function solves the IO problem by minimizing the *(Augmented) Suboptimality loss*. To minimize the Augmented Suboptimality loss, the first-order algorithm uses the augmented FOP oracle
+Given the a dataset of signal-response data $\mathcal{D} = \\{(\hat{s}_ i, \hat{x}_ i)\\}_ {i=1}^N$,  the `FOM` function solves the IO problem by minimizing the empirical risk minimization problem
+
+$$
+\min_ {\theta \in \Theta} \ \kappa\mathcal{R}(\theta - \hat{\theta}) + \frac{1}{N}\sum_{i=1}^N \ell_\theta (\hat{s}_i, \hat{x}_i)
+$$
+
+using first-order methods, where $\ell_\theta$ is the loss function. When using the Augmented Suboptimality loss, the first-order algorithm uses the augmented FOP oracle
 
 $$
 \text{A-FOP}(\theta, \hat{s}, \hat{x}) = \arg\min_ {x \in \mathbb{X}(\hat{s})} \big\\{\theta^\top \phi(\hat{s},x) - d(\hat{x},x) \big\\}.
@@ -43,13 +49,19 @@ where
 - $\Theta$ is the set used to encode any prior information or assumption we may have on the expert's true cost function, e.g., nonnegativity of the cost vector.
 - $\Pi_\Theta(\theta)$ is the euclidean projection of $\theta$ onto $\Theta$.
 
-When the regularization parameter $\kappa > 0$ and $\mathcal{R}(\theta) = \rVert \theta \rVert_ 1$, it also possible to use an *exponentiated* first-order algorithm.
+When the regularization parameter $\kappa > 0$, $\Theta = \\{\theta \in \mathbb{R}^p : \theta \geq 0 \\}$ and $\mathcal{R}(\theta) = \rVert \theta \rVert_ 1$, the empirical risk minimization problem can be reformulated as
+
+$$
+\min_ {\theta \in \Delta_{\kappa}} \ \frac{1}{N}\sum_{i=1}^N \ell_\theta (\hat{s}_i, \hat{x}_i),
+$$
+
+where $$\Delta_{\kappa} = \\{\theta \in \mathbb{R}^{p} : \kappa \rVert \theta \rVert_ 1 \leq 1, \theta \geq 0\\}$$ and it also possible to use an *exponentiated* first-order algorithm.
 ___
 **Exponentiated first-order algorithm**
 > **for** $t=1, \ldots, T$ **do**:  
 > $\quad$ Sample a batch of examples  $B \subset \\{1, \ldots, N\\}$  
 > $\quad$ Compute $x_ j = \text{A-FOP}(\theta_ t, \hat{s}_ j, \hat{x}_ j)$ or $x_ j = \text{FOP}(\theta_ t, \hat{s}_ j)$ for all $j \in B$  
-> $\quad$ Compute $g = \sum_ {j \in B} \left( \kappa \nabla\mathcal{R}(\theta_ t - \hat{\theta}) + \phi(\hat{s}_ j,\hat{x}_ j) - \phi(\hat{s}_ j,x_ j) \right)$  
+> $\quad$ Compute $g = \sum_ {j \in B} \big( \phi(\hat{s}_ j,\hat{x}_ j) - \phi(\hat{s}_ j,x_ j) \big)$  
 > $\quad$ Update step:  
 >
 >$$
@@ -65,7 +77,7 @@ $$
 ___
 where $\odot$ means element-wise multiplication.
 
-**Note**: for the (A-)FOP oracles, ties in the argmin can be broken arbitrarily. Moreover, approximate oracles can also be used (see [Zattoni Scroccaro et al. (2023)](https://arxiv.org/abs/2305.07730)). For more details on the algorithms implemented in the InvOpt package, and their possible modifications, please see the documentation of the `FOM` function. For instance, there are different options on how to choose the batch of examples $B$, different options on what value exactly the algorithm returns (e.g., last iterate or some kind of average), or the option to normalize the subgradients.
+**Note**: for the (A-)FOP oracles, ties in the argmin can be broken arbitrarily. Moreover, approximate oracles can also be used. For more details on the derivation of these algorithm and loss functions, see [Zattoni Scroccaro et al. (2023)](https://arxiv.org/abs/2305.07730). For more details on the algorithms implemented in the InvOpt package, and their possible variants, please see the documentation of the `FOM` function. For instance, there are different options on how to choose the batch of examples $B$, different options on what value exactly the algorithm returns (e.g., last iterate or some kind of average), or the option to normalize the subgradients.
 
 ## Example: binary linear program
 
