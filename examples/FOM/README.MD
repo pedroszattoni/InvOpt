@@ -55,7 +55,7 @@ $$
 \min_ {\theta \in \Delta_{\kappa}} \ \frac{1}{N}\sum_{i=1}^N \ell_\theta (\hat{s}_i, \hat{x}_i),
 $$
 
-where $$\Delta_{\kappa} = \\{\theta \in \mathbb{R}^{p} : \kappa \rVert \theta \rVert_ 1 \leq 1, \theta \geq 0\\}$$ and it also possible to use an *exponentiated* first-order algorithm.
+where $\Delta_{\kappa} = \\{\theta \in \mathbb{R}^{p} : \kappa \rVert \theta \rVert_ 1 \leq 1, \theta \geq 0\\}$ and it also possible to use an *exponentiated* first-order algorithm.
 ___
 **Exponentiated first-order algorithm**
 > **for** $t=1, \ldots, T$ **do**:  
