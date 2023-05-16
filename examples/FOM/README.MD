@@ -75,7 +75,7 @@ $$
 > **end for**  
 > **Output**: $\\{ \theta_ t \\}_ {t=1}^T$,
 ___
-where $\odot$ means element-wise multiplication.
+where $\odot$ is element-wise multiplication and $\text{exp}$ is element-wise exponentiation.
 
 **Note**: for the (A-)FOP oracles, ties in the argmin can be broken arbitrarily. Moreover, approximate oracles can also be used. For more details on the derivation of these algorithm and loss functions, see [Zattoni Scroccaro et al. (2023)](https://arxiv.org/abs/2305.07730). For more details on the algorithms implemented in the InvOpt package, and their possible variants, please see the documentation of the `FOM` function. For instance, there are different options on how to choose the batch of examples $B$, different options on what value exactly the algorithm returns (e.g., last iterate or some kind of average), or the option to normalize the subgradients.
 
