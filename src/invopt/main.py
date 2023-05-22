@@ -1136,7 +1136,7 @@ def FOM(dataset, phi, theta_0, FOP, step_size, T,
         convergence rate for the projected stochastic subgradient method"). The
         default is 0.
     callback : {callable, None}, optional
-        If not None, called after each iteration of the algorithm. The default
+        If not None, callback(theta_t) is evaluated for t=0,...,T. The default
         is None.
     normalize_grad : bool, optional
         If True, subgradient vectors are normalized before each iteration of
@@ -1149,8 +1149,8 @@ def FOM(dataset, phi, theta_0, FOP, step_size, T,
     Raises
     ------
     Exception
-        If unsupported Theta or regularizer. If step = 'exponentiated',
-        reg_param > 0, and regularizer is not 'L1'.
+        If unsupported Theta or regularizer. If step = 'exponentiated', and
+        the regularizer is not 'L1'.
 
     Returns
     -------
@@ -1166,10 +1166,9 @@ def FOM(dataset, phi, theta_0, FOP, step_size, T,
     check_regularizer(regularizer)
     check_reg_parameter(reg_param)
 
-    if step == 'exponentiated':
-        if (reg_param == 0) or (regularizer != 'L1'):
-            raise Exception('To use step = \'exponentiated\', reg_param > 0,'
-                            'and regularizer = \'L1\' are required.')
+    if (step == 'exponentiated') and (regularizer != 'L1'):
+        raise Exception('To use step = \'exponentiated\', '
+                        'regularizer = \'L1\' is required.')
 
     # Get the number of examples and dimension of the problem
     N = len(dataset)
