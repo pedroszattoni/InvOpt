@@ -52,9 +52,15 @@ def warning_large_decision_space(decision_space):
 
 
 def warning_dist_func_sub_loss(dist_func, sub_loss):
-    """Warn user dist_func is not necessary when sub_loss=True."""
+    """Warn user dist_func is not used when sub_loss=True."""
     if sub_loss and (dist_func is not None):
-        warnings.warn('dist_func not used when sub_loss=True.')
+        warnings.warn('dist_func is not used when sub_loss=True.')
+
+
+def warning_theta_hat_reg_param(theta_hat, reg_param):
+    """Warn user theta_hat is not used when reg_param=0."""
+    if (theta_hat is not None) and (reg_param == 0):
+        warnings.warn('theta_hat is not used when reg_param=0.')
 
 
 def normalize(vec, norm):
@@ -128,7 +134,7 @@ def ASL(theta, dataset, FOP_aug, phi, dist_func,
         Augmented suboptimality loss value.
 
     """
-    # Check if inputs are valid
+    # Check if the inputs are valid
     check_regularizer(regularizer)
     check_reg_parameter(reg_param)
 
@@ -341,7 +347,7 @@ def discrete_model_consistent(dataset, decision_space, phi,
         print("gurobipy is required for invopt's discrete_model_consistent " +
               "function.")
 
-    # Check if inputs are valid
+    # Check if the inputs are valid
     check_Theta(Theta)
     check_decision_space(decision_space)
     check_regularizer(regularizer)
@@ -626,7 +632,7 @@ def MIP_linear(dataset, decision_space,
     except ImportError:
         print("gurobipy is required for invopt's MIP_linear function.")
 
-    # Check if inputs are valid
+    # Check if the inputs are valid
     check_Theta(Theta)
     check_decision_space(decision_space)
     check_regularizer(regularizer)
@@ -636,6 +642,7 @@ def MIP_linear(dataset, decision_space,
     # Warnings
     warning_large_decision_space(decision_space)
     warning_dist_func_sub_loss(dist_func_z, sub_loss)
+    warning_theta_hat_reg_param(theta_hat, reg_param)
 
     if (phi1 is None) and (phi2 is None):
         raise Exception('Either phi1 or phi2 have to be given.')
@@ -717,67 +724,39 @@ def MIP_linear(dataset, decision_space,
                                                  for j in range(m1))
                                    == 0 for i in range(m2))
 
-    if theta_hat is None:
-        Q_hat = np.zeros((m2, u1))
-        q_hat = np.zeros(u2)
+    if reg_param > 0:
+        if theta_hat is None:
+            Q_hat = np.zeros((m2, u1))
+            q_hat = np.zeros(u2)
+        else:
+            Q_hat, q_hat = theta_hat
+
+        if regularizer == 'L2_squared':
+            Q_sum = gp.quicksum((Q[i, j] - Q_hat[i, j])**2 for i in range(m2)
+                                for j in range(u1))
+            q_sum = gp.quicksum((q[i] - q_hat[i])**2 for i in range(u2))
+            reg_term = (reg_param/2)*(Q_sum + q_sum)
+        elif regularizer == 'L1':
+            tQ = mdl.addVars(m2, u1, lb=-gp.GRB.INFINITY,
+                             vtype=gp.GRB.CONTINUOUS)
+            tq = mdl.addVars(u2, lb=-gp.GRB.INFINITY, vtype=gp.GRB.CONTINUOUS)
+
+            reg_term = reg_param*(gp.quicksum(tQ) + gp.quicksum(tq))
+
+            mdl.addConstrs(Q[i, j] - Q_hat[i, j] <= tQ[i, j]
+                           for i in range(m2) for j in range(u1))
+            mdl.addConstrs(Q_hat[i, j] - Q[i, j] <= tQ[i, j]
+                           for i in range(m2) for j in range(u1))
+            mdl.addConstrs(q[i] - q_hat[i] <= tq[i] for i in range(u2))
+            mdl.addConstrs(q_hat[i] - q[i] <= tq[i] for i in range(u2))
     else:
-        Q_hat, q_hat = theta_hat
-
-    if regularizer == 'L2_squared':
-        Q_sum = gp.quicksum((Q[i, j] - Q_hat[i, j])**2 for i in range(m2)
-                            for j in range(u1))
-        q_sum = gp.quicksum((q[i] - q_hat[i])**2 for i in range(u2))
-        reg_term = (reg_param/2)*(Q_sum + q_sum)
-    elif regularizer == 'L1':
-        tQ = mdl.addVars(m2, u1, lb=-gp.GRB.INFINITY, vtype=gp.GRB.CONTINUOUS)
-        tq = mdl.addVars(u2, lb=-gp.GRB.INFINITY, vtype=gp.GRB.CONTINUOUS)
-
-        reg_term = reg_param*(gp.quicksum(tQ) + gp.quicksum(tq))
-
-        mdl.addConstrs(Q[i, j] - Q_hat[i, j] <= tQ[i, j]
-                       for i in range(m2) for j in range(u1))
-        mdl.addConstrs(Q_hat[i, j] - Q[i, j] <= tQ[i, j]
-                       for i in range(m2) for j in range(u1))
-        mdl.addConstrs(q[i] - q_hat[i] <= tq[i] for i in range(u2))
-        mdl.addConstrs(q_hat[i] - q[i] <= tq[i] for i in range(u2))
+        reg_term = 0
 
     mdl.setObjective(reg_term + sum_beta, gp.GRB.MINIMIZE)
 
-    if sub_loss and (Theta != 'nonnegative'):
-        # Search over facets of unit L-infinity sphere for the solution
-        # with the lowest objective value.
-        best_obj = np.inf
-        for i in range(u1):
-            for j in [-1, 1]:
-                cons = mdl.addConstr(q[i] == j)
-                mdl.optimize()
-                mdl.remove(cons)
-                # If an optimal solution was found
-                if mdl.status == 2:
-                    obj_val = mdl.objVal
-                    if obj_val < best_obj:
-                        best_obj = obj_val
-                        Q_opt = np.array([[Q[i, j].X for i in range(m2)]
-                                          for j in range(u1)])
-                        q_opt = np.array([q[i].X for i in range(u2)])
-        for i in range(m2):
-            for k in range(u1):
-                for j in [-1, 1]:
-                    cons = mdl.addConstr(Q[i, k] == j)
-                    mdl.optimize()
-                    mdl.remove(cons)
-                    # If an optimal solution was found
-                    if mdl.status == 2:
-                        obj_val = mdl.objVal
-                        if obj_val < best_obj:
-                            best_obj = obj_val
-                            Q_opt = np.array([[Q[i, j].X for i in range(m2)]
-                                              for j in range(u1)])
-                            q_opt = np.array([q[i].X for i in range(u2)])
-    else:
-        if sub_loss and (Theta == 'nonnegative'):
-            mdl.addConstr(gp.quicksum(q) + gp.quicksum(Q) == 1)
-
+    # Check if norm equality constraint needs to be added to avoid the trivial
+    # solution theta=0
+    if (not sub_loss) or ((reg_param > 0) and (theta_hat is not None)):
         mdl.optimize()
 
         if mdl.status != 2:
@@ -788,6 +767,52 @@ def MIP_linear(dataset, decision_space,
         Q_opt = np.array([[Q[i, j].X for i in range(m2)]
                          for j in range(u1)])
         q_opt = np.array([q[i].X for i in range(u2)])
+
+    else:
+        if Theta == 'nonnegative':
+            mdl.addConstr(gp.quicksum(q) + gp.quicksum(Q) == 1)
+            mdl.optimize()
+
+            if mdl.status != 2:
+                raise Exception('Optimal solution not found. Gurobi status '
+                                f'code = {mdl.status}. Set the flag '
+                                'verbose=True for more details.')
+
+            Q_opt = np.array([[Q[i, j].X for i in range(m2)]
+                             for j in range(u1)])
+            q_opt = np.array([q[i].X for i in range(u2)])
+        else:
+            # Search over facets of unit L-infinity sphere for the solution
+            # with the lowest objective value.
+            best_obj = np.inf
+            for i in range(u1):
+                for j in [-1, 1]:
+                    cons = mdl.addConstr(q[i] == j)
+                    mdl.optimize()
+                    mdl.remove(cons)
+                    # If an optimal solution was found
+                    if mdl.status == 2:
+                        obj_val = mdl.objVal
+                        if obj_val < best_obj:
+                            best_obj = obj_val
+                            Q_opt = np.array([[Q[i, j].X for i in range(m2)]
+                                              for j in range(u1)])
+                            q_opt = np.array([q[i].X for i in range(u2)])
+            for i in range(m2):
+                for k in range(u1):
+                    for j in [-1, 1]:
+                        cons = mdl.addConstr(Q[i, k] == j)
+                        mdl.optimize()
+                        mdl.remove(cons)
+                        # If an optimal solution was found
+                        if mdl.status == 2:
+                            obj_val = mdl.objVal
+                            if obj_val < best_obj:
+                                best_obj = obj_val
+                                Q_opt = np.array([[Q[i, j].X
+                                                   for i in range(m2)]
+                                                  for j in range(u1)])
+                                q_opt = np.array([q[i].X for i in range(u2)])
 
     theta_opt = np.concatenate((Q_opt.flatten('F'), q_opt))
     return theta_opt
@@ -877,7 +902,7 @@ def MIP_quadratic(dataset, decision_space,
     except ImportError:
         print("cvxpy is required for invopt's MIP_quadratic function.")
 
-    # Check if inputs are valid
+    # Check if the inputs are valid
     check_Theta(Theta)
     check_decision_space(decision_space)
     check_regularizer(regularizer)
@@ -886,6 +911,7 @@ def MIP_quadratic(dataset, decision_space,
     # Warnings
     warning_large_decision_space(decision_space)
     warning_dist_func_sub_loss(dist_func_z, sub_loss)
+    warning_theta_hat_reg_param(theta_hat, reg_param)
 
     N = len(dataset)
 
@@ -1084,8 +1110,8 @@ def FOM(dataset, phi, theta_0, FOP, step_size, T,
     Raises
     ------
     Exception
-        If unsupported Theta or regularizer. If step = 'exponentiated', and
-        the regularizer is not 'L1'.
+        If unsupported Theta or regularizer. If step = 'exponentiated' and
+        the regularizer is not 'L1' or theta_hat is not None.
 
     Returns
     -------
@@ -1096,14 +1122,21 @@ def FOM(dataset, phi, theta_0, FOP, step_size, T,
         (averaged) vector after t iterations of the algorithm.
 
     """
-    # Check if inputs are valid
+    # Check if the inputs are valid
     check_Theta(Theta)
     check_regularizer(regularizer)
     check_reg_parameter(reg_param)
 
+    # Warnings
+    warning_theta_hat_reg_param(theta_hat, reg_param)
+
     if (step == 'exponentiated') and (regularizer != 'L1'):
         raise Exception('To use step = \'exponentiated\', '
                         'regularizer = \'L1\' is required.')
+
+    if (step == 'exponentiated') and (theta_hat is not None):
+        raise Exception('To use step = \'exponentiated\', '
+                        'theta_hat = None is required.')
 
     # Get the number of examples and dimension of the problem
     N = len(dataset)

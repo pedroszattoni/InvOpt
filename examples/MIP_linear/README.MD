@@ -30,7 +30,7 @@ We define $M_ i = |\mathbb{Z}(\hat{w}_ i)|$ and use the following indexing notat
 
 $$
 \begin{aligned}
-\min_{\theta, \beta_ i, \lambda_ {ij}} \quad & \kappa\mathcal{R}(\theta) + \frac{1}{N}\sum_ {i=1}^N \beta_ i  \\
+\min_{\theta, \beta_ i, \lambda_ {ij}} \quad & \kappa\mathcal{R}(\theta - \hat{\theta}) + \frac{1}{N}\sum_ {i=1}^N \beta_ i  \\
 \text{s.t.} \ \quad & \theta^\top \phi(\hat{s}_ i,\hat{x}_ i) + \lambda_ {ij}^\top (\hat{c}_ i - \hat{B}_ i z_ {ij}) - q^\top \phi_ 2(\hat{w}_ i, z_ {ij}) + d(\hat{z}_ i, z_ {ij}) \leq \beta_ i & \forall i \in [N], \ \forall j \in [M_ i] \\
 & Q \phi_ 1(\hat{w}_ i, z_ {ij}) + \hat{A}_ i^\top \lambda_ {ij} = 0 & \forall i \in [N], \ \forall j \in [M_ i] \\
 & \theta \in \Theta, \quad \beta_i \geq 0, \quad \lambda_ {ij} \geq 0 & \forall i \in [N], \ \forall j \in [M_ i],
@@ -38,6 +38,7 @@ $$
 $$
 
 where
+- $\hat{\theta}$ is an a priory belief or estimate of the true cost vector.
 - $\mathcal{R} : \mathbb{R}^p \to \mathbb{R}$ is a regularization function.
 - $\kappa$: nonnegative regularization parameter. It can be interpreted as a trade-off parameter between fitting the training dataset (small $\kappa$) and generalization (large $\kappa$).
 - $\phi_ 1: \mathbb{W} \times \mathbb{Z}^v \to \mathbb{R}^m$ is the feature mapping, which maps a signal-response pair $(w,z)$ to a feature vector $\phi_ 1(w,z)$.
@@ -50,14 +51,14 @@ Alternatively, the `MIP_linear` function also implements a *Suboptimality loss*-
 
 $$
 \begin{aligned}
-\min_{\theta, \beta_ i, \lambda_ {ij}} \quad & \frac{1}{N}\sum_ {i=1}^N \beta_ i  \\
+\min_{\theta, \beta_ i, \lambda_ {ij}} \quad & \kappa\mathcal{R}(\theta - \hat{\theta}) + \frac{1}{N}\sum_ {i=1}^N \beta_ i  \\
 \text{s.t.} \ \quad & \theta^\top \phi(\hat{s}_ i,\hat{x}_ i) + \lambda_ {ij}^\top (\hat{c}_ i - \hat{B}_ i z_ {ij}) - q^\top \phi_ 2(\hat{w}_ i, z_ {ij})  \leq \beta_ i & \forall i \in [N], \ \forall j \in [M_ i] \\
 & Q \phi_ 1(\hat{w}_ i, z_ {ij}) + \hat{A}_ i^\top \lambda_ {ij} = 0 & \forall i \in [N], \ \forall j \in [M_ i] \\
-& \theta \in \Theta, \quad \rVert \theta \rVert = 1, \quad \beta_ i \geq 0, \quad \lambda_ {ij} \geq 0 & \forall i \in [N], \ \forall j \in [M_ i],
+& \theta \in \Theta, \quad \beta_ i \geq 0, \quad \lambda_ {ij} \geq 0 & \forall i \in [N], \ \forall j \in [M_ i].
 \end{aligned}
 $$
 
-where the norm equality constraint is the $\ell_ 1$ norm if $\Theta = \\{\theta \in \mathbb{R}^p : \theta \geq 0\\}$, and the $\ell_ \infty$ norm otherwise.
+If $\kappa=0$ or $\hat{\theta}$ is not provided, we need to add an extra the norm equality constraint $\rVert \theta \rVert = 1$ to exclude the trivial solution $\theta=0$. We use the $\ell_ 1$ norm if $\Theta = \\{\theta \in \mathbb{R}^p : \theta \geq 0\\}$, and the $\ell_ \infty$ norm otherwise.
 
 ## Example: binary linear mixed-interger program
 
