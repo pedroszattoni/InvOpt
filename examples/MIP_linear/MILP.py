@@ -190,6 +190,11 @@ for approach in approaches:
     p_index = approaches.index(approach)
     print(f'Approach: {approach}')
 
+    if approach == 'SL-MILP':
+        sub_loss = True
+    else:
+        sub_loss = False
+
     tic = time.time()
     for run in range(runs):
         dataset_train = dataset_train_runs[run]
@@ -197,13 +202,12 @@ for approach in approaches:
         theta_true = theta_true_runs[run]
 
         for N in N_list:
-            sub_loss = (approach == 'SL-MILP')
             theta_IO = iop.MIP_linear(dataset_train[:N],
                                       decision_space,
                                       phi1=phi1,
                                       phi2=phi2,
                                       Theta=Theta,
-                                      dist_func=L2,
+                                      dist_func_z=L2,
                                       sub_loss=sub_loss)
 
             x_diff_train, obj_diff_train, theta_diff = \

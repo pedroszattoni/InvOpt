@@ -51,14 +51,10 @@ def warning_large_decision_space(decision_space):
                       'the dimension of the binary decision vector.')
 
 
-def warning_dist_func_reg_param_sub_loss(dist_func, reg_param, sub_loss):
-    """Warn user dist_func / reg_param are not necessary when sub_loss=True."""
-    if sub_loss:
-        if dist_func is not None:
-            warnings.warn('dist_func not used when sub_loss=True.')
-
-        if reg_param > 0:
-            warnings.warn('reg_param not used when sub_loss=True.')
+def warning_dist_func_sub_loss(dist_func, sub_loss):
+    """Warn user dist_func is not necessary when sub_loss=True."""
+    if sub_loss and (dist_func is not None):
+        warnings.warn('dist_func not used when sub_loss=True.')
 
 
 def normalize(vec, norm):
@@ -116,7 +112,8 @@ def ASL(theta, dataset, FOP_aug, phi, dist_func,
     reg_param : float, optional
         Nonnegative regularization parameter. The default is 0.
     theta_hat : {1D ndarray, None}, optional
-        A priory belief or estimate of the true cost vector. The default is
+        A priory belief or estimate of the true cost vector. When
+        theta_hat=None, it is defined as the vector of zeros. The default is
         None.
 
     Raises
@@ -269,7 +266,7 @@ def evaluate(theta, dataset, FOP, dist_func,
     return results
 
 
-def discrete_model_consistent(dataset, phi, decision_space,
+def discrete_model_consistent(dataset, decision_space, phi,
                               X=None,
                               dist_func=None,
                               Theta=None,
@@ -296,9 +293,9 @@ def discrete_model_consistent(dataset, phi, decision_space,
     X : {callable, None}, optional
         Constraint set. Given a signal s and response x, returns True if x is a
         feasible response, and False otherwise. It does not need to check for
-        the type of the decision space contained in decision_space. For
-        example, if decision_space=('binary', n), X does not need to check if x
-        is a binary vector. Syntax: X(s, x). If None, it will be defined as
+        the type of the decision variables contained in decision_space. For
+        example, if decision_space=('binary', n), X should not check if x is a
+        binary vector. Syntax: X(s, x). If None, it will be defined as
         "def X(s, x): return True". The default is None.
     dist_func : {callable, None}, optional
         Distance function. Given two responses x1 and x2, returns the distance
@@ -311,15 +308,14 @@ def discrete_model_consistent(dataset, phi, decision_space,
         Type of regularization on cost vector theta. The default is
         'L2_squared'.
     theta_hat : {1D ndarray, None}, optional
-        A priory belief or estimate of the true cost vector. When not None, the
-        cost vector returned will be the feasible vector closest to theta_hat.
-        The default is None.
+        A priory belief or estimate of the true cost vector. The default is
+        None.
     feasibility : bool, optional
-        If True, solve problem as a feasibility problem. Namely, searches
-        over the facets of the unit L-infinity sphere until a feasible
-        cost vector is found. If Theta='nonnegative', only searches over the
-        nonnegative facet of the L-1 sphere. If False, solve the problem
-        using the Incenter strategy. The default is False.
+        If True, solve problem using the feasibility strategy. Namely, if
+        theta_hat=None, we search over the facets of the unit L-infinity sphere
+        until a feasible cost vector is found. If Theta='nonnegative', only
+        searches over the nonnegative facet of the L-1 sphere. If False, solve
+        the problem using the Incenter strategy. The default is False.
     verbose : bool, optional
         If True, print Gurobi's solver output. The default is False.
     gurobi_params : {list of tuple(str, value), None}, optional
@@ -352,21 +348,11 @@ def discrete_model_consistent(dataset, phi, decision_space,
 
     warning_large_decision_space(decision_space)
 
-    if (theta_hat is not None) and feasibility:
-        raise Exception('Either set feasibility=True or set theta_hat not '
-                        'None. When feasibility=True, returns any feasible '
-                        'solution. When theta_hat is not None, returns the '
-                        'feasible solution closest to theta_hat, that is, '
-                        'regularizer(theta - theta_hat) is minimized.')
+    if (dist_func is None) and (not feasibility):
+        raise Exception('dist_func required when feasibility=False.')
 
-    if dist_func is None:
-        if (not feasibility) and (theta_hat is None):
-            raise Exception('dist_func required when feasibility=False and '
-                            'theta_hat is not given.')
-    else:
-        if feasibility or (theta_hat is not None):
-            warnings.warn('dist_func not used when a theta_hat is given or '
-                          'feasibility=True.')
+    if (dist_func is not None) and feasibility:
+        warnings.warn('dist_func not used when feasibility=True.')
 
     if X is None:
         def X(s, x): return True
@@ -400,14 +386,14 @@ def discrete_model_consistent(dataset, phi, decision_space,
                 if X(s_hat, x):
                     phi_1 = phi(s_hat, x)
                     phi_2 = phi(s_hat, x_hat)
-                    if (theta_hat is not None) or feasibility:
+                    if feasibility:
                         dist = 0
                     else:
                         dist = dist_func(x_hat, x)
                     mdl.addConstr(gp.quicksum(theta[j]*(phi_1[j] - phi_2[j])
                                               for j in range(p)) >= dist)
 
-    if feasibility:
+    if feasibility and (theta_hat is None):
         if Theta == 'nonnegative':
             mdl.addConstr(gp.quicksum(theta) == 1)
             mdl.optimize()
@@ -428,8 +414,8 @@ def discrete_model_consistent(dataset, phi, decision_space,
             theta_hat = np.zeros(p)
 
         if regularizer == 'L2_squared':
-            obj = 0.5*gp.quicksum((theta[i] - theta_hat[i])**2
-                                  for i in range(p))
+            obj = 0.5 * gp.quicksum((theta[i] - theta_hat[i])**2
+                                    for i in range(p))
         elif regularizer == 'L1':
             t = mdl.addVars(p, lb=-gp.GRB.INFINITY, vtype=gp.GRB.CONTINUOUS)
             obj = gp.quicksum(t)
@@ -450,7 +436,7 @@ def discrete_model_consistent(dataset, phi, decision_space,
     return theta_opt
 
 
-def discrete_model(dataset, phi, decision_space,
+def discrete_model(dataset, decision_space, phi,
                    X=None,
                    dist_func=None,
                    Theta=None,
@@ -478,9 +464,9 @@ def discrete_model(dataset, phi, decision_space,
     X : {callable, None}, optional
         Constraint set. Given a signal s and response x, returns True if x is a
         feasible response, and False otherwise. It does not need to check for
-        the type of the decision space contained in decision_space. For
-        example, if decision_space=('binary', n), X does not need to check if x
-        is a binary vector. Syntax: X(s, x). If None, it will be defined as
+        the type of the decision variables contained in decision_space. For
+        example, if decision_space=('binary', n), X should not check if x is a
+        binary vector. Syntax: X(s, x). If None, it will be defined as
         "def X(s, x): return True". The default is None.
     dist_func : {callable, None}, optional
         Distance function. Given two responses x1 and x2, returns the distance
@@ -494,8 +480,9 @@ def discrete_model(dataset, phi, decision_space,
     reg_param : float, optional
         Nonnegative regularization parameter. The default is 0.
     theta_hat : {1D ndarray, None}, optional
-        A priory belief or estimate of the true cost vector. When not None,
-        theta_hat is defined as the vector of zeros. The default is None.
+        A priory belief or estimate of the true cost vector. When
+        theta_hat=None, it is defined as the vector of zeros. The default is
+        None.
     sub_loss : bool, optional
         If True, solve the problem using the Suboptimality loss. Namely,
         searches over the facts of the unit L-infinity sphere for the cost
@@ -520,117 +507,46 @@ def discrete_model(dataset, phi, decision_space,
         An optimal cost vector according to the chosen strategy.
 
     """
-    try:
-        import gurobipy as gp
-    except ImportError:
-        print("gurobipy is required for invopt's discrete_model function.")
+    _, n = decision_space
 
-    # Check if inputs are valid
-    check_Theta(Theta)
-    check_decision_space(decision_space)
-    check_regularizer(regularizer)
-    check_reg_parameter(reg_param)
-    check_dist_func(dist_func, sub_loss)
-
-    # Warnings
-    warning_large_decision_space(decision_space)
-    warning_dist_func_reg_param_sub_loss(dist_func, reg_param, sub_loss)
-
-    if X is None:
-        def X(s, x): return True
-
-    N = len(dataset)
-
-    # Sample signal and response to get dimension of the cost vector
-    s_test, x_test = dataset[0]
-    p = len(phi(s_test, x_test))
-
-    # Initialize Gurobi model
-    mdl = gp.Model()
-    if not verbose:
-        mdl.setParam('OutputFlag', 0)
-    if gurobi_params is not None:
-        for param, value in gurobi_params:
-            mdl.setParam(param, value)
-
-    theta = mdl.addVars(p, lb=-gp.GRB.INFINITY, vtype=gp.GRB.CONTINUOUS)
-    beta = mdl.addVars(N, vtype=gp.GRB.CONTINUOUS)
-    sum_beta = (1/N)*gp.quicksum(beta)
-
-    if Theta == 'nonnegative':
-        mdl.addConstrs(theta[i] >= 0 for i in range(p))
-
-    # Add constraints
-    for i in range(N):
-        s_hat, x_hat = dataset[i]
-        if decision_space[0] == 'binary':
-            n = decision_space[1]
-            for k in range(2**n):
-                x = dec_to_bin(k, n)
-                if X(s_hat, x):
-                    phi_1 = phi(s_hat, x)
-                    phi_2 = phi(s_hat, x_hat)
-                    if sub_loss:
-                        dist = 0
-                    else:
-                        dist = dist_func(x_hat, x)
-                    mdl.addConstr(
-                        gp.quicksum(theta[j]*(phi_1[j] - phi_2[j])
-                                    for j in range(p)) >= dist - beta[i])
-
-    if sub_loss:
-        mdl.setObjective(sum_beta, gp.GRB.MINIMIZE)
-
-        if Theta is None:
-            # Search over facets of unit L-infinity sphere for the solution
-            # with the lowest objective value.
-            best_obj = np.inf
-            for i in range(p):
-                for j in [-1, 1]:
-                    cons = mdl.addConstr(theta[i] == j)
-                    mdl.optimize()
-                    obj_val = mdl.objVal
-                    mdl.remove(cons)
-                    if (mdl.status == 2) and (obj_val < best_obj):
-                        best_obj = obj_val
-                        theta_opt = np.array([theta[i].X for i in range(p)])
-        elif Theta == 'nonnegative':
-            mdl.addConstr(gp.quicksum(theta) == 1)
-            mdl.optimize()
-            theta_opt = np.array([theta[i].X for i in range(p)])
+    if theta_hat is None:
+        theta_hat_mod = None
     else:
-        if theta_hat is None:
-            theta_hat = np.zeros(p)
+        theta_hat_mod = (np.zeros((1, 1)), theta_hat)
 
-        if regularizer == 'L2_squared':
-            reg_term = (reg_param/2)*gp.quicksum((theta[i] - theta_hat[i])**2
-                                                 for i in range(p))
-        elif regularizer == 'L1':
-            t = mdl.addVars(p, lb=-gp.GRB.INFINITY, vtype=gp.GRB.CONTINUOUS)
-            reg_term = reg_param*gp.quicksum(t)
-            mdl.addConstrs(theta[i] - theta_hat[i] <= t[i] for i in range(p))
-            mdl.addConstrs(theta_hat[i] - theta[i] <= t[i] for i in range(p))
+    dataset_mod = []
+    for data in dataset:
+        w_hat, z_hat = data
+        s_hat = (np.zeros((1, 1)), np.zeros((1, n)), np.array([0]), w_hat)
+        x_hat = (np.array([0]), z_hat)
+        dataset_mod.append((s_hat, x_hat))
 
-        mdl.setObjective(reg_term + sum_beta, gp.GRB.MINIMIZE)
-        mdl.optimize()
-        theta_opt = np.array([theta[i].X for i in range(p)])
+    theta_opt_mod = MIP_linear(dataset_mod, decision_space,
+                               phi2=phi,
+                               Z=X,
+                               dist_func_z=dist_func,
+                               Theta=Theta,
+                               regularizer=regularizer,
+                               reg_param=reg_param,
+                               theta_hat=theta_hat_mod,
+                               sub_loss=sub_loss,
+                               verbose=verbose,
+                               gurobi_params=gurobi_params)
 
-    if mdl.status != 2:
-        raise Exception('Optimal solution not found. Gurobi status code '
-                        f'= {mdl.status}. Set the flag verbose=True for more '
-                        'details.')
+    theta_opt = theta_opt_mod[1:]
 
     return theta_opt
 
 
 def MIP_linear(dataset, decision_space,
-               Z=None,
                phi1=None,
                phi2=None,
-               dist_func=None,
+               Z=None,
+               dist_func_z=None,
                Theta=None,
                regularizer='L2_squared',
                reg_param=0,
+               theta_hat=None,
                sub_loss=False,
                verbose=False,
                gurobi_params=None):
@@ -651,10 +567,10 @@ def MIP_linear(dataset, decision_space,
         Constraint set of the integer part of the decision vector. Given a
         signal s = (A, B, c, w) and response x = (y, z), returns True if z
         (i.e., the integer part of x) is a feasible response, and False
-        otherwise. It does not need to check for the type of the decision space
-        contained in decision_space. For example, if
-        decision_space=('binary', n), Z does not need to check if z
-        is a binary vector. Syntax: Z(w, z). If None, it will be defined as
+        otherwise. It does not need to check for the type of the decision
+        variables contained in decision_space. For example, if
+        decision_space=('binary', n), Z should not check if z is a binary
+        vector. Syntax: Z(w, z). If None, it will be defined as
         "def Z(w, x): return True". The default is None.
     phi1 : {callable, None}, optional
         Feature function. Given w and response z, returns a 1D
@@ -664,10 +580,10 @@ def MIP_linear(dataset, decision_space,
         Feature function. Given w and response z, returns a 1D
         ndarray feature vector. Syntax: phi1(w, z). If None, it will be defined
         as "def phi2(w, z): return np.array([0])". The default is None.
-    dist_func : {callable, None}, optional
+    dist_func_z : {callable, None}, optional
         Distance function. Given two responses x1=(y1,z1) and x2=(y2,z2),
         returns the distance of their integer parts according to some distance
-        metric. Not required when sub_loss=True. Syntax: dist_func(z1, z2).
+        metric. Not required when sub_loss=True. Syntax: dist_func_z(z1, z2).
         The default is None.
     Theta : {None, 'nonnegative'}, optional
         Constraints on cost vector theta. The default is None.
@@ -676,6 +592,10 @@ def MIP_linear(dataset, decision_space,
         'L2_squared'.
     reg_param : float, optional
         Nonnegative regularization parameter. The default is 0.
+    theta_hat : {tuple(2D ndarray, 1D ndarray), None}, optional
+        A priory belief or estimate of the true cost vector theta=(vec(Q), q).
+        Should be provided as a tuple (Q_hat, q_hat). When None, theta_hat is
+        defined as zeros. The default is None.
     sub_loss : bool, optional
         If True, solve the problem using the Suboptimality loss. Namely,
         searches over the facts of the unit L-infinity sphere for the cost
@@ -711,11 +631,11 @@ def MIP_linear(dataset, decision_space,
     check_decision_space(decision_space)
     check_regularizer(regularizer)
     check_reg_parameter(reg_param)
-    check_dist_func(dist_func, sub_loss)
+    check_dist_func(dist_func_z, sub_loss)
 
     # Warnings
     warning_large_decision_space(decision_space)
-    warning_dist_func_reg_param_sub_loss(dist_func, reg_param, sub_loss)
+    warning_dist_func_sub_loss(dist_func_z, sub_loss)
 
     if (phi1 is None) and (phi2 is None):
         raise Exception('Either phi1 or phi2 have to be given.')
@@ -769,7 +689,7 @@ def MIP_linear(dataset, decision_space,
                     if sub_loss:
                         dist = 0
                     else:
-                        dist = dist_func(z_hat, z)
+                        dist = dist_func_z(z_hat, z)
 
                     phi1_hat = phi1(w_hat, z_hat)
                     phi2_hat = phi2(w_hat, z_hat)
@@ -797,22 +717,53 @@ def MIP_linear(dataset, decision_space,
                                                  for j in range(m1))
                                    == 0 for i in range(m2))
 
-    if sub_loss:
-        mdl.setObjective(sum_beta, gp.GRB.MINIMIZE)
+    if theta_hat is None:
+        Q_hat = np.zeros((m2, u1))
+        q_hat = np.zeros(u2)
+    else:
+        Q_hat, q_hat = theta_hat
 
-        if Theta == 'nonnegative':
-            mdl.addConstr(gp.quicksum(q) + gp.quicksum(Q) == 1)
-            mdl.optimize()
-            Q_opt = np.array([[Q[i, j].X for i in range(m2)]
-                              for j in range(u1)])
-            q_opt = np.array([q[i].X for i in range(u2)])
-        else:
-            # Search over facets of unit L-infinity sphere for the solution
-            # with the lowest objective value.
-            best_obj = np.inf
-            for i in range(u1):
+    if regularizer == 'L2_squared':
+        Q_sum = gp.quicksum((Q[i, j] - Q_hat[i, j])**2 for i in range(m2)
+                            for j in range(u1))
+        q_sum = gp.quicksum((q[i] - q_hat[i])**2 for i in range(u2))
+        reg_term = (reg_param/2)*(Q_sum + q_sum)
+    elif regularizer == 'L1':
+        tQ = mdl.addVars(m2, u1, lb=-gp.GRB.INFINITY, vtype=gp.GRB.CONTINUOUS)
+        tq = mdl.addVars(u2, lb=-gp.GRB.INFINITY, vtype=gp.GRB.CONTINUOUS)
+
+        reg_term = reg_param*(gp.quicksum(tQ) + gp.quicksum(tq))
+
+        mdl.addConstrs(Q[i, j] - Q_hat[i, j] <= tQ[i, j]
+                       for i in range(m2) for j in range(u1))
+        mdl.addConstrs(Q_hat[i, j] - Q[i, j] <= tQ[i, j]
+                       for i in range(m2) for j in range(u1))
+        mdl.addConstrs(q[i] - q_hat[i] <= tq[i] for i in range(u2))
+        mdl.addConstrs(q_hat[i] - q[i] <= tq[i] for i in range(u2))
+
+    mdl.setObjective(reg_term + sum_beta, gp.GRB.MINIMIZE)
+
+    if sub_loss and (Theta != 'nonnegative'):
+        # Search over facets of unit L-infinity sphere for the solution
+        # with the lowest objective value.
+        best_obj = np.inf
+        for i in range(u1):
+            for j in [-1, 1]:
+                cons = mdl.addConstr(q[i] == j)
+                mdl.optimize()
+                mdl.remove(cons)
+                # If an optimal solution was found
+                if mdl.status == 2:
+                    obj_val = mdl.objVal
+                    if obj_val < best_obj:
+                        best_obj = obj_val
+                        Q_opt = np.array([[Q[i, j].X for i in range(m2)]
+                                          for j in range(u1)])
+                        q_opt = np.array([q[i].X for i in range(u2)])
+        for i in range(m2):
+            for k in range(u1):
                 for j in [-1, 1]:
-                    cons = mdl.addConstr(q[i] == j)
+                    cons = mdl.addConstr(Q[i, k] == j)
                     mdl.optimize()
                     mdl.remove(cons)
                     # If an optimal solution was found
@@ -823,40 +774,10 @@ def MIP_linear(dataset, decision_space,
                             Q_opt = np.array([[Q[i, j].X for i in range(m2)]
                                               for j in range(u1)])
                             q_opt = np.array([q[i].X for i in range(u2)])
-            for i in range(m2):
-                for k in range(u1):
-                    for j in [-1, 1]:
-                        cons = mdl.addConstr(Q[i, k] == j)
-                        mdl.optimize()
-                        mdl.remove(cons)
-                        # If an optimal solution was found
-                        if mdl.status == 2:
-                            obj_val = mdl.objVal
-                            if obj_val < best_obj:
-                                best_obj = obj_val
-                                Q_opt = np.array([[Q[i, j].X
-                                                   for i in range(m2)]
-                                                  for j in range(u1)])
-                                q_opt = np.array([q[i].X for i in range(u2)])
     else:
-        if regularizer == 'L2_squared':
-            Q_sum = gp.quicksum(Q[i, j]**2 for i in range(m2)
-                                for j in range(u1))
-            q_sum = gp.quicksum(q[i]**2 for i in range(u2))
-            reg_term = (reg_param/2)*(Q_sum + q_sum)
-        elif regularizer == 'L1':
-            tQ = mdl.addVars(m2, u1, lb=-gp.GRB.INFINITY,
-                             vtype=gp.GRB.CONTINUOUS)
-            tq = mdl.addVars(u2, lb=-gp.GRB.INFINITY, vtype=gp.GRB.CONTINUOUS)
-            reg_term = reg_param*(gp.quicksum(tQ) + gp.quicksum(tq))
-            mdl.addConstrs(Q[i, j] <= tQ[i, j]
-                           for i in range(m2) for i in range(u1))
-            mdl.addConstrs(-Q[i, j] <= tQ[i, j]
-                           for i in range(m2) for i in range(u1))
-            mdl.addConstrs(q[i] <= tq[i] for i in range(u2))
-            mdl.addConstrs(-q[i] <= tq[i] for i in range(u2))
+        if sub_loss and (Theta == 'nonnegative'):
+            mdl.addConstr(gp.quicksum(q) + gp.quicksum(Q) == 1)
 
-        mdl.setObjective(reg_term + sum_beta, gp.GRB.MINIMIZE)
         mdl.optimize()
 
         if mdl.status != 2:
@@ -864,7 +785,8 @@ def MIP_linear(dataset, decision_space,
                             f'= {mdl.status}. Set the flag verbose=True for '
                             'more details.')
 
-        Q_opt = np.array([[Q[i, j].X for i in range(m2)] for j in range(u1)])
+        Q_opt = np.array([[Q[i, j].X for i in range(m2)]
+                         for j in range(u1)])
         q_opt = np.array([q[i].X for i in range(u2)])
 
     theta_opt = np.concatenate((Q_opt.flatten('F'), q_opt))
@@ -872,13 +794,14 @@ def MIP_linear(dataset, decision_space,
 
 
 def MIP_quadratic(dataset, decision_space,
-                  Z=None,
                   phi1=None,
                   phi2=None,
-                  dist_func=None,
+                  Z=None,
+                  dist_func_z=None,
                   Theta=None,
                   regularizer='L2_squared',
                   reg_param=0,
+                  theta_hat=None,
                   sub_loss=False,
                   verbose=False,
                   solver='mosek'):
@@ -898,10 +821,10 @@ def MIP_quadratic(dataset, decision_space,
         Constraint set of the integer part of the decision vector. Given a
         signal s = (A, B, c, w) and response x = (y, z), returns True if z
         (i.e., the integer part of x) is a feasible response, and False
-        otherwise. It does not need to check for the type of the decision space
-        contained in decision_space. For example, if
-        decision_space=('binary', n), Z does not need to check if z
-        is a binary vector. Syntax: Z(w, z). If None, it will be defined as
+        otherwise. It does not need to check for the type of the decision
+        variables contained in decision_space. For example, if
+        decision_space=('binary', n), Z should not check if z is a binary
+        vector. Syntax: Z(w, z). If None, it will be defined as
         "def Z(w, x): return True". The default is None.
     phi1 : {callable, None}, optional
         Feature function. Given w and response z, returns a 1D
@@ -911,10 +834,10 @@ def MIP_quadratic(dataset, decision_space,
         Feature function. Given w and response z, returns a 1D
         ndarray feature vector. Syntax: phi1(w, z). If None, it will be defined
         as "def phi2(w, z): return np.array([0])". The default is None.
-    dist_func : {callable, None}, optional
+    dist_func_z : {callable, None}, optional
         Distance function. Given two responses x1=(y1,z1) and x2=(y2,z2),
         returns the distance of their integer parts according to some distance
-        metric. Not required when sub_loss=True. Syntax: dist_func(z1, z2).
+        metric. Not required when sub_loss=True. Syntax: dist_func_z(z1, z2).
         The default is None.
     Theta : {None, 'nonnegative'}, optional
         Constraints on cost vector theta. The default is None.
@@ -923,6 +846,11 @@ def MIP_quadratic(dataset, decision_space,
         'L2_squared'.
     reg_param : float, optional
         Nonnegative regularization parameter. The default is 0.
+    theta_hat : {tuple(2D ndarray, 2D ndarray, 1D ndarray), None}, optional
+        A priory belief or estimate of the true cost vector
+        theta=(vec(Qyy), vec(Q), q). Should be provided as a tuple
+        (Qyy_hat, Q_hat, q_hat). When None, theta_hat is defined as zeros. The
+        default is None.
     sub_loss : bool, optional
         If True, solve the problem using the Suboptimality loss. Namely,
         searches over the facts of the unit L-infinity sphere for the cost
@@ -957,7 +885,7 @@ def MIP_quadratic(dataset, decision_space,
 
     # Warnings
     warning_large_decision_space(decision_space)
-    warning_dist_func_reg_param_sub_loss(dist_func, reg_param, sub_loss)
+    warning_dist_func_sub_loss(dist_func_z, sub_loss)
 
     N = len(dataset)
 
@@ -1004,7 +932,7 @@ def MIP_quadratic(dataset, decision_space,
                     if sub_loss:
                         dist = 0
                     else:
-                        dist = dist_func(z_hat, z)
+                        dist = dist_func_z(z_hat, z)
 
                     theta_phi_hat = (y_hat.T @ Qyy @ y_hat
                                      + y_hat.T @ Q @ phi1(w_hat, z_hat)
@@ -1022,25 +950,31 @@ def MIP_quadratic(dataset, decision_space,
                                              [off_diag.T, 4*alpha]]) >> 0]
                     constraints += [lamb >= 0]
 
+    if theta_hat is None:
+        Qyy_hat = np.zeros((m2, m2))
+        Q_hat = np.zeros((m2, u1))
+        q_hat = np.zeros((u2, 1))
+    else:
+        Qyy_hat, Q_hat, q_hat = theta_hat
+
+    if regularizer == 'L2_squared':
+        Qyy_sum = cp.sum_squares(Qyy - Qyy_hat)
+        Q_sum = cp.sum_squares(Q - Q_hat)
+        q_sum = cp.sum_squares(q - q_hat)
+        reg_term = (reg_param/2)*(Qyy_sum + Q_sum + q_sum)
+    elif regularizer == 'L1':
+        tQyy = cp.Variable((m2, m2), symmetric=True)
+        tQ = cp.Variable((m2, u1))
+        tq = cp.Variable((u2, 1))
+        reg_term = reg_param*(cp.sum(tQyy) + cp.sum(tQ) + cp.sum(tq))
+        constraints += [Qyy - Qyy_hat <= tQyy, Qyy_hat - Qyy <= tQyy]
+        constraints += [Q - Q_hat <= tQ, Q_hat - Q <= tQ]
+        constraints += [q - q_hat <= tq, q_hat - q <= tq]
+
+    obj = cp.Minimize(reg_term + sum_beta)
+
     if sub_loss:
         constraints += [cp.trace(Qyy) == 1]
-        obj = cp.Minimize(sum_beta)
-    else:
-        if regularizer == 'L2_squared':
-            Qyy_sum = cp.sum_squares(Qyy)
-            Q_sum = cp.sum_squares(Q)
-            q_sum = cp.sum_squares(q)
-            reg_term = (reg_param/2)*(Qyy_sum + Q_sum + q_sum)
-        elif regularizer == 'L1':
-            tQyy = cp.Variable((m2, m2), symmetric=True)
-            tQ = cp.Variable((m2, u1))
-            tq = cp.Variable((u2, 1))
-            reg_term = reg_param*(cp.sum(tQyy) + cp.sum(tQ) + cp.sum(tq))
-            constraints += [Qyy <= tQyy, -Qyy <= tQyy]
-            constraints += [Q <= tQ, -Q <= tQ]
-            constraints += [q <= tq, -q <= tq]
-
-        obj = cp.Minimize(reg_term + sum_beta)
 
     prob = cp.Problem(obj, constraints)
     prob.solve(verbose=verbose)
@@ -1112,8 +1046,9 @@ def FOM(dataset, phi, theta_0, FOP, step_size, T,
     reg_param : float, optional
         Nonnegative regularization parameter. The default is 0.
     theta_hat : {1D ndarray, None}, optional
-        A priory belief or estimate of the true cost vector. When not None,
-        theta_hat is defined as the vector of zeros. The default is None.
+        A priory belief or estimate of the true cost vector. When
+        theta_hat=None, it is defined as the vector of zeros. The default is
+        None.
     batch_type : {float, 'reshuffled'}, optional
         If float, it is the fraction of the dataset used to compute stochastic
         subgradients of the loss function, where batch_type=b means use 10*b %

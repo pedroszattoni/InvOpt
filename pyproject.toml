@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "invopt"
-version = "0.0.2"
+version = "0.0.4"
 authors = [
   { name="Pedro Zattoni Scroccaro", email="pedroszattoni@gmail.com" },
 ]

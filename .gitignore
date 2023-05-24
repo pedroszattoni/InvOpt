@@ -9,3 +9,5 @@ old/
 src/invopt.egg-info/
 
 examples/__pycache__/
+
+src/invopt/__pycache__/

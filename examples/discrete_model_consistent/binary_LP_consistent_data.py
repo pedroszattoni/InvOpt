@@ -14,7 +14,6 @@ from utils_examples import (binary_linear_FOP, linear_X, linear_phi, L2,
                             plot_results)
 import invopt as iop
 
-
 np.random.seed(1)
 
 
@@ -190,8 +189,8 @@ for approach in approaches:
             else:
                 feas = (approach == 'Feasibility')
                 theta_IO = iop.discrete_model_consistent(dataset_train[:N],
-                                                         linear_phi,
                                                          decision_space,
+                                                         linear_phi,
                                                          X=linear_X,
                                                          dist_func=L2,
                                                          Theta=Theta,

@@ -123,7 +123,12 @@ for approach in approaches:
     a_index = approaches.index(approach)
     print(f'Approach: {approach}')
 
-    sub_loss = (approach == 'SL')
+    if approach == 'SL':
+        sub_loss = True
+        reg_param = 0
+    else:
+        sub_loss = False
+        reg_param = kappa
 
     tic = time.time()
     for run in range(runs):
@@ -133,10 +138,10 @@ for approach in approaches:
 
         for N in N_list:
             theta_IO = iop.discrete_model(dataset_train[:N],
-                                          linear_phi,
                                           decision_space,
+                                          linear_phi,
                                           X=linear_X,
-                                          reg_param=kappa,
+                                          reg_param=reg_param,
                                           dist_func=L2,
                                           sub_loss=sub_loss)
 

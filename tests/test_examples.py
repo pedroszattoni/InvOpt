@@ -1,6 +1,6 @@
 """
-This script runs the entire scrips from the examples folder, and check if any
-exception was raised.
+This script runs all scrips in the examples folder, and check if any exception
+was raised.
 
 Author: Pedro Zattoni Scroccaro
 """

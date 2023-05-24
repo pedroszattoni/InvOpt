@@ -33,7 +33,16 @@ where
 - $\mathbb{X}(\hat{s}_ i)$ is the constraint set of the FOP.
 - $\Theta$ is the set used to encode any prior information or assumption we may have on the expert's true cost function, e.g., nonnegativity of the cost vector.
 
-Alternatively, the `discrete_model_consistent` function also implements the so-called *feasibility strategy*, which solves the IO problem by solving the feasibility problem
+Alternatively, the `discrete_model_consistent` function also implements the so-called *feasibility strategy*, which solves the IO problem by solving
+
+$$
+\begin{aligned} \min_ {\theta} \quad & \mathcal{R} (\theta - \hat{\theta}) \\
+\text{s.t.} \quad & \theta^\top \big(\phi(\hat{s}_ i,\hat{x}_ i) - \phi(\hat{s}_ i,x_ i) \big) \leq 0 \quad\quad \forall x_ i \in \mathbb{X}(\hat{s}_ i), \ \forall i \in [N] \\
+& \theta \in \Theta,
+\end{aligned}
+$$
+
+if some $\hat{\theta}$ is provided. Otherwise, it solves the feasibility problem
 
 $$
 \begin{aligned} \min_ {\theta} \quad & 0 \\
@@ -42,7 +51,7 @@ $$
 \end{aligned}
 $$
 
-where the norm equality constraint uses the $\ell_ 1$ norm if $\Theta = \\{\theta \in \mathbb{R}^p : \theta \geq 0\\}$, and the $\ell_ \infty$ norm otherwise. Notice that both the incenter and feasibility optimization programs become infeasible if the dataset is not consistent.
+where the norm equality constraint uses the $\ell_ 1$ norm if $\Theta = \\{\theta \in \mathbb{R}^p : \theta \geq 0\\}$, and the $\ell_ \infty$ norm otherwise. This equality constraint must be added to exclude the trivial solution $\theta = 0$. Notice that both the incenter and feasibility optimization programs become infeasible if the dataset is not consistent.
 
 ## Example: binary linear program with consistent data
 

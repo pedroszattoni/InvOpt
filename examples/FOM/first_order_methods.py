@@ -172,7 +172,7 @@ for run in range(runs):
     dataset_test_list.append(dataset_test)
 
     # Optimizer and optimal value
-    theta_opt = iop.discrete_model(dataset_train, linear_phi, decision_space,
+    theta_opt = iop.discrete_model(dataset_train, decision_space, linear_phi,
                                    X=linear_X,
                                    dist_func=L1,
                                    Theta=Theta,
