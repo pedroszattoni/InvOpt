@@ -39,11 +39,11 @@ ___
 ___
 
 where
-- $\theta_ 1$ is the initial cost vector.
+- $\theta_ 1 \in \mathbb{R}^p$ is the initial cost vector.
 - (A-)FOP is the (approximated) FOP oracle.
-- $\kappa$: nonnegative regularization parameter. It can be interpreted as a trade-off parameter between fitting the training dataset (small $\kappa$) and generalization (large $\kappa$).
+- $\kappa$ is the nonnegative regularization parameter.
 - $\nabla\mathcal{R}$ is the gradient (or a subgradient) of the regularization function.
-- $\hat{\theta}$ is an a priory belief or estimate of the true cost vector.
+- $\hat{\theta} \in \mathbb{R}^p$ is an a priory belief or estimate of the true cost vector.
 - $\\{ \eta_t \\}_{t=1}^T$ is the step-size sequence.
 - $\phi: \mathbb{S} \times \mathbb{X} \to \mathbb{R}^p$ is the feature mapping, which maps a signal-response pair $(s,x)$ to a feature vector $\phi(s,x)$.
 - $\Theta$ is the set used to encode any prior information or assumption we may have on the expert's true cost function, e.g., nonnegativity of the cost vector.

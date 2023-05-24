@@ -38,7 +38,7 @@ $$
 $$
 
 where
-- $\hat{\theta}$ is an a priory belief or estimate of the true cost vector.
+- $\hat{\theta} \in \mathbb{R}^p$ is an a priory belief or estimate of the true cost vector.
 - $\mathcal{R} : \mathbb{R}^p \to \mathbb{R}$ is a regularization function.
 - $\kappa$: nonnegative regularization parameter. It can be interpreted as a trade-off parameter between fitting the training dataset (small $\kappa$) and generalization (large $\kappa$).
 - $\phi_ 1: \mathbb{W} \times \mathbb{Z}^v \to \mathbb{R}^m$ is the feature mapping, which maps a signal-response pair $(w,z)$ to a feature vector $\phi_ 1(w,z)$.
