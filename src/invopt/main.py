@@ -756,19 +756,7 @@ def MIP_linear(dataset, decision_space,
 
     # Check if norm equality constraint needs to be added to avoid the trivial
     # solution theta=0
-    if (not sub_loss) or ((reg_param > 0) and (theta_hat is not None)):
-        mdl.optimize()
-
-        if mdl.status != 2:
-            raise Exception('Optimal solution not found. Gurobi status code '
-                            f'= {mdl.status}. Set the flag verbose=True for '
-                            'more details.')
-
-        Q_opt = np.array([[Q[i, j].X for i in range(m2)]
-                         for j in range(u1)])
-        q_opt = np.array([q[i].X for i in range(u2)])
-
-    else:
+    if sub_loss and ((reg_param == 0) or (theta_hat is None)):
         if Theta == 'nonnegative':
             mdl.addConstr(gp.quicksum(q) + gp.quicksum(Q) == 1)
             mdl.optimize()
@@ -813,6 +801,17 @@ def MIP_linear(dataset, decision_space,
                                                    for i in range(m2)]
                                                   for j in range(u1)])
                                 q_opt = np.array([q[i].X for i in range(u2)])
+    else:
+        mdl.optimize()
+
+        if mdl.status != 2:
+            raise Exception('Optimal solution not found. Gurobi status code '
+                            f'= {mdl.status}. Set the flag verbose=True for '
+                            'more details.')
+
+        Q_opt = np.array([[Q[i, j].X for i in range(m2)]
+                         for j in range(u1)])
+        q_opt = np.array([q[i].X for i in range(u2)])
 
     theta_opt = np.concatenate((Q_opt.flatten('F'), q_opt))
     return theta_opt
@@ -976,30 +975,35 @@ def MIP_quadratic(dataset, decision_space,
                                              [off_diag.T, 4*alpha]]) >> 0]
                     constraints += [lamb >= 0]
 
-    if theta_hat is None:
-        Qyy_hat = np.zeros((m2, m2))
-        Q_hat = np.zeros((m2, u1))
-        q_hat = np.zeros((u2, 1))
-    else:
-        Qyy_hat, Q_hat, q_hat = theta_hat
+    if reg_param > 0:
+        if theta_hat is None:
+            Qyy_hat = np.zeros((m2, m2))
+            Q_hat = np.zeros((m2, u1))
+            q_hat = np.zeros((u2, 1))
+        else:
+            Qyy_hat, Q_hat, q_hat = theta_hat
 
-    if regularizer == 'L2_squared':
-        Qyy_sum = cp.sum_squares(Qyy - Qyy_hat)
-        Q_sum = cp.sum_squares(Q - Q_hat)
-        q_sum = cp.sum_squares(q - q_hat)
-        reg_term = (reg_param/2)*(Qyy_sum + Q_sum + q_sum)
-    elif regularizer == 'L1':
-        tQyy = cp.Variable((m2, m2), symmetric=True)
-        tQ = cp.Variable((m2, u1))
-        tq = cp.Variable((u2, 1))
-        reg_term = reg_param*(cp.sum(tQyy) + cp.sum(tQ) + cp.sum(tq))
-        constraints += [Qyy - Qyy_hat <= tQyy, Qyy_hat - Qyy <= tQyy]
-        constraints += [Q - Q_hat <= tQ, Q_hat - Q <= tQ]
-        constraints += [q - q_hat <= tq, q_hat - q <= tq]
+        if regularizer == 'L2_squared':
+            Qyy_sum = cp.sum_squares(Qyy - Qyy_hat)
+            Q_sum = cp.sum_squares(Q - Q_hat)
+            q_sum = cp.sum_squares(q - q_hat)
+            reg_term = (reg_param/2)*(Qyy_sum + Q_sum + q_sum)
+        elif regularizer == 'L1':
+            tQyy = cp.Variable((m2, m2), symmetric=True)
+            tQ = cp.Variable((m2, u1))
+            tq = cp.Variable((u2, 1))
+            reg_term = reg_param*(cp.sum(tQyy) + cp.sum(tQ) + cp.sum(tq))
+            constraints += [Qyy - Qyy_hat <= tQyy, Qyy_hat - Qyy <= tQyy]
+            constraints += [Q - Q_hat <= tQ, Q_hat - Q <= tQ]
+            constraints += [q - q_hat <= tq, q_hat - q <= tq]
+    else:
+        reg_term = 0
 
     obj = cp.Minimize(reg_term + sum_beta)
 
-    if sub_loss:
+    # Check if trace equality constraint needs to be added to avoid the trivial
+    # solution theta=0
+    if sub_loss and ((reg_param == 0) or (theta_hat is None)):
         constraints += [cp.trace(Qyy) == 1]
 
     prob = cp.Problem(obj, constraints)
