@@ -40,7 +40,7 @@ $$
 where
 - $\hat{\theta} \in \mathbb{R}^p$ is an a priory belief or estimate of the true cost vector.
 - $\mathcal{R} : \mathbb{R}^p \to \mathbb{R}$ is a regularization function.
-- $\kappa$: nonnegative regularization parameter. It can be interpreted as a trade-off parameter between fitting the training dataset (small $\kappa$) and generalization (large $\kappa$).
+- $\kappa$ is a nonnegative regularization parameter.
 - $\phi_ 1: \mathbb{W} \times \mathbb{Z}^v \to \mathbb{R}^m$ is the feature mapping, which maps a signal-response pair $(w,z)$ to a feature vector $\phi_ 1(w,z)$.
 - $\phi_ 2: \mathbb{W} \times \mathbb{Z}^v \to \mathbb{R}^n$ is the feature mapping, which maps a signal-response pair $(w,z)$ to a feature vector $\phi_ 2(w,z)$.
 - $d : \mathbb{X} \times \mathbb{X} \to \mathbb{R}_ +$ is a distance function, which given two responses, returns the distance between them according to some distance metric.
@@ -58,7 +58,7 @@ $$
 \end{aligned}
 $$
 
-If $\kappa=0$ or $\hat{\theta}$ is not provided, we need to add an extra the norm equality constraint $\rVert \theta \rVert = 1$ to exclude the trivial solution $\theta=0$. We use the $\ell_ 1$ norm if $\Theta = \\{\theta \in \mathbb{R}^p : \theta \geq 0\\}$, and the $\ell_ \infty$ norm otherwise.
+If $\kappa=0$ or $\hat{\theta}$ is not provided, we need to add the norm equality constraint $\rVert \theta \rVert = 1$ to exclude the trivial solution $\theta=0$. We use the $\ell_ 1$ norm if $\Theta = \\{\theta \in \mathbb{R}^p : \theta \geq 0\\}$, and the $\ell_ \infty$ norm otherwise.
 
 ## Example: binary linear mixed-interger program
 

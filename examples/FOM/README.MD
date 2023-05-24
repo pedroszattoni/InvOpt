@@ -41,7 +41,7 @@ ___
 where
 - $\theta_ 1 \in \mathbb{R}^p$ is the initial cost vector.
 - (A-)FOP is the (approximated) FOP oracle.
-- $\kappa$ is the nonnegative regularization parameter.
+- $\kappa$ is a nonnegative regularization parameter.
 - $\nabla\mathcal{R}$ is the gradient (or a subgradient) of the regularization function.
 - $\hat{\theta} \in \mathbb{R}^p$ is an a priory belief or estimate of the true cost vector.
 - $\\{ \eta_t \\}_{t=1}^T$ is the step-size sequence.

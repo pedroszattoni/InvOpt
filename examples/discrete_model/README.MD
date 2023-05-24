@@ -27,7 +27,7 @@ $$
 where
 - $\hat{\theta} \in \mathbb{R}^p$ is an a priory belief or estimate of the true cost vector.
 - $\mathcal{R} : \mathbb{R}^p \to \mathbb{R}$ is a regularization function.
-- $\kappa$: nonnegative regularization parameter. It can be interpreted as a trade-off parameter between fitting the training dataset (small $\kappa$) and generalization (large $\kappa$).
+- $\kappa$ is a nonnegative regularization parameter.
 - $\phi: \mathbb{S} \times \mathbb{X} \to \mathbb{R}^p$ is the feature mapping, which maps a signal-response pair $(s,x)$ to a feature vector $\phi(s,x)$.
 - $d : \mathbb{X} \times \mathbb{X} \to \mathbb{R}_+$ is a distance function, which given two responses, returns the distance between them according to some distance metric.
 - $\mathbb{X}(\hat{s}_ i)$ is the constraint set of the FOP.
@@ -36,13 +36,13 @@ where
 Alternatively, the `discrete_model` function also implements the epigraph reformulation of the *Suboptimality loss*, which solves the IO problem using
 
 $$
-\begin{aligned} \min_ {\theta, \beta_1, \ldots, \beta_N} \quad & \frac{1}{N}\sum_ {i = 1}^N \beta_i \\
+\begin{aligned} \min_ {\theta, \beta_1, \ldots, \beta_N} \quad & \kappa\mathcal{R} (\theta - \hat{\theta}) + \frac{1}{N}\sum_ {i = 1}^N \beta_i \\
 \text{s.t.} \ \ \ \quad & \theta^\top \big(\phi(\hat{s}_ i,\hat{x}_ i) - \phi(\hat{s}_ i,x_ i) \big) \leq \beta_i & \forall x_ i \in \mathbb{X}(\hat{s}_ i), \ \forall i \in [N] \\
-& \theta \in \Theta, \quad \rVert \theta \rVert = 1, \quad \beta_i \geq 0 & \forall i \in [N],
+& \theta \in \Theta, \quad \beta_i \geq 0 & \forall i \in [N].
 \end{aligned}
 $$
 
-where the norm equality constraint uses the $\ell_ 1$ norm if $\Theta = \\{\theta \in \mathbb{R}^p : \theta \geq 0\\}$, and the $\ell_ \infty$ norm otherwise.
+If $\kappa=0$ or $\hat{\theta}$ is not provided, we need to add the norm equality constraint $\rVert \theta \rVert = 1$ to exclude the trivial solution $\theta=0$. We use the $\ell_ 1$ norm if $\Theta = \\{\theta \in \mathbb{R}^p : \theta \geq 0\\}$, and the $\ell_ \infty$ norm otherwise.
 
 ## Example: binary linear program with inconsistent data
 
