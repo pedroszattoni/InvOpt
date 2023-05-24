@@ -188,13 +188,13 @@ for approach in approaches:
                 theta_IO = circumcenter(dataset_train[:N])
             else:
                 feas = (approach == 'Feasibility')
-                theta_IO = iop.discrete_model_consistent(dataset_train[:N],
-                                                         decision_space,
-                                                         linear_phi,
-                                                         X=linear_X,
-                                                         dist_func=L2,
-                                                         Theta=Theta,
-                                                         feasibility=feas)
+                theta_IO = iop.discrete_consistent(dataset_train[:N],
+                                                   decision_space,
+                                                   linear_phi,
+                                                   X=linear_X,
+                                                   dist_func=L2,
+                                                   Theta=Theta,
+                                                   feasibility=feas)
 
             x_diff_train, obj_diff_train, theta_diff = \
                 iop.evaluate(theta_IO,

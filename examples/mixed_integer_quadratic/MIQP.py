@@ -217,13 +217,13 @@ for approach in approaches:
         theta_true = theta_true_runs[run]
 
         for N in N_list:
-            theta_IO = iop.MIP_quadratic(dataset_train[:N],
-                                         decision_space,
-                                         Theta=Theta,
-                                         phi1=phi1,
-                                         phi2=phi2,
-                                         dist_func_z=L2,
-                                         sub_loss=sub_loss)
+            theta_IO = iop.mixed_integer_quadratic(dataset_train[:N],
+                                                   decision_space,
+                                                   Theta=Theta,
+                                                   phi1=phi1,
+                                                   phi2=phi2,
+                                                   dist_func_z=L2,
+                                                   sub_loss=sub_loss)
 
             x_diff_train, obj_diff_train, theta_diff = \
                 iop.evaluate(theta_IO,

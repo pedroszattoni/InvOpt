@@ -137,13 +137,13 @@ for approach in approaches:
         theta_true = theta_true_runs[run]
 
         for N in N_list:
-            theta_IO = iop.discrete_model(dataset_train[:N],
-                                          decision_space,
-                                          linear_phi,
-                                          X=linear_X,
-                                          reg_param=reg_param,
-                                          dist_func=L2,
-                                          sub_loss=sub_loss)
+            theta_IO = iop.discrete(dataset_train[:N],
+                                    decision_space,
+                                    linear_phi,
+                                    X=linear_X,
+                                    reg_param=reg_param,
+                                    dist_func=L2,
+                                    sub_loss=sub_loss)
 
             x_diff_train, obj_diff_train, theta_diff = \
                 iop.evaluate(theta_IO,

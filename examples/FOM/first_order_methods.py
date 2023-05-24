@@ -172,13 +172,13 @@ for run in range(runs):
     dataset_test_list.append(dataset_test)
 
     # Optimizer and optimal value
-    theta_opt = iop.discrete_model(dataset_train, decision_space, linear_phi,
-                                   X=linear_X,
-                                   dist_func=L1,
-                                   Theta=Theta,
-                                   regularizer=regularizer,
-                                   reg_param=reg_param,
-                                   gurobi_params=[('Threads', 1)])
+    theta_opt = iop.discrete(dataset_train, decision_space, linear_phi,
+                             X=linear_X,
+                             dist_func=L1,
+                             Theta=Theta,
+                             regularizer=regularizer,
+                             reg_param=reg_param,
+                             gurobi_params=[('Threads', 1)])
     theta_opt_list.append(theta_opt)
     loss_opt = iop.ASL(theta_opt, dataset_train, FOP_aug, linear_phi, L1,
                        regularizer=regularizer, reg_param=reg_param)
