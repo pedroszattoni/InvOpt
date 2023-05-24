@@ -1,34 +1,30 @@
-- Test case when (some of) the data response examples x_hat are not feasible w.r.t. X(s_hat). For the FOM function, we need to check if loss value is negative. If negative, set the subgradient to zero. See remark on Remark 4.2  on infeasible decisions in Zattoni Scroccaro et al. "Learning in Inverse Optimization: Incenter Cost, Augmented Suboptimality Loss, and Algorithm"
+- Test case when (some of) the data response examples x_hat are not feasible w.r.t. X(s_hat). For the FOM function, we need to check if the loss value is negative. If negative, set the subgradient to zero. See remark on Remark 4.2  on infeasible decisions in Zattoni Scroccaro et al. "Learning in Inverse Optimization: Incenter Cost, Augmented Suboptimality Loss, and Algorithms"
 
-- Add option to use open source solver instead of Gurobi.
+- Implement the option to use open source solver instead of Gurobi.
 
-- Add multiprossesing option?
+- Implement multiprocessing option?
 
-- Implement/test (approximate) polyak step size?
+- Implement (approximate) polyak step size?
 
-- Implement/test dual averaging and AdaGrad algorithms.
+- Implement dual averaging and AdaGrad algorithms.
 
-- Extend methods for general decision spaces:
-	- Add option for "one-hot" decision spaces
-	- Add option for user to input list with all elements of X.
-	- Allow for general integer inputs. Binary case can be seen as a special case for integer inputs bounded by 0 and 1.
+- Implement cutting-plane / (proximal) bundle algorithms.
 
-- Implement/test aProx and novel step-size modification using two linear approximatios.
+- Implement more options for decision spaces, for example:
+	- Add the option for "one-hot" decision spaces.
+	- Add the option for the user to input a list with all elements of X.
+	- Allow for general integer inputs. The binary case can be seen as a special case for integer inputs bounded by 0 and 1.
+
+- Implement/test aProx and step-size modification using two linear approximations.
 
 - Add IO scenarios from https://arxiv.org/pdf/2102.10742.pdf as examples.
 
-- Implement/test cutting-plane / bundle algorithms.
+- Add option to use scipy.optimize.minimize algorithms to optimize the Augmented Suboptimality Loss?
 
-- Compare scipy.optimize.minimize algorithms with our FOM algorithms.
+- Implement Shor’s r-Algorithm (Space Dilation Method). See "Introduction to Nonsmooth Optimization Theory, Practice and Software".
 
-- Implement/test  Shor’s r-Algorithm (Space Dilation Method). see "Introduction to Nonsmooth Optimization Theory, Practice and Software".
+- Add other options for constraint set Theta.
 
-- Test continuous LP with augmented loss. Even without total unimodular constraint matrix, does it performe well in practice (compared to the SL)?
-
-- Add other options for a priori constraint set Theta.
-
-- Add option for consistent data for mixed-integer programs?
+- Add the option for consistent data for mixed-integer cases?
 
 - Add support to theta_hat for MIP cases?
-
-- Implement proximal bundle-methods.

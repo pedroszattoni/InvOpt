@@ -1,12 +1,12 @@
-from .main import (ASL, evaluate, discrete_model_consistent, discrete_model,
-                   MIP_linear, FOM, MIP_quadratic, dec_to_bin)
+from .main import (dec_to_bin, ASL, evaluate, discrete_consistent, discrete,
+                   mixed_integer_linear, mixed_integer_quadratic, FOM)
 
-__all__ = ['ASL',
+__all__ = ['dec_to_bin',
+           'ASL',
            'evaluate',
-           'discrete_model_consistent',
-           'discrete_model',
-           'MIP_linear',
+           'discrete_consistent',
+           'discrete',
+           'mixed_integer_linear',
+           'mixed_integer_quadratic',
            'FOM',
-           'MIP_quadratic',
-           'dec_to_bin'
            ]

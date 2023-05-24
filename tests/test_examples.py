@@ -26,23 +26,23 @@ def test_script(script_folder, script_name):
 
 class TestScript(unittest.TestCase):
     def test_binary_LP_consistent_data(self):
-        script_name = 'discrete_model_consistent\\binary_LP_consistent_data.py'
+        script_name = 'discrete_consistent\\binary_LP_consistent_data.py'
         self.assertTrue(test_script(path_to_examples, script_name))
 
     def test_binary_LP_inconsistent_data(self):
-        script_name = 'discrete_model\\binary_LP_inconsistent_data.py'
+        script_name = 'discrete\\binary_LP_inconsistent_data.py'
+        self.assertTrue(test_script(path_to_examples, script_name))
+
+    def test_MILP(self):
+        script_name = 'mixed_integer_linear\\MILP.py'
+        self.assertTrue(test_script(path_to_examples, script_name))
+
+    def test_MIQP(self):
+        script_name = 'mixed_integer_quadratic\\MIQP.py'
         self.assertTrue(test_script(path_to_examples, script_name))
 
     def test_first_order_methods(self):
         script_name = 'FOM\\first_order_methods.py'
-        self.assertTrue(test_script(path_to_examples, script_name))
-
-    def test_MILP(self):
-        script_name = 'MIP_linear\\MILP.py'
-        self.assertTrue(test_script(path_to_examples, script_name))
-
-    def test_MIQP(self):
-        script_name = 'MIP_quadratic\\MIQP.py'
         self.assertTrue(test_script(path_to_examples, script_name))
 
 

@@ -15,10 +15,10 @@ InvOpt depends on NumPy. Moreover, some of its functions also depend on gurobipy
 
 The following functions are available in the InvOpt package to solving IO problems:
 
-- [`discrete_model_consistent`](https://github.com/pedroszattoni/invopt/tree/main/examples/discrete_model_consistent): for FOPs with dicrete decision spaces (e.g., binary), and when the dataset is consistent with some cost vector. Can be used to check if the data is consistent.
-- [`discrete_model`](https://github.com/pedroszattoni/invopt/tree/main/examples/discrete_model): for FOPs with dicrete decision spaces (e.g., binary).
-- [`MIP_linear`](https://github.com/pedroszattoni/invopt/tree/main/examples/MIP_linear): for FOPs with mixed-integer decision spaces and cost functions linear w.r.t. the continuous part of the decision variable.
-- [`MIP_quadratic`](https://github.com/pedroszattoni/invopt/tree/main/examples/MIP_quadratic): for FOPs with mixed-integer decision spaces and cost functions quadratic w.r.t. the continuous part of the decision variable.
+- [`discrete_consistent`](https://github.com/pedroszattoni/invopt/tree/main/examples/discrete_consistent): for FOPs with dicrete decision spaces (e.g., binary), and when the dataset is consistent with some cost vector. Can be used to check if the data is consistent.
+- [`discrete`](https://github.com/pedroszattoni/invopt/tree/main/examples/discrete): for FOPs with dicrete decision spaces (e.g., binary).
+- [`mixed_integer_linear`](https://github.com/pedroszattoni/invopt/tree/main/examples/mixed_integer_linear): for FOPs with mixed-integer decision spaces and cost functions linear w.r.t. the continuous part of the decision variable.
+- [`mixed_integer_quadratic`](https://github.com/pedroszattoni/invopt/tree/main/examples/mixed_integer_quadratic): for FOPs with mixed-integer decision spaces and cost functions quadratic w.r.t. the continuous part of the decision variable.
 - [`FOM`](https://github.com/pedroszattoni/invopt/tree/main/examples/FOM): for general FOPs. Solves IO problem approximately using first-order methods.
 
 ## Contributing

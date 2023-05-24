@@ -272,20 +272,20 @@ def evaluate(theta, dataset, FOP, dist_func,
     return results
 
 
-def discrete_model_consistent(dataset, decision_space, phi,
-                              X=None,
-                              dist_func=None,
-                              Theta=None,
-                              regularizer='L2_squared',
-                              theta_hat=None,
-                              feasibility=False,
-                              verbose=False,
-                              gurobi_params=None):
+def discrete_consistent(dataset, decision_space, phi,
+                        X=None,
+                        dist_func=None,
+                        Theta=None,
+                        regularizer='L2_squared',
+                        theta_hat=None,
+                        feasibility=False,
+                        verbose=False,
+                        gurobi_params=None):
     """
     Inverse optimization for discrete models with consistent data.
 
     Uses incenter (default) or feasibility strategy. For more details, see
-    https://github.com/pedroszattoni/invopt/tree/main/examples/discrete_model_consistent
+    https://github.com/pedroszattoni/invopt/tree/main/examples/discrete_consistent
 
     Parameters
     ----------
@@ -344,7 +344,7 @@ def discrete_model_consistent(dataset, decision_space, phi,
     try:
         import gurobipy as gp
     except ImportError:
-        print("gurobipy is required for invopt's discrete_model_consistent " +
+        print("gurobipy is required for invopt's discrete_consistent " +
               "function.")
 
     # Check if the inputs are valid
@@ -442,21 +442,21 @@ def discrete_model_consistent(dataset, decision_space, phi,
     return theta_opt
 
 
-def discrete_model(dataset, decision_space, phi,
-                   X=None,
-                   dist_func=None,
-                   Theta=None,
-                   regularizer='L2_squared',
-                   reg_param=0,
-                   theta_hat=None,
-                   sub_loss=False,
-                   verbose=False,
-                   gurobi_params=None):
+def discrete(dataset, decision_space, phi,
+             X=None,
+             dist_func=None,
+             Theta=None,
+             regularizer='L2_squared',
+             reg_param=0,
+             theta_hat=None,
+             sub_loss=False,
+             verbose=False,
+             gurobi_params=None):
     """
     Inverse optimization for discrete models.
 
     For more details, see
-    https://github.com/pedroszattoni/invopt/tree/main/examples/discrete_model
+    https://github.com/pedroszattoni/invopt/tree/main/examples/discrete
 
     Parameters
     ----------
@@ -527,40 +527,40 @@ def discrete_model(dataset, decision_space, phi,
         x_hat = (np.array([0]), z_hat)
         dataset_mod.append((s_hat, x_hat))
 
-    theta_opt_mod = MIP_linear(dataset_mod, decision_space,
-                               phi2=phi,
-                               Z=X,
-                               dist_func_z=dist_func,
-                               Theta=Theta,
-                               regularizer=regularizer,
-                               reg_param=reg_param,
-                               theta_hat=theta_hat_mod,
-                               sub_loss=sub_loss,
-                               verbose=verbose,
-                               gurobi_params=gurobi_params)
+    theta_opt_mod = mixed_integer_linear(dataset_mod, decision_space,
+                                         phi2=phi,
+                                         Z=X,
+                                         dist_func_z=dist_func,
+                                         Theta=Theta,
+                                         regularizer=regularizer,
+                                         reg_param=reg_param,
+                                         theta_hat=theta_hat_mod,
+                                         sub_loss=sub_loss,
+                                         verbose=verbose,
+                                         gurobi_params=gurobi_params)
 
     theta_opt = theta_opt_mod[1:]
 
     return theta_opt
 
 
-def MIP_linear(dataset, decision_space,
-               phi1=None,
-               phi2=None,
-               Z=None,
-               dist_func_z=None,
-               Theta=None,
-               regularizer='L2_squared',
-               reg_param=0,
-               theta_hat=None,
-               sub_loss=False,
-               verbose=False,
-               gurobi_params=None):
+def mixed_integer_linear(dataset, decision_space,
+                         phi1=None,
+                         phi2=None,
+                         Z=None,
+                         dist_func_z=None,
+                         Theta=None,
+                         regularizer='L2_squared',
+                         reg_param=0,
+                         theta_hat=None,
+                         sub_loss=False,
+                         verbose=False,
+                         gurobi_params=None):
     """
     Inverse optimization for linear models with mixed-integer feasible sets.
 
     For more details, see
-    https://github.com/pedroszattoni/invopt/tree/main/examples/MIP_linear
+    https://github.com/pedroszattoni/invopt/tree/main/examples/mixed_integer_linear
 
     Parameters
     ----------
@@ -630,7 +630,8 @@ def MIP_linear(dataset, decision_space,
     try:
         import gurobipy as gp
     except ImportError:
-        print("gurobipy is required for invopt's MIP_linear function.")
+        print("gurobipy is required for invopt's mixed_integer_linear " +
+              'function.')
 
     # Check if the inputs are valid
     check_Theta(Theta)
@@ -817,23 +818,23 @@ def MIP_linear(dataset, decision_space,
     return theta_opt
 
 
-def MIP_quadratic(dataset, decision_space,
-                  phi1=None,
-                  phi2=None,
-                  Z=None,
-                  dist_func_z=None,
-                  Theta=None,
-                  regularizer='L2_squared',
-                  reg_param=0,
-                  theta_hat=None,
-                  sub_loss=False,
-                  verbose=False,
-                  solver='mosek'):
+def mixed_integer_quadratic(dataset, decision_space,
+                            phi1=None,
+                            phi2=None,
+                            Z=None,
+                            dist_func_z=None,
+                            Theta=None,
+                            regularizer='L2_squared',
+                            reg_param=0,
+                            theta_hat=None,
+                            sub_loss=False,
+                            verbose=False,
+                            solver='mosek'):
     """
     Inverse optimization for quadratic models with mixed-integer feasible sets.
 
     For more details, see
-    https://github.com/pedroszattoni/invopt/tree/main/examples/MIP_quadratic
+    https://github.com/pedroszattoni/invopt/tree/main/examples/mixed_integer_quadratic
 
     Parameters
     ----------
@@ -899,7 +900,8 @@ def MIP_quadratic(dataset, decision_space,
     try:
         import cvxpy as cp
     except ImportError:
-        print("cvxpy is required for invopt's MIP_quadratic function.")
+        print("cvxpy is required for invopt's mixed_integer_quadratic " +
+              "function.")
 
     # Check if the inputs are valid
     check_Theta(Theta)
