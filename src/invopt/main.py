@@ -35,12 +35,6 @@ def check_reg_parameter(reg_param):
         raise Exception('reg_param must be nonnegative.')
 
 
-def check_dist_func(dist_func, sub_loss):
-    """Check if dist_func is given when sub_loss=False."""
-    if (not sub_loss) and (dist_func is None):
-        raise Exception('dist_func required when sub_loss=False.')
-
-
 def warning_large_decision_space(decision_space):
     """Warn user if decision space is binary and high-dimensional."""
     if (decision_space[0] == 'binary') and (decision_space[1] > 15):
@@ -51,16 +45,19 @@ def warning_large_decision_space(decision_space):
                       'the dimension of the binary decision vector.')
 
 
-def warning_dist_func_sub_loss(dist_func, sub_loss):
-    """Warn user dist_func is not used when sub_loss=True."""
-    if sub_loss and (dist_func is not None):
-        warnings.warn('dist_func is not used when sub_loss=True.')
-
-
 def warning_theta_hat_reg_param(theta_hat, reg_param):
     """Warn user theta_hat is not used when reg_param=0."""
     if (theta_hat is not None) and (reg_param == 0):
         warnings.warn('theta_hat is not used when reg_param=0.')
+
+
+def warning_add_dist_func_y(add_dist_func_y):
+    """Warn user that add_dist_func_y increases the size of the problem."""
+    if add_dist_func_y:
+        warnings.warn('Setting add_dist_func_y=True increases the number of ' +
+                      'constraints of the IO problem by a factor of 2n, ' +
+                      'where n is the dimension of the continuous part of ' +
+                      'the decision vector.')
 
 
 def normalize(vec, norm):
@@ -278,7 +275,6 @@ def discrete_consistent(dataset, decision_space, phi,
                         Theta=None,
                         regularizer='L2_squared',
                         theta_hat=None,
-                        feasibility=False,
                         verbose=False,
                         gurobi_params=None):
     """
@@ -304,10 +300,9 @@ def discrete_consistent(dataset, decision_space, phi,
         binary vector. Syntax: X(s, x). If None, it will be defined as
         "def X(s, x): return True". The default is None.
     dist_func : {callable, None}, optional
-        Distance function. Given two responses x1 and x2, returns the distance
-        between them according to some distance metric. Not required when
-        using the feasibility strategy. Syntax: dist_func(x1, x2). The default
-        is None.
+        Distance function penalization. Given two responses x1 and x2, returns
+        the distance between them according to some distance metric. Syntax:
+        dist_func(x1, x2). The default is None.
     Theta : {None, 'nonnegative'}, optional
         Constraints on cost vector theta. The default is None.
     regularizer : {'L2_squared', 'L1'}, optional
@@ -316,12 +311,6 @@ def discrete_consistent(dataset, decision_space, phi,
     theta_hat : {1D ndarray, None}, optional
         A priory belief or estimate of the true cost vector. The default is
         None.
-    feasibility : bool, optional
-        If True, solve problem using the feasibility strategy. Namely, if
-        theta_hat=None, we search over the facets of the unit L-infinity sphere
-        until a feasible cost vector is found. If Theta='nonnegative', only
-        searches over the nonnegative facet of the L-1 sphere. If False, solve
-        the problem using the Incenter strategy. The default is False.
     verbose : bool, optional
         If True, print Gurobi's solver output. The default is False.
     gurobi_params : {list of tuple(str, value), None}, optional
@@ -353,12 +342,6 @@ def discrete_consistent(dataset, decision_space, phi,
     check_regularizer(regularizer)
 
     warning_large_decision_space(decision_space)
-
-    if (dist_func is None) and (not feasibility):
-        raise Exception('dist_func required when feasibility=False.')
-
-    if (dist_func is not None) and feasibility:
-        warnings.warn('dist_func not used when feasibility=True.')
 
     if X is None:
         def X(s, x): return True
@@ -392,14 +375,14 @@ def discrete_consistent(dataset, decision_space, phi,
                 if X(s_hat, x):
                     phi_1 = phi(s_hat, x)
                     phi_2 = phi(s_hat, x_hat)
-                    if feasibility:
+                    if dist_func is None:
                         dist = 0
                     else:
                         dist = dist_func(x_hat, x)
                     mdl.addConstr(gp.quicksum(theta[j]*(phi_1[j] - phi_2[j])
                                               for j in range(p)) >= dist)
 
-    if feasibility and (theta_hat is None):
+    if (dist_func is None) and (theta_hat is None):
         if Theta == 'nonnegative':
             mdl.addConstr(gp.quicksum(theta) == 1)
             mdl.optimize()
@@ -449,7 +432,6 @@ def discrete(dataset, decision_space, phi,
              regularizer='L2_squared',
              reg_param=0,
              theta_hat=None,
-             sub_loss=False,
              verbose=False,
              gurobi_params=None):
     """
@@ -475,9 +457,9 @@ def discrete(dataset, decision_space, phi,
         binary vector. Syntax: X(s, x). If None, it will be defined as
         "def X(s, x): return True". The default is None.
     dist_func : {callable, None}, optional
-        Distance function. Given two responses x1 and x2, returns the distance
-        between them according to some distance metric. Not required when
-        sub_loss=True. Syntax: dist_func(x1, x2). The default is None.
+        Distance function penalization. Given two responses x1 and x2, returns
+        the distance between them according to some distance metric. Syntax:
+        dist_func(x1, x2). The default is None.
     Theta : {None, 'nonnegative'}, optional
         Constraints on cost vector theta. The default is None.
     regularizer : {'L2_squared', 'L1'}, optional
@@ -489,12 +471,6 @@ def discrete(dataset, decision_space, phi,
         A priory belief or estimate of the true cost vector. When
         theta_hat=None, it is defined as the vector of zeros. The default is
         None.
-    sub_loss : bool, optional
-        If True, solve the problem using the Suboptimality loss. Namely,
-        searches over the facts of the unit L-infinity sphere for the cost
-        vector with the smallest loss. If Theta='nonnegative', only searches
-        over the nonnegative facet of the L-1 sphere. If False, solve the
-        problem using the Augmented Suboptimality loss. The default is False.
     verbose : bool, optional
         If True, print Gurobi's solver output. The default is False.
     gurobi_params : {list of tuple(str, value), None}, optional
@@ -505,7 +481,7 @@ def discrete(dataset, decision_space, phi,
     ------
     Exception
         If unsupported Theta, regularizer, or decision_space. If Gurobi does
-        not find an optimal solution. If sub_loss=False and dist_func is None.
+        not find an optimal solution.
 
     Returns
     -------
@@ -522,10 +498,13 @@ def discrete(dataset, decision_space, phi,
 
     dataset_mod = []
     for data in dataset:
-        w_hat, z_hat = data
-        s_hat = (np.zeros((1, 1)), np.zeros((1, n)), np.array([0]), w_hat)
-        x_hat = (np.array([0]), z_hat)
-        dataset_mod.append((s_hat, x_hat))
+        s_hat, x_hat = data
+        s_hat_mod = (np.zeros((1, 1)),
+                     np.zeros((1, n)),
+                     np.array([0]),
+                     s_hat)
+        x_hat_mod = (np.array([0]), x_hat)
+        dataset_mod.append((s_hat_mod, x_hat_mod))
 
     theta_opt_mod = mixed_integer_linear(dataset_mod, decision_space,
                                          phi2=phi,
@@ -535,7 +514,6 @@ def discrete(dataset, decision_space, phi,
                                          regularizer=regularizer,
                                          reg_param=reg_param,
                                          theta_hat=theta_hat_mod,
-                                         sub_loss=sub_loss,
                                          verbose=verbose,
                                          gurobi_params=gurobi_params)
 
@@ -544,16 +522,101 @@ def discrete(dataset, decision_space, phi,
     return theta_opt
 
 
+def continuous_linear(dataset, phi,
+                      add_dist_func_y=False,
+                      Theta=None,
+                      regularizer='L2_squared',
+                      reg_param=0,
+                      theta_hat=None,
+                      verbose=False,
+                      gurobi_params=None):
+    """
+    Inverse optimization for discrete models.
+
+    For more details, see
+    https://github.com/pedroszattoni/invopt/tree/main/examples/continuous_linear
+
+    Parameters
+    ----------
+    dataset : list of tuples
+        List of tuples (s, x), where s is the signal and x is the response.
+    phi : callable
+        Feature function. Given a signal s and response x, returns a 1D
+        ndarray feature vector. Syntax: phi(s, x).
+    add_dist_func_y: bool
+        If True, adds l-infinity distance penalization to the continuous part
+        or response vector.
+    Theta : {None, 'nonnegative'}, optional
+        Constraints on cost vector theta. The default is None.
+    regularizer : {'L2_squared', 'L1'}, optional
+        Type of regularization on cost vector theta. The default is
+        'L2_squared'.
+    reg_param : float, optional
+        Nonnegative regularization parameter. The default is 0.
+    theta_hat : {1D ndarray, None}, optional
+        A priory belief or estimate of the true cost vector. When
+        theta_hat=None, it is defined as the vector of zeros. The default is
+        None.
+    verbose : bool, optional
+        If True, print Gurobi's solver output. The default is False.
+    gurobi_params : {list of tuple(str, value), None}, optional
+        List of tuples with Gurobi's parameter name and value. For example,
+        [('TimeLimit', 0.5), ('Method', 2)]. The default is None.
+
+    Raises
+    ------
+    Exception
+        If unsupported Theta, regularizer, or decision_space. If Gurobi does
+        not find an optimal solution.
+
+    Returns
+    -------
+    theta_opt : 1D ndarray
+        An optimal cost vector according to the chosen strategy.
+
+    """
+    decision_space = ('binary', 0)
+
+    if theta_hat is None:
+        theta_hat_mod = None
+    else:
+        theta_hat_mod = (theta_hat, np.array([0]))
+
+    dataset_mod = []
+    for data in dataset:
+        s_hat, x_hat = data
+        A, b, w = s_hat
+        s_hat_mod = (A, np.zeros((len(b), 1)), b, w)
+        x_hat_mod = (x_hat, np.array([0]))
+        dataset_mod.append((s_hat_mod, x_hat_mod))
+
+    def phi_mod(w, z): return phi(w)
+
+    theta_opt_mod = mixed_integer_linear(dataset_mod, decision_space,
+                                         add_dist_func_y=add_dist_func_y,
+                                         phi1=phi_mod,
+                                         Theta=Theta,
+                                         regularizer=regularizer,
+                                         reg_param=reg_param,
+                                         theta_hat=theta_hat_mod,
+                                         verbose=verbose,
+                                         gurobi_params=gurobi_params)
+
+    theta_opt = theta_opt_mod[:-1]
+
+    return theta_opt
+
+
 def mixed_integer_linear(dataset, decision_space,
                          phi1=None,
                          phi2=None,
                          Z=None,
+                         add_dist_func_y=False,
                          dist_func_z=None,
                          Theta=None,
                          regularizer='L2_squared',
                          reg_param=0,
                          theta_hat=None,
-                         sub_loss=False,
                          verbose=False,
                          gurobi_params=None):
     """
@@ -586,11 +649,13 @@ def mixed_integer_linear(dataset, decision_space,
         Feature function. Given w and response z, returns a 1D
         ndarray feature vector. Syntax: phi1(w, z). If None, it will be defined
         as "def phi2(w, z): return np.array([0])". The default is None.
+    add_dist_func_y: bool
+        If True, adds l-infinity distance penalization to the continuous part
+        of the response vector.
     dist_func_z : {callable, None}, optional
-        Distance function. Given two responses x1=(y1,z1) and x2=(y2,z2),
-        returns the distance of their integer parts according to some distance
-        metric. Not required when sub_loss=True. Syntax: dist_func_z(z1, z2).
-        The default is None.
+        Distance function penalization. Given two responses x1=(y1,z1) and
+        x2=(y2,z2), returns the distance of their integer parts according to
+        some distance metric. Syntax: dist_func_z(z1, z2). The default is None.
     Theta : {None, 'nonnegative'}, optional
         Constraints on cost vector theta. The default is None.
     regularizer : {'L2_squared', 'L1'}, optional
@@ -602,12 +667,6 @@ def mixed_integer_linear(dataset, decision_space,
         A priory belief or estimate of the true cost vector theta=(vec(Q), q).
         Should be provided as a tuple (Q_hat, q_hat). When None, theta_hat is
         defined as zeros. The default is None.
-    sub_loss : bool, optional
-        If True, solve the problem using the Suboptimality loss. Namely,
-        searches over the facts of the unit L-infinity sphere for the cost
-        vector with the smallest loss. If Theta='nonnegative', only searches
-        over the nonnegative facet of the L-1 sphere. If False, solve the
-        problem using the Augmented Suboptimality loss. The default is False.
     verbose : bool, optional
         If True, print Gurobi's solver output. The default is False.
     gurobi_params : {list of tuple(str, value), None}, optional
@@ -618,13 +677,13 @@ def mixed_integer_linear(dataset, decision_space,
     ------
     Exception
         If unsupported Theta, regularizer, or decision_space. If Gurobi does
-        not find an optimal solution. If sub_loss=False and dist_func is None.
-        If neither phi1 nor phi2 are given.
+        not find an optimal solution. If neither phi1 nor phi2 are given.
 
     Returns
     -------
     theta_opt : 1D ndarray
-        An optimal cost vector according to the chosen strategy.
+        An optimal cost vector according to the chosen strategy, in the form
+        theta = np.concatenate((Q.flatten('F'), q))
 
     """
     try:
@@ -638,12 +697,11 @@ def mixed_integer_linear(dataset, decision_space,
     check_decision_space(decision_space)
     check_regularizer(regularizer)
     check_reg_parameter(reg_param)
-    check_dist_func(dist_func_z, sub_loss)
 
     # Warnings
     warning_large_decision_space(decision_space)
-    warning_dist_func_sub_loss(dist_func_z, sub_loss)
     warning_theta_hat_reg_param(theta_hat, reg_param)
+    warning_add_dist_func_y(add_dist_func_y)
 
     if (phi1 is None) and (phi2 is None):
         raise Exception('Either phi1 or phi2 have to be given.')
@@ -653,10 +711,16 @@ def mixed_integer_linear(dataset, decision_space,
     if Z is None:
         def Z(s, z): return True
 
+    # Check if phi1 or phi2 were not provided, which means the problem is
+    # purely discrete or continuous, respectively.
+    discrete_flag = False
+    continuous_flag = False
     if phi1 is None:
         def phi1(w, z): return np.array([0])
+        discrete_flag = True
     if phi2 is None:
         def phi2(w, z): return np.array([0])
+        continuous_flag = True
 
     # Sample signal and response to get dimensions of problem
     s_test, x_test = dataset[0]
@@ -679,6 +743,11 @@ def mixed_integer_linear(dataset, decision_space,
     beta = mdl.addVars(N, vtype=gp.GRB.CONTINUOUS)
     sum_beta = (1/N)*gp.quicksum(beta)
 
+    if discrete_flag:
+        mdl.addConstrs(Q[i, j] == 0 for i in range(m2) for j in range(u1))
+    if continuous_flag:
+        mdl.addConstrs(q[i] == 0 for i in range(u2))
+
     if Theta == 'nonnegative':
         mdl.addConstrs(Q[i, j] >= 0 for i in range(m2) for j in range(u1))
         mdl.addConstrs(q[i] >= 0 for i in range(u2))
@@ -692,38 +761,56 @@ def mixed_integer_linear(dataset, decision_space,
             for k in range(2**n):
                 z = dec_to_bin(k, n)
                 if Z(w_hat, z):
-                    lamb = mdl.addVars(m1, vtype=gp.GRB.CONTINUOUS)
-
-                    if sub_loss:
-                        dist = 0
+                    if dist_func_z is None:
+                        dist_z = 0
                     else:
-                        dist = dist_func_z(z_hat, z)
+                        dist_z = dist_func_z(z_hat, z)
 
-                    phi1_hat = phi1(w_hat, z_hat)
-                    phi2_hat = phi2(w_hat, z_hat)
-                    Qphi1 = [gp.quicksum(Q[i, j]*phi1_hat[j]
-                                         for j in range(u1))
-                             for i in range(m2)]
-                    yQphi1 = gp.quicksum(y_hat[j]*Qphi1[j] for j in range(m2))
-                    qphi2_hat = gp.quicksum(q[j]*phi2_hat[j]
-                                            for j in range(u2))
-                    theta_phi = yQphi1 + qphi2_hat
+                    if add_dist_func_y:
+                        gamma_list = []
+                        for index in range(m2):
+                            gamma = np.zeros(m2)
+                            gamma[index] = 1
+                            gamma_list.append(gamma)
+                        for index in range(m2):
+                            gamma = np.zeros(m2)
+                            gamma[index] = -1
+                            gamma_list.append(gamma)
+                    else:
+                        gamma_list = [np.zeros(m2)]
 
-                    Bz = B @ z
-                    lambcBz = gp.quicksum(lamb[j]*(c[j] - Bz[j])
-                                          for j in range(m1))
-                    ph2 = phi2(w_hat, z)
-                    qphi2 = gp.quicksum(q[j]*ph2[j] for j in range(u2))
+                    for gamma in gamma_list:
+                        lamb = mdl.addVars(m1, vtype=gp.GRB.CONTINUOUS)
 
-                    mdl.addConstr(theta_phi + lambcBz - qphi2 + dist
-                                  <= beta[i])
+                        ph1_hat = phi1(w_hat, z_hat)
+                        ph2_hat = phi2(w_hat, z_hat)
+                        Qph1_hat = [gp.quicksum(Q[i, j]*ph1_hat[j]
+                                                for j in range(u1))
+                                    for i in range(m2)]
+                        yQph1_hat = gp.quicksum(y_hat[j]*Qph1_hat[j]
+                                                for j in range(m2))
+                        qphi2_hat = gp.quicksum(q[j]*ph2_hat[j]
+                                                for j in range(u2))
+                        theta_phi = yQph1_hat + qphi2_hat
 
-                    ph1 = phi1(w_hat, z)
-                    mdl.addConstrs(gp.quicksum(Q[i, j]*ph1[j]
-                                               for j in range(u1))
-                                   + gp.quicksum(lamb[j]*A[j, i]
-                                                 for j in range(m1))
-                                   == 0 for i in range(m2))
+                        Bz = B @ z
+                        lambcBz = gp.quicksum(lamb[j]*(c[j] - Bz[j])
+                                              for j in range(m1))
+                        ph2 = phi2(w_hat, z)
+                        qphi2 = gp.quicksum(q[j]*ph2[j] for j in range(u2))
+
+                        gammay_hat = gp.quicksum(gamma[j]*y_hat[j]
+                                                 for j in range(m2))
+                        mdl.addConstr(theta_phi + lambcBz - qphi2
+                                      + gammay_hat + dist_z <= beta[i])
+
+                        ph1 = phi1(w_hat, z)
+                        mdl.addConstrs(gp.quicksum(Q[i, j]*ph1[j]
+                                                   for j in range(u1))
+                                       + gp.quicksum(lamb[j]*A[j, i]
+                                                     for j in range(m1))
+                                       + gamma[i]
+                                       == 0 for i in range(m2))
 
     if reg_param > 0:
         if theta_hat is None:
@@ -757,7 +844,8 @@ def mixed_integer_linear(dataset, decision_space,
 
     # Check if norm equality constraint needs to be added to avoid the trivial
     # solution theta=0
-    if sub_loss and ((reg_param == 0) or (theta_hat is None)):
+    if (((not add_dist_func_y) and (dist_func_z is None))
+            and ((reg_param == 0) or (theta_hat is None))):
         if Theta == 'nonnegative':
             mdl.addConstr(gp.quicksum(q) + gp.quicksum(Q) == 1)
             mdl.optimize()
@@ -827,7 +915,6 @@ def mixed_integer_quadratic(dataset, decision_space,
                             regularizer='L2_squared',
                             reg_param=0,
                             theta_hat=None,
-                            sub_loss=False,
                             verbose=False,
                             solver='mosek'):
     """
@@ -860,10 +947,9 @@ def mixed_integer_quadratic(dataset, decision_space,
         ndarray feature vector. Syntax: phi1(w, z). If None, it will be defined
         as "def phi2(w, z): return np.array([0])". The default is None.
     dist_func_z : {callable, None}, optional
-        Distance function. Given two responses x1=(y1,z1) and x2=(y2,z2),
-        returns the distance of their integer parts according to some distance
-        metric. Not required when sub_loss=True. Syntax: dist_func_z(z1, z2).
-        The default is None.
+        Distance function penalization. Given two responses x1=(y1,z1) and
+        x2=(y2,z2), returns the distance of their integer parts according to
+        some distance metric. Syntax: dist_func_z(z1, z2). The default is None.
     Theta : {None, 'nonnegative'}, optional
         Constraints on cost vector theta. The default is None.
     regularizer : {'L2_squared', 'L1'}, optional
@@ -876,12 +962,6 @@ def mixed_integer_quadratic(dataset, decision_space,
         theta=(vec(Qyy), vec(Q), q). Should be provided as a tuple
         (Qyy_hat, Q_hat, q_hat). When None, theta_hat is defined as zeros. The
         default is None.
-    sub_loss : bool, optional
-        If True, solve the problem using the Suboptimality loss. Namely,
-        searches over the facts of the unit L-infinity sphere for the cost
-        vector with the smallest loss. If Theta='nonnegative', only searches
-        over the nonnegative facet of the L-1 sphere. If False, solve the
-        problem using the Augmented Suboptimality loss. The default is False.
     verbose : bool, optional
         If True, print solver's output. The default is False.
 
@@ -889,12 +969,15 @@ def mixed_integer_quadratic(dataset, decision_space,
     ------
     Exception
         If unsupported Theta, regularizer, or decision_space. If Gurobi does
-        not find an optimal solution. If sub_loss=False and dist_func is None.
+        not find an optimal solution.
 
     Returns
     -------
     theta_opt : 1D ndarray
-        An optimal cost vector according to the chosen strategy.
+        An optimal cost vector according to the chosen strategy, in the form
+        theta = np.concatenate((Qyy.flatten('F'),
+                                Q.flatten('F'),
+                                q.flatten('F')))
 
     """
     try:
@@ -911,7 +994,6 @@ def mixed_integer_quadratic(dataset, decision_space,
 
     # Warnings
     warning_large_decision_space(decision_space)
-    warning_dist_func_sub_loss(dist_func_z, sub_loss)
     warning_theta_hat_reg_param(theta_hat, reg_param)
 
     N = len(dataset)
@@ -956,7 +1038,7 @@ def mixed_integer_quadratic(dataset, decision_space,
                     alpha = cp.Variable((1, 1))
                     lamb = cp.Variable((m1, 1))
 
-                    if sub_loss:
+                    if dist_func_z is not None:
                         dist = 0
                     else:
                         dist = dist_func_z(z_hat, z)
@@ -1005,7 +1087,7 @@ def mixed_integer_quadratic(dataset, decision_space,
 
     # Check if trace equality constraint needs to be added to avoid the trivial
     # solution theta=0
-    if sub_loss and ((reg_param == 0) or (theta_hat is None)):
+    if (dist_func_z is not None) and ((reg_param == 0) or (theta_hat is None)):
         constraints += [cp.trace(Qyy) == 1]
 
     prob = cp.Problem(obj, constraints)
