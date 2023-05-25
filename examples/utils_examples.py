@@ -35,7 +35,7 @@ def linear_X(s, x):
 
 
 def binary_linear_FOP(theta, s, gurobi_params=None):
-    """Forward optimization problem."""
+    """Forward optimization problem: binary LP."""
     A, b = s
     m, n = A.shape
     p = len(theta)
