@@ -136,7 +136,7 @@ N_train = 10
 N_test = 10
 n = 3
 m = 2
-decision_space = ('binary', n)
+Z = ('binary', n, None)
 Theta = 'nonnegative'
 resolution = 5
 runs = 3
@@ -146,7 +146,7 @@ print(f'N_train = {N_train}')
 print(f'N_test = {N_test}')
 print(f'n = {n}')
 print(f'm = {m}')
-print(f'decision_space = {decision_space}')
+print(f'Z = {Z}')
 print(f'Theta = {Theta}')
 print(f'resolution = {resolution}')
 print(f'runs = {runs}')
@@ -190,7 +190,7 @@ print('')
 # %%%%%%%%%%%%%%%%%%%%%%%%%%% Solve IO problem %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 # Tested approaches
-approaches = ['SL-MIQP', 'ASL-MIQP']
+approaches = ['SL-MIQP', 'ASL-MIQP-z', 'ASL-MIQP-yz']
 len_prob = len(approaches)
 
 theta_diff_hist = np.empty((len_prob, runs, resolution))
@@ -206,9 +206,14 @@ for approach in approaches:
     print(f'Approach: {approach}')
 
     if approach == 'SL-MIQP':
-        sub_loss = True
-    else:
-        sub_loss = False
+        dist_func_z = None
+        add_y = False
+    elif approach == 'ASL-MIQP-z':
+        dist_func_z = L2
+        add_y = False
+    elif approach == 'ASL-MIQP-yz':
+        dist_func_z = L2
+        add_y = True
 
     tic = time.time()
     for run in range(runs):
@@ -218,12 +223,12 @@ for approach in approaches:
 
         for N in N_list:
             theta_IO = iop.mixed_integer_quadratic(dataset_train[:N],
-                                                   decision_space,
+                                                   Z,
                                                    Theta=Theta,
                                                    phi1=phi1,
                                                    phi2=phi2,
-                                                   dist_func_z=L2,
-                                                   sub_loss=sub_loss)
+                                                   dist_func_z=dist_func_z,
+                                                   add_dist_func_y=add_y)
 
             x_diff_train, obj_diff_train, theta_diff = \
                 iop.evaluate(theta_IO,

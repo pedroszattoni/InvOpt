@@ -126,7 +126,7 @@ N_train = 30
 N_test = 30
 n = 4
 m = 3
-decision_space = ('binary', n)
+Z = ('binary', n, None)
 Theta = 'nonnegative'
 resolution = 10
 runs = 3
@@ -136,7 +136,7 @@ print(f'N_train = {N_train}')
 print(f'N_test = {N_test}')
 print(f'n = {n}')
 print(f'm = {m}')
-print(f'decision_space = {decision_space}')
+print(f'Z = {Z}')
 print(f'Theta = {Theta}')
 print(f'resolution = {resolution}')
 print(f'runs = {runs}')
@@ -175,7 +175,7 @@ print('')
 # %%%%%%%%%%%%%%%%%%%%%%%%%%% Solve IO problem %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 # Tested approaches
-approaches = ['SL-MILP', 'ASL-MILP']
+approaches = ['SL-MILP', 'ASL-MILP-z', 'ASL-MILP-yz']
 len_prob = len(approaches)
 
 theta_diff_hist = np.empty((len_prob, runs, resolution))
@@ -191,9 +191,14 @@ for approach in approaches:
     print(f'Approach: {approach}')
 
     if approach == 'SL-MILP':
-        sub_loss = True
-    else:
-        sub_loss = False
+        dist_func_z = None
+        add_y = False
+    elif approach == 'ASL-MILP-z':
+        dist_func_z = L2
+        add_y = False
+    elif approach == 'ASL-MILP-yz':
+        dist_func_z = L2
+        add_y = True
 
     tic = time.time()
     for run in range(runs):
@@ -203,12 +208,12 @@ for approach in approaches:
 
         for N in N_list:
             theta_IO = iop.mixed_integer_linear(dataset_train[:N],
-                                                decision_space,
+                                                Z,
                                                 phi1=phi1,
                                                 phi2=phi2,
                                                 Theta=Theta,
-                                                dist_func_z=L2,
-                                                sub_loss=sub_loss)
+                                                dist_func_z=dist_func_z,
+                                                add_dist_func_y=add_y)
 
             x_diff_train, obj_diff_train, theta_diff = \
                 iop.evaluate(theta_IO,

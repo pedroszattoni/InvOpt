@@ -9,7 +9,7 @@ import sys
 sys.path.append(dirname(dirname(abspath(__file__))))  # nopep8
 import time
 import numpy as np
-from utils_examples import (binary_linear_FOP, linear_X, linear_phi, L2,
+from utils_examples import (binary_linear_FOP, linear_ind_func, linear_phi, L2,
                             plot_results)
 import invopt as iop
 
@@ -62,7 +62,7 @@ n = 5
 m = 3
 noise_level = 0.05
 kappa = 0.001
-decision_space = ('binary', n)
+X = ('binary', n, linear_ind_func)
 resolution = 10
 runs = 3
 
@@ -73,7 +73,7 @@ print(f'n = {n}')
 print(f'm = {m}')
 print(f'noise_level = {noise_level}')
 print(f'kappa = {kappa}')
-print(f'decision_space = {decision_space}')
+print(f'X = {X}')
 print(f'resolution = {resolution}')
 print(f'runs = {runs}')
 print('')
@@ -124,10 +124,10 @@ for approach in approaches:
     print(f'Approach: {approach}')
 
     if approach == 'SL':
-        sub_loss = True
+        dist_func = None
         reg_param = 0
     else:
-        sub_loss = False
+        dist_func = L2
         reg_param = kappa
 
     tic = time.time()
@@ -138,12 +138,10 @@ for approach in approaches:
 
         for N in N_list:
             theta_IO = iop.discrete(dataset_train[:N],
-                                    decision_space,
+                                    X,
                                     linear_phi,
-                                    X=linear_X,
                                     reg_param=reg_param,
-                                    dist_func=L2,
-                                    sub_loss=sub_loss)
+                                    dist_func=dist_func)
 
             x_diff_train, obj_diff_train, theta_diff = \
                 iop.evaluate(theta_IO,

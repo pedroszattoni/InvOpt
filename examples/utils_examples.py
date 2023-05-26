@@ -28,7 +28,7 @@ def L2(x1, x2):
     return np.linalg.norm(x1-x2)
 
 
-def linear_X(s, x):
+def linear_ind_func(s, x):
     """Check if x satisfies constraint set inequality."""
     A, b = s
     return (A @ x <= b).all()

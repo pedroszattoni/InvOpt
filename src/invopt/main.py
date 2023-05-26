@@ -17,9 +17,9 @@ def check_Theta(Theta):
 
 def check_decision_space(decision_space):
     """Check if decision_space is valid."""
-    if decision_space[0] != 'binary':
+    if decision_space != 'binary':
         raise Exception('Invalid decision space. Accepted values are: ' +
-                        ' tuple(\'binary\', n) (default).')
+                        '\'binary\'.')
 
 
 def check_regularizer(regularizer):
@@ -35,9 +35,9 @@ def check_reg_parameter(reg_param):
         raise Exception('reg_param must be nonnegative.')
 
 
-def warning_large_decision_space(decision_space):
+def warning_large_decision_space(decision_space, n):
     """Warn user if decision space is binary and high-dimensional."""
-    if (decision_space[0] == 'binary') and (decision_space[1] > 15):
+    if (decision_space == 'binary') and (n > 15):
         warnings.warn('Attention! Using this IO method for models with binary '
                       'decision variables requires solving an optimization '
                       'problem with potentially O(N*2^n) constraints, '
@@ -269,8 +269,7 @@ def evaluate(theta, dataset, FOP, dist_func,
     return results
 
 
-def discrete_consistent(dataset, decision_space, phi,
-                        X=None,
+def discrete_consistent(dataset, X, phi,
                         dist_func=None,
                         Theta=None,
                         regularizer='L2_squared',
@@ -287,20 +286,21 @@ def discrete_consistent(dataset, decision_space, phi,
     ----------
     dataset : list of tuples
         List of tuples (s, x), where s is the signal and x is the response.
+    X : tuple(str, int, {callable, None})
+        Constraint set. Given a signal s and response x, X is a tuple
+        containing the type of the decision space, the size of the decision
+        space and any extra constraints as an indicator function. For example,
+        if the decision vector is binary, with size n, and respects the
+        constraint Ax <= b., then X = ('binary', n, ind_func), where
+        ind_func(s, x) equals True if Ax <= b, and False otherwise. Notice that
+        A and b may be part of the signal s, that is why the indicator function
+        takes both s and x as inputs. If ind_func=None, it will be defined as
+        "def ind_func(s, x): return True".
     phi : callable
         Feature function. Given a signal s and response x, returns a 1D
         ndarray feature vector. Syntax: phi(s, x).
-    decision_space : {tuple('binary', n)}
-        Tuple containing type and dimension of the decision space.
-    X : {callable, None}, optional
-        Constraint set. Given a signal s and response x, returns True if x is a
-        feasible response, and False otherwise. It does not need to check for
-        the type of the decision variables contained in decision_space. For
-        example, if decision_space=('binary', n), X should not check if x is a
-        binary vector. Syntax: X(s, x). If None, it will be defined as
-        "def X(s, x): return True". The default is None.
     dist_func : {callable, None}, optional
-        Distance function penalization. Given two responses x1 and x2, returns
+        Distance penalization function. Given two responses x1 and x2, returns
         the distance between them according to some distance metric. Syntax:
         dist_func(x1, x2). The default is None.
     Theta : {None, 'nonnegative'}, optional
@@ -336,15 +336,17 @@ def discrete_consistent(dataset, decision_space, phi,
         print("gurobipy is required for invopt's discrete_consistent " +
               "function.")
 
+    decision_space, n, ind_func = X
+
     # Check if the inputs are valid
     check_Theta(Theta)
     check_decision_space(decision_space)
     check_regularizer(regularizer)
 
-    warning_large_decision_space(decision_space)
+    warning_large_decision_space(decision_space, n)
 
-    if X is None:
-        def X(s, x): return True
+    if ind_func is None:
+        def ind_func(s, x): return True
 
     N = len(dataset)
 
@@ -368,11 +370,10 @@ def discrete_consistent(dataset, decision_space, phi,
     # Add constraints
     for i in range(N):
         s_hat, x_hat = dataset[i]
-        if decision_space[0] == 'binary':
-            n = decision_space[1]
+        if decision_space == 'binary':
             for k in range(2**n):
                 x = dec_to_bin(k, n)
-                if X(s_hat, x):
+                if ind_func(s_hat, x):
                     phi_1 = phi(s_hat, x)
                     phi_2 = phi(s_hat, x_hat)
                     if dist_func is None:
@@ -425,8 +426,7 @@ def discrete_consistent(dataset, decision_space, phi,
     return theta_opt
 
 
-def discrete(dataset, decision_space, phi,
-             X=None,
+def discrete(dataset, X, phi,
              dist_func=None,
              Theta=None,
              regularizer='L2_squared',
@@ -444,20 +444,21 @@ def discrete(dataset, decision_space, phi,
     ----------
     dataset : list of tuples
         List of tuples (s, x), where s is the signal and x is the response.
+    X : tuple(str, int, {callable, None})
+        Constraint set. Given a signal s and response x, X is a tuple
+        containing the type of the decision space, the size of the decision
+        space and any extra constraints as an indicator function. For example,
+        if the decision vector is binary, with size n, and respects the
+        constraint Ax <= b., then X = ('binary', n, ind_func), where
+        ind_func(s, x) equals True if Ax <= b, and False otherwise. Notice that
+        A and b may be part of the signal s, that is why the indicator function
+        takes both s and x as inputs. If ind_func=None, it will be defined as
+        "def ind_func(s, x): return True".
     phi : callable
         Feature function. Given a signal s and response x, returns a 1D
         ndarray feature vector. Syntax: phi(s, x).
-    decision_space : {tuple('binary', n)}
-        Tuple containing type and dimension of the decision space.
-    X : {callable, None}, optional
-        Constraint set. Given a signal s and response x, returns True if x is a
-        feasible response, and False otherwise. It does not need to check for
-        the type of the decision variables contained in decision_space. For
-        example, if decision_space=('binary', n), X should not check if x is a
-        binary vector. Syntax: X(s, x). If None, it will be defined as
-        "def X(s, x): return True". The default is None.
     dist_func : {callable, None}, optional
-        Distance function penalization. Given two responses x1 and x2, returns
+        Distance penalization function. Given two responses x1 and x2, returns
         the distance between them according to some distance metric. Syntax:
         dist_func(x1, x2). The default is None.
     Theta : {None, 'nonnegative'}, optional
@@ -489,7 +490,7 @@ def discrete(dataset, decision_space, phi,
         An optimal cost vector according to the chosen strategy.
 
     """
-    _, n = decision_space
+    _, n, _ = X
 
     if theta_hat is None:
         theta_hat_mod = None
@@ -506,9 +507,8 @@ def discrete(dataset, decision_space, phi,
         x_hat_mod = (np.array([0]), x_hat)
         dataset_mod.append((s_hat_mod, x_hat_mod))
 
-    theta_opt_mod = mixed_integer_linear(dataset_mod, decision_space,
+    theta_opt_mod = mixed_integer_linear(dataset_mod, X,
                                          phi2=phi,
-                                         Z=X,
                                          dist_func_z=dist_func,
                                          Theta=Theta,
                                          regularizer=regularizer,
@@ -575,7 +575,7 @@ def continuous_linear(dataset, phi,
         An optimal cost vector according to the chosen strategy.
 
     """
-    decision_space = ('binary', 0)
+    Z = ('binary', 0, None)
 
     if theta_hat is None:
         theta_hat_mod = None
@@ -592,7 +592,7 @@ def continuous_linear(dataset, phi,
 
     def phi_mod(w, z): return phi(w)
 
-    theta_opt_mod = mixed_integer_linear(dataset_mod, decision_space,
+    theta_opt_mod = mixed_integer_linear(dataset_mod, Z,
                                          add_dist_func_y=add_dist_func_y,
                                          phi1=phi_mod,
                                          Theta=Theta,
@@ -607,10 +607,9 @@ def continuous_linear(dataset, phi,
     return theta_opt
 
 
-def mixed_integer_linear(dataset, decision_space,
+def mixed_integer_linear(dataset, Z,
                          phi1=None,
                          phi2=None,
-                         Z=None,
                          add_dist_func_y=False,
                          dist_func_z=None,
                          Theta=None,
@@ -629,18 +628,18 @@ def mixed_integer_linear(dataset, decision_space,
     ----------
     dataset : list of tuples
         List of tuples (s, x), where s is the signal and x is the response.
-    decision_space : {tuple('binary', n)}
-        Tuple containing type and dimension of the decision space fo the
-        integer part of the decision vector.
-    Z : {callable, None}, optional
-        Constraint set of the integer part of the decision vector. Given a
-        signal s = (A, B, c, w) and response x = (y, z), returns True if z
-        (i.e., the integer part of x) is a feasible response, and False
-        otherwise. It does not need to check for the type of the decision
-        variables contained in decision_space. For example, if
-        decision_space=('binary', n), Z should not check if z is a binary
-        vector. Syntax: Z(w, z). If None, it will be defined as
-        "def Z(w, x): return True". The default is None.
+    Z : tuple(str, int, {callable, None})
+        Constraint set for the integer part of the decision vector. Given a
+        signal s = (A, B, c, w) and response x = (y, z), Z is a tuple
+        containing the type of the decision space, the size of the decision
+        space and any extra constraints as an indicator function, all w.r.t.
+        the integer part or the decision vector, i.e., z. For example,
+        if z is binary, with size n, and respects the
+        constraint Dx <= e., then Z = ('binary', n, ind_func), where
+        ind_func(w, z) equals True if Dz <= e, and False otherwise. Notice that
+        D and e may be part of w, that is why the indicator function
+        takes both w and z as inputs. If ind_func=None, it will be defined as
+        "def ind_func(w, z): return True".
     phi1 : {callable, None}, optional
         Feature function. Given w and response z, returns a 1D
         ndarray feature vector. Syntax: phi1(w, z). If None, it will be defined
@@ -653,7 +652,7 @@ def mixed_integer_linear(dataset, decision_space,
         If True, adds l-infinity distance penalization to the continuous part
         of the response vector.
     dist_func_z : {callable, None}, optional
-        Distance function penalization. Given two responses x1=(y1,z1) and
+        Distance penalization function. Given two responses x1=(y1,z1) and
         x2=(y2,z2), returns the distance of their integer parts according to
         some distance metric. Syntax: dist_func_z(z1, z2). The default is None.
     Theta : {None, 'nonnegative'}, optional
@@ -692,6 +691,8 @@ def mixed_integer_linear(dataset, decision_space,
         print("gurobipy is required for invopt's mixed_integer_linear " +
               'function.')
 
+    decision_space, n, ind_func = Z
+
     # Check if the inputs are valid
     check_Theta(Theta)
     check_decision_space(decision_space)
@@ -699,7 +700,7 @@ def mixed_integer_linear(dataset, decision_space,
     check_reg_parameter(reg_param)
 
     # Warnings
-    warning_large_decision_space(decision_space)
+    warning_large_decision_space(decision_space, n)
     warning_theta_hat_reg_param(theta_hat, reg_param)
     warning_add_dist_func_y(add_dist_func_y)
 
@@ -708,8 +709,8 @@ def mixed_integer_linear(dataset, decision_space,
 
     N = len(dataset)
 
-    if Z is None:
-        def Z(s, z): return True
+    if ind_func is None:
+        def ind_func(w, z): return True
 
     # Check if phi1 or phi2 were not provided, which means the problem is
     # purely discrete or continuous, respectively.
@@ -756,11 +757,10 @@ def mixed_integer_linear(dataset, decision_space,
         s_hat, x_hat = dataset[i]
         y_hat, z_hat = x_hat
         A, B, c, w_hat = s_hat
-        if decision_space[0] == 'binary':
-            n = decision_space[1]
+        if decision_space == 'binary':
             for k in range(2**n):
                 z = dec_to_bin(k, n)
-                if Z(w_hat, z):
+                if ind_func(w_hat, z):
                     if dist_func_z is None:
                         dist_z = 0
                     else:
@@ -906,10 +906,9 @@ def mixed_integer_linear(dataset, decision_space,
     return theta_opt
 
 
-def mixed_integer_quadratic(dataset, decision_space,
+def mixed_integer_quadratic(dataset, Z,
                             phi1=None,
                             phi2=None,
-                            Z=None,
                             dist_func_z=None,
                             Theta=None,
                             regularizer='L2_squared',
@@ -927,17 +926,18 @@ def mixed_integer_quadratic(dataset, decision_space,
     ----------
     dataset : list of tuples
         List of tuples (s, x), where s is the signal and x is the response.
-    decision_space : {tuple('binary', n)}
-        Tuple containing type and dimension of the decision space.
-    Z : {callable, None}, optional
-        Constraint set of the integer part of the decision vector. Given a
-        signal s = (A, B, c, w) and response x = (y, z), returns True if z
-        (i.e., the integer part of x) is a feasible response, and False
-        otherwise. It does not need to check for the type of the decision
-        variables contained in decision_space. For example, if
-        decision_space=('binary', n), Z should not check if z is a binary
-        vector. Syntax: Z(w, z). If None, it will be defined as
-        "def Z(w, x): return True". The default is None.
+    Z : tuple(str, int, {callable, None})
+        Constraint set for the integer part of the decision vector. Given a
+        signal s = (A, B, c, w) and response x = (y, z), Z is a tuple
+        containing the type of the decision space, the size of the decision
+        space and any extra constraints as an indicator function, all w.r.t.
+        the integer part or the decision vector, i.e., z. For example,
+        if z is binary, with size n, and respects the
+        constraint Dx <= e., then Z = ('binary', n, ind_func), where
+        ind_func(w, z) equals True if Dz <= e, and False otherwise. Notice that
+        D and e may be part of w, that is why the indicator function
+        takes both w and z as inputs. If ind_func=None, it will be defined as
+        "def ind_func(w, z): return True".
     phi1 : {callable, None}, optional
         Feature function. Given w and response z, returns a 1D
         ndarray feature vector. Syntax: phi1(w, z). If None, it will be defined
@@ -947,7 +947,7 @@ def mixed_integer_quadratic(dataset, decision_space,
         ndarray feature vector. Syntax: phi1(w, z). If None, it will be defined
         as "def phi2(w, z): return np.array([0])". The default is None.
     dist_func_z : {callable, None}, optional
-        Distance function penalization. Given two responses x1=(y1,z1) and
+        Distance penalization function. Given two responses x1=(y1,z1) and
         x2=(y2,z2), returns the distance of their integer parts according to
         some distance metric. Syntax: dist_func_z(z1, z2). The default is None.
     Theta : {None, 'nonnegative'}, optional
@@ -986,6 +986,8 @@ def mixed_integer_quadratic(dataset, decision_space,
         print("cvxpy is required for invopt's mixed_integer_quadratic " +
               "function.")
 
+    decision_space, n, ind_func = Z
+
     # Check if the inputs are valid
     check_Theta(Theta)
     check_decision_space(decision_space)
@@ -993,13 +995,13 @@ def mixed_integer_quadratic(dataset, decision_space,
     check_reg_parameter(reg_param)
 
     # Warnings
-    warning_large_decision_space(decision_space)
+    warning_large_decision_space(decision_space, n)
     warning_theta_hat_reg_param(theta_hat, reg_param)
 
     N = len(dataset)
 
-    if Z is None:
-        def Z(s, z): return True
+    if ind_func is None:
+        def ind_func(w, z): return True
 
     if phi1 is None:
         def phi1(w, z): return np.array([0])
@@ -1030,11 +1032,10 @@ def mixed_integer_quadratic(dataset, decision_space,
         s_hat, x_hat = dataset[i]
         y_hat, z_hat = x_hat
         A, B, c, w_hat = s_hat
-        if decision_space[0] == 'binary':
-            n = decision_space[1]
+        if decision_space == 'binary':
             for k in range(2**n):
                 z = dec_to_bin(k, n)
-                if Z(w_hat, z):
+                if ind_func(w_hat, z):
                     alpha = cp.Variable((1, 1))
                     lamb = cp.Variable((m1, 1))
 

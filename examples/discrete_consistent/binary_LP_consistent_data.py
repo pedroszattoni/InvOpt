@@ -10,7 +10,7 @@ import time
 import numpy as np
 from gurobipy import Model, GRB, quicksum
 import polytope as pc
-from utils_examples import (binary_linear_FOP, linear_X, linear_phi, L2,
+from utils_examples import (binary_linear_FOP, linear_ind_func, linear_phi, L2,
                             plot_results)
 import invopt as iop
 
@@ -71,7 +71,7 @@ def circumcenter(dataset):
         for k in range(2**n):
             x_bin = np.binary_repr(k).zfill(n)
             x_bin = np.array([int(x_bin[i]) for i in range(n)])
-            if linear_X(s_hat, x_bin):
+            if linear_ind_func(s_hat, x_bin):
                 C.append(x_hat - x_bin)
                 d.append(0)
 
@@ -114,7 +114,7 @@ N_train = 50
 N_test = 50
 n = 5
 m = 3
-decision_space = ('binary', n)
+X = ('binary', n, linear_ind_func)
 Theta = 'nonnegative'
 resolution = 10
 runs = 3
@@ -124,7 +124,7 @@ print(f'N_train = {N_train}')
 print(f'N_test = {N_test}')
 print(f'n = {n}')
 print(f'm = {m}')
-print(f'decision_space = {decision_space}')
+print(f'X = {X}')
 print(f'Theta = {Theta}')
 print(f'resolution = {resolution}')
 print(f'runs = {runs}')
@@ -187,14 +187,16 @@ for approach in approaches:
             if approach == 'Circumcenter':
                 theta_IO = circumcenter(dataset_train[:N])
             else:
-                feas = (approach == 'Feasibility')
+                if approach == 'Feasibility':
+                    dist_func = None
+                else:
+                    dist_func = L2
+
                 theta_IO = iop.discrete_consistent(dataset_train[:N],
-                                                   decision_space,
+                                                   X,
                                                    linear_phi,
-                                                   X=linear_X,
-                                                   dist_func=L2,
-                                                   Theta=Theta,
-                                                   feasibility=feas)
+                                                   dist_func=dist_func,
+                                                   Theta=Theta)
 
             x_diff_train, obj_diff_train, theta_diff = \
                 iop.evaluate(theta_IO,
