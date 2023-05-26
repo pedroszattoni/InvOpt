@@ -25,24 +25,24 @@ $$
 $$
 
 where
-- $\hat{\theta} \in \mathbb{R}^p$ is an a priory belief or estimate of the true cost vector.
+- $\hat{\theta} \in \mathbb{R}^p$ is an a priory belief or estimate of the true cost vector. *(optional)*
 - $\mathcal{R} : \mathbb{R}^p \to \mathbb{R}$ is a regularization function.
 - $\kappa$ is a nonnegative regularization parameter.
 - $\phi: \mathbb{S} \times \mathbb{X} \to \mathbb{R}^p$ is the feature mapping, which maps a signal-response pair $(s,x)$ to a feature vector $\phi(s,x)$.
-- $d : \mathbb{X} \times \mathbb{X} \to \mathbb{R}_+$ is a distance function, which given two responses, returns the distance between them according to some distance metric.
+- $d : \mathbb{X} \times \mathbb{X} \to \mathbb{R}_+$ is a distance function, which given two responses, returns the distance between them according to some distance metric. *(optional)*
 - $\mathbb{X}(\hat{s}_ i)$ is the constraint set of the FOP.
-- $\Theta$ is the set used to encode any prior information or assumption we may have on the expert's true cost function, e.g., nonnegativity of the cost vector.
+- $\Theta$ is the set used to encode any prior information or assumption we may have on the expert's true cost function, e.g., nonnegativity of the cost vector. *(optional)*
 
-Alternatively, the `discrete` function also implements the epigraph reformulation of the *Suboptimality loss*, which solves the IO problem using
+Alternatively, if the distance penalization function $d$  is not provided and $\kappa=0$ or $\hat{\theta}$ is not provided, the `discrete` solves the IO problem using the epigraph reformulation of the *Suboptimality loss*
 
 $$
-\begin{aligned} \min_ {\theta, \beta_1, \ldots, \beta_N} \quad & \kappa\mathcal{R} (\theta - \hat{\theta}) + \frac{1}{N}\sum_ {i = 1}^N \beta_i \\
+\begin{aligned} \min_ {\theta, \beta_1, \ldots, \beta_N} \quad & \frac{1}{N}\sum_ {i = 1}^N \beta_i \\
 \text{s.t.} \ \ \ \quad & \theta^\top \big(\phi(\hat{s}_ i,\hat{x}_ i) - \phi(\hat{s}_ i,x_ i) \big) \leq \beta_i & \forall x_ i \in \mathbb{X}(\hat{s}_ i), \ \forall i \in [N] \\
-& \theta \in \Theta, \quad \beta_i \geq 0 & \forall i \in [N].
+& \theta \in \Theta, \quad \rVert \theta \rVert = 1, \quad \beta_i \geq 0 & \forall i \in [N],
 \end{aligned}
 $$
 
-If $\kappa=0$ or $\hat{\theta}$ is not provided, we need to add the norm equality constraint $\rVert \theta \rVert = 1$ to exclude the trivial solution $\theta=0$. We use the $\ell_ 1$ norm if $\Theta = \\{\theta \in \mathbb{R}^p : \theta \geq 0\\}$, and the $\ell_ \infty$ norm otherwise.
+where the norm equality constraint uses the $\ell_ 1$ norm if $\Theta = \\{\theta \in \mathbb{R}^p : \theta \geq 0\\}$, and the $\ell_ \infty$ norm otherwise. This equality constraint must be added to exclude the trivial solution $\theta = 0$.
 
 ## Example: binary linear program with inconsistent data
 

@@ -15,7 +15,7 @@ the constraint set $\mathbb{X}(\hat{s})$ is discrete, that is, we can list all e
 
 ## Solution method
 
-Given the a dataset of signal-response data $\mathcal{D} = \\{(\hat{s}_ i, \hat{x}_ i)\\}_ {i=1}^N$,  the `discrete_consistent` function solves the IO problem (by default) using the *incenter stratety*
+Given the a dataset of signal-response data $\mathcal{D} = \\{(\hat{s}_ i, \hat{x}_ i)\\}_ {i=1}^N$,  the `discrete_consistent` function solves the IO problem using the *incenter stratety*
 
 $$
 \begin{aligned}
@@ -26,23 +26,14 @@ $$
 $$
 
 where
-- $\hat{\theta} \in \mathbb{R}^p$ is an a priory belief or estimate of the true cost vector.
+- $\hat{\theta} \in \mathbb{R}^p$ is an a priory belief or estimate of the true cost vector. *(optional)*
 - $\mathcal{R} : \mathbb{R}^p \to \mathbb{R}$ is a regularization function.
 - $\phi: \mathbb{S} \times \mathbb{X} \to \mathbb{R}^p$ is the feature mapping, which maps a signal-response pair $(s,x)$ to a feature vector $\phi(s,x)$.
-- $d : \mathbb{X} \times \mathbb{X} \to \mathbb{R}_+$ is a distance function, which given two responses, returns the distance between them according to some distance metric.
+- $d : \mathbb{X} \times \mathbb{X} \to \mathbb{R}_+$ is a distance penalization function, which given two responses, returns the distance between them according to some distance metric. *(optional)*
 - $\mathbb{X}(\hat{s}_ i)$ is the constraint set of the FOP.
-- $\Theta$ is the set used to encode any prior information or assumption we may have on the expert's true cost function, e.g., nonnegativity of the cost vector.
+- $\Theta$ is the set used to encode any prior information or assumption we may have on the expert's true cost function, e.g., nonnegativity of the cost vector. *(optional)*
 
-Alternatively, the `discrete_consistent` function also implements the so-called *feasibility strategy*, which solves the IO problem by solving
-
-$$
-\begin{aligned} \min_ {\theta} \quad & \mathcal{R} (\theta - \hat{\theta}) \\
-\text{s.t.} \quad & \theta^\top \big(\phi(\hat{s}_ i,\hat{x}_ i) - \phi(\hat{s}_ i,x_ i) \big) \leq 0 \quad\quad \forall x_ i \in \mathbb{X}(\hat{s}_ i), \ \forall i \in [N] \\
-& \theta \in \Theta,
-\end{aligned}
-$$
-
-if some $\hat{\theta}$ is provided. Otherwise, it solves the feasibility problem
+Alternatively, if the distance penalization function $d$  and the priory belief/estimate vector $\hat{\theta}$ are not provided, the `discrete_consistent` function solves the IO problem by solving the feasibility problem
 
 $$
 \begin{aligned} \min_ {\theta} \quad & 0 \\

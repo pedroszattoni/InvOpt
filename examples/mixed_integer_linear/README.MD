@@ -38,27 +38,27 @@ $$
 $$
 
 where
-- $\hat{\theta} \in \mathbb{R}^p$ is an a priory belief or estimate of the true cost vector.
+- $\hat{\theta} \in \mathbb{R}^p$ is an a priory belief or estimate of the true cost vector. *(optional)*
 - $\mathcal{R} : \mathbb{R}^p \to \mathbb{R}$ is a regularization function.
 - $\kappa$ is a nonnegative regularization parameter.
-- $\phi_ 1: \mathbb{W} \times \mathbb{Z}^v \to \mathbb{R}^m$ is the feature mapping, which maps a signal-response pair $(w,z)$ to a feature vector $\phi_ 1(w,z)$.
-- $\phi_ 2: \mathbb{W} \times \mathbb{Z}^v \to \mathbb{R}^n$ is the feature mapping, which maps a signal-response pair $(w,z)$ to a feature vector $\phi_ 2(w,z)$.
-- $d_ z : \mathbb{Z}^v \times \mathbb{Z}^v \to \mathbb{R}_ +$ is a distance function, which given the integer part of two responses, returns the distance between them according to some distance metric.
+- $\phi_ 1: \mathbb{W} \times \mathbb{Z}^v \to \mathbb{R}^m$ is the feature mapping, which maps $(w,z)$ to a feature vector $\phi_ 1(w,z)$.
+- $\phi_ 2: \mathbb{W} \times \mathbb{Z}^v \to \mathbb{R}^n$ is the feature mapping, which maps $(w,z)$ to a feature vector $\phi_ 2(w,z)$.
+- $d_ z : \mathbb{Z}^v \times \mathbb{Z}^v \to \mathbb{R}_ +$ is a distance penalization function, which given the integer part of two responses, returns the distance between them according to some distance metric. *(optional)*
 - $\mathbb{Z}(\hat{w}_ i)$ is the constraint set of the integer part of the decision vector.
-- $\Theta$ is the set used to encode any prior information or assumption we may have on the expert's true cost function, e.g., nonnegativity of the cost vector.
+- $\Theta$ is the set used to encode any prior information or assumption we may have on the expert's true cost function, e.g., nonnegativity of the cost vector. *(optional)*
 
-Alternatively, the `mixed_integer_linear` function also implements a *Suboptimality loss*-based approach to solving IO problem
+Alternatively, if the distance penalization function $d$  is not provided and $\kappa=0$ or $\hat{\theta}$ is not provided, the `mixed_integer_linear` solves the IO problem using the *Suboptimality loss*-based reformulation
 
 $$
 \begin{aligned}
-\min_{\theta, \beta_ i, \lambda_ {ij}} \quad & \kappa\mathcal{R}(\theta - \hat{\theta}) + \frac{1}{N}\sum_ {i=1}^N \beta_ i  \\
+\min_{\theta, \beta_ i, \lambda_ {ij}} \quad & \frac{1}{N}\sum_ {i=1}^N \beta_ i  \\
 \text{s.t.} \ \quad & \theta^\top \phi(\hat{s}_ i,\hat{x}_ i) + \lambda_ {ij}^\top (\hat{c}_ i - \hat{B}_ i z_ {ij}) - q^\top \phi_ 2(\hat{w}_ i, z_ {ij})  \leq \beta_ i & \forall i \in [N], \ \forall j \in [M_ i] \\
 & Q \phi_ 1(\hat{w}_ i, z_ {ij}) + \hat{A}_ i^\top \lambda_ {ij} = 0 & \forall i \in [N], \ \forall j \in [M_ i] \\
-& \theta \in \Theta, \quad \beta_ i \geq 0, \quad \lambda_ {ij} \geq 0 & \forall i \in [N], \ \forall j \in [M_ i].
+& \theta \in \Theta, \quad \rVert \theta \rVert = 1, \quad \beta_ i \geq 0, \quad \lambda_ {ij} \geq 0 & \forall i \in [N], \ \forall j \in [M_ i],
 \end{aligned}
 $$
 
-If $\kappa=0$ or $\hat{\theta}$ is not provided, we need to add the norm equality constraint $\rVert \theta \rVert = 1$ to exclude the trivial solution $\theta=0$. We use the $\ell_ 1$ norm if $\Theta = \\{\theta \in \mathbb{R}^p : \theta \geq 0\\}$, and the $\ell_ \infty$ norm otherwise.
+where the norm equality constraint uses the $\ell_ 1$ norm if $\Theta = \\{\theta \in \mathbb{R}^p : \theta \geq 0\\}$, and the $\ell_ \infty$ norm otherwise. This equality constraint must be added to exclude the trivial solution $\theta = 0$.
 
 ## Example: binary linear mixed-interger program
 
