@@ -13,7 +13,7 @@ $$
 with a continuous constraint set
 
 $$
-\mathbb{X}(\hat{s}) = \left\\{ x \in \mathbb{R}^n : \hat{A}x + \leq \hat{b} \right\\},
+\mathbb{X}(\hat{s}) = \left\\{ x \in \mathbb{R}^n : \hat{A}x \leq \hat{b} \right\\},
 $$
 
 where $\hat{s} = (\hat{A}, \hat{b}, \hat{w})$, and hypothesis function
@@ -63,10 +63,10 @@ In the file `LP.py`, you will find an example usage for the `continuous_linear` 
 
 $$
 \begin{aligned}
-\hat{x}_ i \in \arg\min_ {x} \quad &  \langle q,x \rangle \\
+\hat{x}_ i \in \arg\min_ {x} \quad &  \langle x,q \rangle \\
 \text{s.t.} \quad & \hat{A}_ i x \leq \hat{b}_ i \\
 & 0 \leq x \leq 1,
 \end{aligned}
 $$
 
-where $\hat{s}_ i = (\hat{A}_ i, \hat{b}_ i, 0)$, and the IO problem is solved using the solution methods presented above, with $Q=q$ and $\phi_ 1(\hat{w}) = 1$. The way the synthetic data is generated and the way the results are evaluated follow the same template as the numerical experiments in [Zattoni Scroccaro et al. (2023)](https://arxiv.org/abs/2305.07730).
+where $\hat{s}_ i = ([\hat{A}_ i^\top \ \ I \ \ -I]^\top, [\hat{b}_ i \ \ \mathbf{1} \ \ \mathbf{0}], 0)$, where $\mathbf{1}$ is the vector of ones and $\mathbf{0}$ is the vector of zeros. The IO problem is solved using the solution methods presented above, with $Q=q$ and $\phi_ 1(\hat{w}) = 1$. The way the synthetic data is generated and the way the results are evaluated follow the same template as the numerical experiments in [Zattoni Scroccaro et al. (2023)](https://arxiv.org/abs/2305.07730).
