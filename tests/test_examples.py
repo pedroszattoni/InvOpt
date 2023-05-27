@@ -33,6 +33,14 @@ class TestScript(unittest.TestCase):
         script_name = 'discrete\\binary_LP_inconsistent_data.py'
         self.assertTrue(test_script(path_to_examples, script_name))
 
+    def test_LP(self):
+        script_name = 'continuous_linear\\LP.py'
+        self.assertTrue(test_script(path_to_examples, script_name))
+
+    def test_QP(self):
+        script_name = 'continuous_quadratic\\QP.py'
+        self.assertTrue(test_script(path_to_examples, script_name))
+
     def test_MILP(self):
         script_name = 'mixed_integer_linear\\MILP.py'
         self.assertTrue(test_script(path_to_examples, script_name))
