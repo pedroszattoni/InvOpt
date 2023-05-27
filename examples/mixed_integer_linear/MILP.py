@@ -175,7 +175,8 @@ print('')
 # %%%%%%%%%%%%%%%%%%%%%%%%%%% Solve IO problem %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 # Tested approaches
-approaches = ['SL-MILP', 'ASL-MILP-z', 'ASL-MILP-yz']
+approaches = ['SL-MILP', 'ASL-MILP-z']
+# approaches = ['SL-MILP', 'ASL-MILP-z', 'ASL-MILP-yz']
 len_prob = len(approaches)
 
 theta_diff_hist = np.empty((len_prob, runs, resolution))

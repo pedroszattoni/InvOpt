@@ -38,7 +38,7 @@ def check_reg_parameter(reg_param):
 def warning_large_decision_space(decision_space, n):
     """Warn user if decision space is binary and high-dimensional."""
     if (decision_space == 'binary') and (n > 15):
-        warnings.warn('Attention! Using this IO method for models with binary '
+        warnings.warn('Attention! Using this IO method for FOPs with binary '
                       'decision variables requires solving an optimization '
                       'problem with potentially O(N*2^n) constraints, '
                       'where N is the number of training examples and n is '
@@ -277,9 +277,9 @@ def discrete_consistent(dataset, X, phi,
                         verbose=False,
                         gurobi_params=None):
     """
-    Inverse optimization for discrete models with consistent data.
+    Inverse optimization for discrete FOPs with consistent data.
 
-    Uses incenter (default) or feasibility strategy. For more details, see
+    For more details, see
     https://github.com/pedroszattoni/invopt/tree/main/examples/discrete_consistent
 
     Parameters
@@ -330,11 +330,7 @@ def discrete_consistent(dataset, X, phi,
         An optimal cost vector according to the chosen strategy.
 
     """
-    try:
-        import gurobipy as gp
-    except ImportError:
-        print("gurobipy is required for invopt's discrete_consistent " +
-              "function.")
+    import gurobipy as gp
 
     decision_space, n, ind_func = X
 
@@ -435,7 +431,7 @@ def discrete(dataset, X, phi,
              verbose=False,
              gurobi_params=None):
     """
-    Inverse optimization for discrete models.
+    Inverse optimization for discrete FOPs.
 
     For more details, see
     https://github.com/pedroszattoni/invopt/tree/main/examples/discrete
@@ -522,7 +518,7 @@ def discrete(dataset, X, phi,
     return theta_opt
 
 
-def continuous_linear(dataset, phi,
+def continuous_linear(dataset, phi1,
                       add_dist_func_y=False,
                       Theta=None,
                       regularizer='L2_squared',
@@ -531,7 +527,7 @@ def continuous_linear(dataset, phi,
                       verbose=False,
                       gurobi_params=None):
     """
-    Inverse optimization for discrete models.
+    Inverse optimization for continous linear FOPs.
 
     For more details, see
     https://github.com/pedroszattoni/invopt/tree/main/examples/continuous_linear
@@ -566,13 +562,14 @@ def continuous_linear(dataset, phi,
     Raises
     ------
     Exception
-        If unsupported Theta, regularizer, or decision_space. If Gurobi does
-        not find an optimal solution.
+        If unsupported Theta or regularizer. If Gurobi does not find an optimal
+        solution.
 
     Returns
     -------
     theta_opt : 1D ndarray
-        An optimal cost vector according to the chosen strategy.
+        An optimal cost vector according to the chosen strategy, in the form
+        theta = Q.flatten('F')
 
     """
     Z = ('binary', 0, None)
@@ -590,11 +587,11 @@ def continuous_linear(dataset, phi,
         x_hat_mod = (x_hat, np.array([0]))
         dataset_mod.append((s_hat_mod, x_hat_mod))
 
-    def phi_mod(w, z): return phi(w)
+    def phi1_mod(w, z): return phi1(w)
 
     theta_opt_mod = mixed_integer_linear(dataset_mod, Z,
                                          add_dist_func_y=add_dist_func_y,
-                                         phi1=phi_mod,
+                                         phi1=phi1_mod,
                                          Theta=Theta,
                                          regularizer=regularizer,
                                          reg_param=reg_param,
@@ -602,6 +599,90 @@ def continuous_linear(dataset, phi,
                                          verbose=verbose,
                                          gurobi_params=gurobi_params)
 
+    theta_opt = theta_opt_mod[:-1]
+
+    return theta_opt
+
+
+def continuous_quadratic(dataset,
+                         phi1=None,
+                         add_dist_func_y=False,
+                         Theta=None,
+                         regularizer='L2_squared',
+                         reg_param=0,
+                         theta_hat=None,
+                         verbose=False):
+    """
+    Inverse optimization for continous quadratic FOPs.
+
+    For more details, see
+    https://github.com/pedroszattoni/invopt/tree/main/examples/continuous_quadratic
+
+    Parameters
+    ----------
+    dataset : list of tuples
+        List of tuples (s, x), where s is the signal and x is the response.
+    phi1 : {callable, None}, optional
+        Feature function. Given w and response z, returns a 1D
+        ndarray feature vector. Syntax: phi1(w, z). If None, it will be defined
+        as "def phi1(w, z): return np.array([0])". The default is None.
+    add_dist_func_y: bool
+        If True, adds l-infinity distance penalization to the continuous part
+        of the response vector.
+    Theta : {None, 'nonnegative'}, optional
+        Constraints on cost vector theta. The default is None.
+    regularizer : {'L2_squared', 'L1'}, optional
+        Type of regularization on cost vector theta. The default is
+        'L2_squared'.
+    reg_param : float, optional
+        Nonnegative regularization parameter. The default is 0.
+    theta_hat : {tuple(2D ndarray, 2D ndarray), None}, optional
+        A priory belief or estimate of the true cost vector
+        theta=(vec(Qyy), vec(Q)). Should be provided as a tuple
+        (Qyy_hat, Q_hat). When None, theta_hat is defined as zeros. The
+        default is None.
+    verbose : bool, optional
+        If True, print solver's output. The default is False.
+
+    Raises
+    ------
+    Exception
+        If unsupported Theta or regularizer. If Gurobi does not find an optimal
+        solution.
+
+    Returns
+    -------
+    theta_opt : 1D ndarray
+        An optimal cost vector according to the chosen strategy, in the form
+        theta = np.concatenate((Qyy.flatten('F'), Q.flatten('F')))
+
+    """
+    Z = ('binary', 0, None)
+
+    if theta_hat is None:
+        theta_hat_mod = None
+    else:
+        Qyy_hat, Q_hat = theta_hat
+        theta_hat_mod = (Qyy_hat, Q_hat, np.array([0]))
+
+    dataset_mod = []
+    for data in dataset:
+        s_hat, x_hat = data
+        A, b, w = s_hat
+        s_hat_mod = (A, np.zeros((len(b), 1)), b, w)
+        x_hat_mod = (x_hat, np.array([0]))
+        dataset_mod.append((s_hat_mod, x_hat_mod))
+
+    def phi1_mod(w, z): return phi1(w)
+
+    theta_opt_mod = mixed_integer_quadratic(dataset_mod, Z,
+                                            phi1=phi1_mod,
+                                            add_dist_func_y=add_dist_func_y,
+                                            Theta=Theta,
+                                            regularizer=regularizer,
+                                            reg_param=reg_param,
+                                            theta_hat=theta_hat_mod,
+                                            verbose=verbose)
     theta_opt = theta_opt_mod[:-1]
 
     return theta_opt
@@ -619,7 +700,7 @@ def mixed_integer_linear(dataset, Z,
                          verbose=False,
                          gurobi_params=None):
     """
-    Inverse optimization for linear models with mixed-integer feasible sets.
+    Inverse optimization for mixed-integer FOPs with linear continuous part.
 
     For more details, see
     https://github.com/pedroszattoni/invopt/tree/main/examples/mixed_integer_linear
@@ -685,11 +766,7 @@ def mixed_integer_linear(dataset, Z,
         theta = np.concatenate((Q.flatten('F'), q))
 
     """
-    try:
-        import gurobipy as gp
-    except ImportError:
-        print("gurobipy is required for invopt's mixed_integer_linear " +
-              'function.')
+    import gurobipy as gp
 
     decision_space, n, ind_func = Z
 
@@ -909,15 +986,15 @@ def mixed_integer_linear(dataset, Z,
 def mixed_integer_quadratic(dataset, Z,
                             phi1=None,
                             phi2=None,
+                            add_dist_func_y=False,
                             dist_func_z=None,
                             Theta=None,
                             regularizer='L2_squared',
                             reg_param=0,
                             theta_hat=None,
-                            verbose=False,
-                            solver='mosek'):
+                            verbose=False):
     """
-    Inverse optimization for quadratic models with mixed-integer feasible sets.
+    Inverse optimization for mixed-integer FOPs with quadratic continuous part.
 
     For more details, see
     https://github.com/pedroszattoni/invopt/tree/main/examples/mixed_integer_quadratic
@@ -946,6 +1023,9 @@ def mixed_integer_quadratic(dataset, Z,
         Feature function. Given w and response z, returns a 1D
         ndarray feature vector. Syntax: phi1(w, z). If None, it will be defined
         as "def phi2(w, z): return np.array([0])". The default is None.
+    add_dist_func_y: bool
+        If True, adds l-infinity distance penalization to the continuous part
+        of the response vector.
     dist_func_z : {callable, None}, optional
         Distance penalization function. Given two responses x1=(y1,z1) and
         x2=(y2,z2), returns the distance of their integer parts according to
@@ -980,11 +1060,7 @@ def mixed_integer_quadratic(dataset, Z,
                                 q.flatten('F')))
 
     """
-    try:
-        import cvxpy as cp
-    except ImportError:
-        print("cvxpy is required for invopt's mixed_integer_quadratic " +
-              "function.")
+    import cvxpy as cp
 
     decision_space, n, ind_func = Z
 
@@ -997,6 +1073,7 @@ def mixed_integer_quadratic(dataset, Z,
     # Warnings
     warning_large_decision_space(decision_space, n)
     warning_theta_hat_reg_param(theta_hat, reg_param)
+    warning_add_dist_func_y(add_dist_func_y)
 
     N = len(dataset)
 
@@ -1036,29 +1113,46 @@ def mixed_integer_quadratic(dataset, Z,
             for k in range(2**n):
                 z = dec_to_bin(k, n)
                 if ind_func(w_hat, z):
-                    alpha = cp.Variable((1, 1))
-                    lamb = cp.Variable((m1, 1))
-
-                    if dist_func_z is not None:
-                        dist = 0
+                    if dist_func_z is None:
+                        dist_z = 0
                     else:
-                        dist = dist_func_z(z_hat, z)
+                        dist_z = dist_func_z(z_hat, z)
 
-                    theta_phi_hat = (y_hat.T @ Qyy @ y_hat
-                                     + y_hat.T @ Q @ phi1(w_hat, z_hat)
-                                     + q.T @ phi2(w_hat, z_hat))
+                    if add_dist_func_y:
+                        gamma_list = []
+                        for index in range(m2):
+                            gamma = np.zeros(m2)
+                            gamma[index] = 1
+                            gamma_list.append(gamma)
+                        for index in range(m2):
+                            gamma = np.zeros(m2)
+                            gamma[index] = -1
+                            gamma_list.append(gamma)
+                    else:
+                        gamma_list = [np.zeros(m2)]
 
-                    lambcBz = lamb.T @ (c - B @ z)
+                    for gamma in gamma_list:
+                        alpha = cp.Variable((1, 1))
+                        lamb = cp.Variable((m1, 1))
 
-                    qphi2 = q.T @ phi2(w_hat, z)
+                        theta_phi_hat = (y_hat.T @ Qyy @ y_hat
+                                         + y_hat.T @ Q @ phi1(w_hat, z_hat)
+                                         + q.T @ phi2(w_hat, z_hat))
 
-                    constraints += [theta_phi_hat + alpha + lambcBz - qphi2
-                                    <= beta[i] - dist]
+                        lambcBz = lamb.T @ (c - B @ z)
 
-                    off_diag = Q @ phi1(w_hat, z).reshape((u1, 1)) + A.T @ lamb
-                    constraints += [cp.bmat([[Qyy, off_diag],
-                                             [off_diag.T, 4*alpha]]) >> 0]
-                    constraints += [lamb >= 0]
+                        qphi2 = q.T @ phi2(w_hat, z)
+
+                        gammay_hat = gamma.T @ y_hat
+
+                        constraints += [theta_phi_hat + alpha + lambcBz - qphi2
+                                        + gammay_hat + dist_z <= beta[i]]
+
+                        off_diag = (Q @ phi1(w_hat, z).reshape((u1, 1))
+                                    + A.T @ lamb + gamma.reshape((m2, 1)))
+                        constraints += [cp.bmat([[Qyy, off_diag],
+                                                 [off_diag.T, 4*alpha]]) >> 0]
+                        constraints += [lamb >= 0]
 
     if reg_param > 0:
         if theta_hat is None:
@@ -1088,7 +1182,8 @@ def mixed_integer_quadratic(dataset, Z,
 
     # Check if trace equality constraint needs to be added to avoid the trivial
     # solution theta=0
-    if (dist_func_z is not None) and ((reg_param == 0) or (theta_hat is None)):
+    if (((not add_dist_func_y) and (dist_func_z is None))
+            and ((reg_param == 0) or (theta_hat is None))):
         constraints += [cp.trace(Qyy) == 1]
 
     prob = cp.Problem(obj, constraints)

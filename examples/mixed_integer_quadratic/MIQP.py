@@ -190,7 +190,8 @@ print('')
 # %%%%%%%%%%%%%%%%%%%%%%%%%%% Solve IO problem %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 # Tested approaches
-approaches = ['SL-MIQP', 'ASL-MIQP-z', 'ASL-MIQP-yz']
+approaches = ['SL-MIQP', 'ASL-MIQP-z']
+# approaches = ['SL-MIQP', 'ASL-MIQP-z', 'ASL-MIQP-yz']
 len_prob = len(approaches)
 
 theta_diff_hist = np.empty((len_prob, runs, resolution))
