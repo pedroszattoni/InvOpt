@@ -14,7 +14,7 @@ colors = ['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00', '#ffff33',
 
 
 def linear_phi(s, x):
-    """Feature mapping."""
+    """Linear feature mapping."""
     return x
 
 
@@ -35,7 +35,7 @@ def linear_ind_func(s, x):
 
 
 def binary_linear_FOP(theta, s, gurobi_params=None):
-    """Forward optimization problem: binary LP."""
+    """Forward optimization problem: binary linear program."""
     A, b = s
     m, n = A.shape
     p = len(theta)

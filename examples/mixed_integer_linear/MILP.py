@@ -6,11 +6,13 @@ Author: Pedro Zattoni Scroccaro
 
 from os.path import dirname, abspath
 import sys
-sys.path.append(dirname(dirname(abspath(__file__))))  # nopep8
 import time
 import numpy as np
 from gurobipy import Model, GRB, quicksum
+
+sys.path.append(dirname(dirname(abspath(__file__))))  # nopep8
 from utils_examples import L2, plot_results
+
 import invopt as iop
 
 np.random.seed(0)
@@ -62,7 +64,7 @@ def create_datasets(theta, FOP, m1, m2, n, N_train, N_test):
 
 
 def FOP_MILP(theta, s):
-    """Forward optimization approach."""
+    """Forward optimization approach: mixed-integer linear program."""
     A, B, c, _ = s
     m1, m2 = A.shape
     _, n = B.shape
@@ -105,7 +107,7 @@ def phi2(w, z):
 
 
 def phi(s, x):
-    """Transform phi1 and phi2 into phi for MIP_linear case."""
+    """Transform phi1 and phi2 into phi for mixed_integer_linear function."""
     _, _, _, w = s
     y, z = x
     return np.concatenate((np.kron(phi1(w, z), y), phi2(w, z)))

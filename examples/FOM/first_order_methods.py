@@ -6,12 +6,14 @@ Author: Pedro Zattoni Scroccaro
 
 from os.path import dirname, abspath
 import sys
-sys.path.append(dirname(dirname(abspath(__file__))))  # nopep8
 import time
 import numpy as np
 import matplotlib.pyplot as plt
+
+sys.path.append(dirname(dirname(abspath(__file__))))  # nopep8
 from utils_examples import (binary_linear_FOP, linear_phi, L2, linear_X, L1,
                             mean_percentiles, colors)
+
 import invopt as iop
 
 np.random.seed(0)
@@ -47,7 +49,7 @@ def create_datasets(theta, FOP, n, m, N_train, N_test):
 
 
 def FOP_aug(theta, s_hat, x_hat):
-    """Augmented FOP for binary FOP with d(x,y) = || x - y ||_1."""
+    """Augmented FOP for binary FOP with d(x,x_hat) = || x - x_hat ||_1."""
     theta_aug = theta + 2*x_hat - 1
     x_aug = binary_linear_FOP(theta_aug, s_hat)
 

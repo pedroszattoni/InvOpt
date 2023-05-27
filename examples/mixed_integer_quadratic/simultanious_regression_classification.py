@@ -133,7 +133,7 @@ def dist_z(x1, x2):
 # %%%%%%%%%%%%%%%%%%%%%%%%%%% Simulation parameters %%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 train_test_slip = 0.1
-runs = 20
+runs = 3
 
 print('')
 print(f'train_test_slip = {train_test_slip}')
@@ -143,9 +143,7 @@ print('')
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%% Solve IO problem %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-kappa_list = np.logspace(-4, 1, 20).tolist()
-kappa_list = [0]
-sub_loss = True
+kappa_list = np.logspace(-4, 1, 5).tolist()
 reg_size = len(kappa_list)
 
 y_diff_train_hist = np.empty((runs, reg_size))
@@ -160,13 +158,12 @@ for run in range(runs):
     for kappa in kappa_list:
         r_index = kappa_list.index(kappa)
 
-        theta_IO = iop.MIP_quadratic(dataset_train,
-                                     ('binary', 1),
-                                     phi1=phi1,
-                                     phi2=phi2,
-                                     dist_func=L1,
-                                     reg_param=kappa,
-                                     sub_loss=sub_loss)
+        theta_IO = iop.mixed_integer_quadratic(dataset_train,
+                                               ('binary', 1, None),
+                                               phi1=phi1,
+                                               phi2=phi2,
+                                               dist_func_z=L1,
+                                               reg_param=kappa)
 
         y_diff_train = iop.evaluate(theta_IO,
                                     dataset_train,
@@ -219,7 +216,6 @@ plt.xscale('log')
 plt.ylabel(r'$| y_{\mathrm{IO}} - y_{\mathrm{true}} |$', fontsize=18)
 plt.xlabel(r'$\kappa$', fontsize=18)
 plt.grid(visible=True)
-plt.legend(fontsize='14', loc='upper right')
 plt.tight_layout()
 
 plt.figure(2)
@@ -230,7 +226,6 @@ plt.xscale('log')
 plt.ylabel(r'$| z_{\mathrm{IO}} - z_{\mathrm{true}} |$', fontsize=18)
 plt.xlabel(r'$\kappa$', fontsize=18)
 plt.grid(visible=True)
-plt.legend(fontsize='14', loc='upper right')
 plt.tight_layout()
 
 plt.figure(3)
@@ -241,7 +236,6 @@ plt.xscale('log')
 plt.ylabel(r'$| y_{\mathrm{IO}} - y_{\mathrm{true}} |$', fontsize=18)
 plt.xlabel(r'$\kappa$', fontsize=18)
 plt.grid(visible=True)
-plt.legend(fontsize='14', loc='upper right')
 plt.tight_layout()
 
 plt.figure(4)
@@ -252,5 +246,4 @@ plt.xscale('log')
 plt.ylabel(r'$| z_{\mathrm{IO}} - z_{\mathrm{true}} |$', fontsize=18)
 plt.xlabel(r'$\kappa$', fontsize=18)
 plt.grid(visible=True)
-plt.legend(fontsize='14', loc='upper right')
 plt.tight_layout()

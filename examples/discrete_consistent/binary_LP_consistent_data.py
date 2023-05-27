@@ -5,13 +5,15 @@ Author: Pedro Zattoni Scroccaro
 """
 from os.path import dirname, abspath
 import sys
-sys.path.append(dirname(dirname(abspath(__file__))))  # nopep8
 import time
 import numpy as np
 from gurobipy import Model, GRB, quicksum
 import polytope as pc
+
+sys.path.append(dirname(dirname(abspath(__file__))))  # nopep8
 from utils_examples import (binary_linear_FOP, linear_ind_func, linear_phi, L2,
                             plot_results)
+
 import invopt as iop
 
 np.random.seed(1)
