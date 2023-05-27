@@ -8,10 +8,10 @@
 This function is can be used when the FOP is of the form
 
 $$
-\min_ {x \in \mathbb{X}(\hat{s})} \ \theta^\top \phi(\hat{s},x),
+\min_ {x \in \mathbb{X}(\hat{s})} \ \langle \theta,\phi(\hat{s},x) \rangle ,
 $$
 
-the constraint set $\mathbb{X}(\hat{s})$ is discrete, that is, we can list all elements in this set, and when there exists a cost vector $\theta^\star$ consistent with the dataset $\mathcal{D}$, that is, such that $x_ i \in \arg\min_ {x \in \mathbb{X}(\hat{s}_ i)} \ {\theta^\star}^\top \phi(\hat{s}_ i,x) \quad \forall i \in [N]$.
+the constraint set $\mathbb{X}(\hat{s})$ is discrete, that is, we can list all elements in this set, and when there exists a cost vector $\theta^\star$ consistent with the dataset $\mathcal{D}$, that is, such that $x_ i \in \arg\min_ {x \in \mathbb{X}(\hat{s}_ i)} \ \langle \theta^\star,\phi(\hat{s}_ i,x) \rangle  \ \ \forall i \in [N]$.
 
 ## Solution method
 
@@ -20,7 +20,7 @@ Given the a dataset of signal-response data $\mathcal{D} = \\{(\hat{s}_ i, \hat{
 $$
 \begin{aligned}
  \min_ {\theta} \quad & \mathcal{R} (\theta - \hat{\theta}) \\ 
- \text{s.t.} \quad &  \theta^\top \big(\phi(\hat{s}_ i,\hat{x}_ i) - \phi(\hat{s}_ i,x_ i) \big) + d(\hat{x}_ i,x_ i)\leq 0 \quad\quad \forall x_ i \in \mathbb{X}(\hat{s}_ i), \ \forall i \in [N] \\
+ \text{s.t.} \quad &  \langle \theta,\phi(\hat{s}_ i,\hat{x}_ i) - \phi(\hat{s}_ i,x_ i) \rangle + d(\hat{x}_ i,x_ i)\leq 0 \quad\quad \forall x_ i \in \mathbb{X}(\hat{s}_ i), \ \forall i \in [N] \\
  & \theta \in \Theta,
 \end{aligned}
 $$
@@ -28,7 +28,7 @@ $$
 where
 - $\hat{\theta} \in \mathbb{R}^p$ is an a priory belief or estimate of the true cost vector. *(optional)*
 - $\mathcal{R} : \mathbb{R}^p \to \mathbb{R}$ is a regularization function.
-- $\phi: \mathbb{S} \times \mathbb{X} \to \mathbb{R}^p$ is the feature mapping, which maps a signal-response pair $(s,x)$ to a feature vector $\phi(s,x)$.
+- $\phi: \mathbb{S} \times \mathbb{X} \to \mathbb{R}^p$ is the feature mapping, which maps a signal-response pair $(\hat{s},x)$ to a feature vector $\phi(\hat{s},x)$.
 - $d : \mathbb{X} \times \mathbb{X} \to \mathbb{R}_+$ is a distance penalization function, which given two responses, returns the distance between them according to some distance metric. *(optional)*
 - $\mathbb{X}(\hat{s}_ i)$ is the constraint set of the FOP.
 - $\Theta$ is the set used to encode any prior information or assumption we may have on the expert's true cost function, e.g., nonnegativity of the cost vector. *(optional)*
@@ -37,7 +37,7 @@ Alternatively, if the distance penalization function $d$  and the priory belief/
 
 $$
 \begin{aligned} \min_ {\theta} \quad & 0 \\
-\text{s.t.} \quad & \theta^\top \big(\phi(\hat{s}_ i,\hat{x}_ i) - \phi(\hat{s}_ i,x_ i) \big) \leq 0 \quad\quad \forall x_ i \in \mathbb{X}(\hat{s}_ i), \ \forall i \in [N] \\
+\text{s.t.} \quad & \langle \theta,\phi(\hat{s}_ i,\hat{x}_ i) - \phi(\hat{s}_ i,x_ i) \rangle \leq 0 \quad\quad \forall x_ i \in \mathbb{X}(\hat{s}_ i), \ \forall i \in [N] \\
 & \theta \in \Theta, \quad \rVert \theta \rVert = 1,
 \end{aligned}
 $$
@@ -50,10 +50,10 @@ In the file `binary_LP_consistent_data.py`, you will find an example usage of th
 
 $$
 \begin{aligned}
-\hat{x}_ i \in \arg\min_ {x} \quad &  \theta^\top x \\
-\text{s.t.} \quad & A_ i x \leq b_ i \\
+\hat{x}_ i \in \arg\min_ {x} \quad &  \langle \theta,x \rangle \\
+\text{s.t.} \quad & \hat{A}_ i x \leq \hat{b}_ i \\
 & x \in \\{0,1\\}^n,
 \end{aligned}
 $$
 
-where $\hat{s}_ i = (A_ i, b_ i)$ and the IO problem is solved using the incenter and feasibilty strategies from `discrete_consistent`, as well as the circumcenter strategy from [Besbes et al. (2022)](https://arxiv.org/abs/2106.14015). For a detailed description of this example, please see [Zattoni Scroccaro et al. (2023)](https://arxiv.org/abs/2305.07730).
+where $\hat{s}_ i = (\hat{A}_ i, \hat{b}_ i)$ and $\phi(\hat{s},x) = x$. The IO problem is solved using the incenter and feasibilty strategies from `discrete_consistent`, as well as the circumcenter strategy from [Besbes et al. (2022)](https://arxiv.org/abs/2106.14015). For a detailed description of this example, please see [Zattoni Scroccaro et al. (2023)](https://arxiv.org/abs/2305.07730).

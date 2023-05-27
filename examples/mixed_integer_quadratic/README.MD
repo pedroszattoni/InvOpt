@@ -7,7 +7,7 @@
 This function is can be used when the FOP is of the form
 
 $$
-\min_ {x \in \mathbb{X}(\hat{s})} \ \theta^\top \phi(\hat{s}, x)
+\min_ {x \in \mathbb{X}(\hat{s})} \ \langle \theta,\phi(\hat{s}, x) \rangle 
 $$
 
 with a mixed-integer constraint set
@@ -19,24 +19,24 @@ $$
 where $\hat{s} = (\hat{A}, \hat{B}, \hat{c}, \hat{w})$ and $\mathbb{Z}(\hat{w})$ is a bounded set that may depend on a signal $\hat{w}$, and hypothesis function
 
 $$
-\theta^\top \phi(\hat{s}, x) = y^\top Q_ {yy} y + y^\top Q \phi_ 1(\hat{w}, z) + q^\top \phi_ 2(\hat{w}, z) ,
+\langle \theta,\phi(\hat{s}, x) \rangle  = \langle y,Q_ {yy} y \rangle + \langle y,Q \phi_ 1(\hat{w}, z)  \rangle + \langle q,\phi_ 2(\hat{w}, z) \rangle ,
 $$
 
-where $x = (y,z)$, $\theta = (\text{vec}(Q_ {yy}), \text{vec}(Q), q)$, and $\phi_ 1$ and $\phi_ 2$ are feature functions.
+where $x = (y,z)$, $\theta = [\text{vec}(Q_ {yy}) \ \ \text{vec}(Q) \ \ q]$, and $\phi_ 1$ and $\phi_ 2$ are feature functions.
 
 ## Solution method
 
-We define $M_ i = |\mathbb{Z}(\hat{w}_ i)|$ and use the following indexing notation for the elements of $\mathbb{Z}(\hat{w}_ i) = \\{z_ {i1},\ldots,z_ {ij},\ldots,z_ {iM_ i}\\}$. Given the a dataset of signal-response data $\mathcal{D} = \\{(\hat{s}_ i, \hat{x}_ i)\\}_ {i=1}^N$,  the `mixed_integer_linear` function solves the IO problem using
+We define $M_ i = |\mathbb{Z}(\hat{w}_ i)|$ and use the following indexing notation for the elements of $\mathbb{Z}(\hat{w}_ i) = \\{z_ {i1},\ldots,z_ {ij},\ldots,z_ {iM_ i}\\}$. We also define $\gamma_ k \in \mathbb{R}^n$ equal the vector of zeros except for the $k$'th element, which equals $1$ if $k \leq n$. If $k > n$, then the $\text{mod}(k,n)$'th element equals $-1$. Given the a dataset of signal-response data $\mathcal{D} = \\{(\hat{s}_ i, \hat{x}_ i)\\}_ {i=1}^N$,  the `mixed_integer_quadratic` function solves the IO problem using
 
 $$
 \begin{aligned}
-\min_{\theta, \beta_ i, \lambda_ {ij}, \alpha_ {ij}} \quad & \kappa\mathcal{R}(\theta - \hat{\theta}) + \frac{1}{N}\sum_ {i=1}^N \beta_ i  \\
-\text{s.t.} \quad \quad & \theta^\top \phi(\hat{s}_ i,\hat{x}_ i) + \alpha_ {ij} + \lambda_ {ij}^\top (\hat{c}_ i - \hat{B}_ i z_ {ij}) - q^\top \phi_ 2(\hat{w}_ i, z_ {ij}) + d_ z(\hat{z}_ i, z_ {ij}) \leq \beta_ i & \forall i \in [N], \ \forall j \in [M_ i] \\
+\min_{\theta, \beta_ i, \lambda_ {ijk}, \alpha_ {ijk}} \quad & \kappa\mathcal{R}(\theta - \hat{\theta}) + \frac{1}{N}\sum_ {i=1}^N \beta_ i  \\
+\text{s.t.} \quad \quad & \langle \theta,\phi(\hat{s}_ i,\hat{x}_ i) \rangle  + \alpha_ {ijk} + \langle \lambda_ {ijk},\hat{c}_ i - \hat{B}_ i z_ {ij} \rangle - \langle q,\phi_ 2(\hat{w}_ i, z_ {ij}) \rangle  + \langle \gamma_ k,\hat{y}_ i \rangle + d_ z(\hat{z}_ i, z_ {ij}) \leq \beta_ i & \forall i \in [N], \ \forall j \in [M_ i], \ \forall k \in [2n] \\
 & \begin{bmatrix}
-    Q_ {yy} & Q \phi_ 1(\hat{w}_ i, z_ {ij}) + \hat{A}_ i^\top \lambda_ {ij} \\
-    * & 4\alpha_ {ij}
-    \end{bmatrix} \succcurlyeq 0 & \forall i \in [N], \ \forall j \in [M_ i] \\
-& \theta \in \Theta, \quad \beta_i \geq 0, \quad \lambda_ {ij} \geq 0 & \forall i \in [N], \ \forall j \in [M_ i],
+    Q_ {yy} & Q \phi_ 1(\hat{w}_ i, z_ {ij}) + \gamma_ k + \hat{A}_ i^\top \lambda_ {ijk} \\
+    * & 4\alpha_ {ijk}
+    \end{bmatrix} \succcurlyeq 0 & \forall i \in [N], \ \forall j \in [M_ i], \ \forall k \in [2n] \\
+& \theta \in \Theta, \quad \beta_i \geq 0, \quad \lambda_ {ijk} \geq 0 & \forall i \in [N], \ \forall j \in [M_ i], \ \forall k \in [2n],
 \end{aligned}
 $$
 
@@ -44,18 +44,17 @@ where
 - $\hat{\theta} \in \mathbb{R}^p$ is an a priory belief or estimate of the true cost vector. *(optional)*
 - $\mathcal{R} : \mathbb{R}^p \to \mathbb{R}$ is a regularization function.
 - $\kappa$ is a nonnegative regularization parameter.
-- $\phi_ 1: \mathbb{W} \times \mathbb{Z}^v \to \mathbb{R}^m$ is the feature mapping, which maps a signal-response pair $(w,z)$ to a feature vector $\phi_ 1(w,z)$.
-- $\phi_ 2: \mathbb{W} \times \mathbb{Z}^v \to \mathbb{R}^n$ is the feature mapping, which maps a signal-response pair $(w,z)$ to a feature vector $\phi_ 2(w,z)$.
+- $\phi_ 1: \mathbb{W} \times \mathbb{Z}^v \to \mathbb{R}^m$ is the feature mapping, which maps a signal-response pair $(\hat{w},z)$ to a feature vector $\phi_ 1(\hat{w},z)$.
+- $\phi_ 2: \mathbb{W} \times \mathbb{Z}^v \to \mathbb{R}^n$ is the feature mapping, which maps a signal-response pair $(\hat{w},z)$ to a feature vector $\phi_ 2(\hat{w},z)$.
 - $d_ z : \mathbb{Z}^v \times \mathbb{Z}^v \to \mathbb{R}_ +$ is a distance penalization function, which given the integer part of two responses, returns the distance between them according to some distance metric. *(optional)*
 - $\mathbb{Z}(\hat{w}_ i)$ is the constraint set of the integer part of the decision vector.
 - $\Theta$ is the set used to encode any prior information or assumption we may have on the expert's true cost function, e.g., nonnegativity of the cost vector. *(optional)*
 
-Alternatively, if the distance penalization function $d_ z$  is not provided and $\kappa=0$ or $\hat{\theta}$ is not provided, the `mixed_integer_quadratic` solves the IO problem using the *Suboptimality loss*-based reformulation
-
+Alternatively, if the distance penalization function $d_ z$  is not provided and $\kappa=0$ or $\hat{\theta}$ is not provided, the `mixed_integer_quadratic` function solves the IO problem using the *Suboptimality loss*-based reformulation
 $$
 \begin{aligned}
 \min_{\theta, \beta_ i, \lambda_ {ij}, \alpha_ {ij}} \quad & \frac{1}{N}\sum_ {i=1}^N \beta_ i  \\
-\text{s.t.} \quad \quad & \theta^\top \phi(\hat{s}_ i,\hat{x}_ i) + \alpha_ {ij} + \lambda_ {ij}^\top (\hat{c}_ i - \hat{B}_ i z_ {ij}) - q^\top \phi_ 2(\hat{w}_ i, z_ {ij})  \leq \beta_ i & \forall i \in [N], \ \forall j \in [M_ i] \\
+\text{s.t.} \quad \quad & \langle \theta,\phi(\hat{s}_ i,\hat{x}_ i) \rangle  + \alpha_ {ij} + \langle \lambda_ {ij},\hat{c}_ i - \hat{B}_ i z_ {ij} \rangle - \langle q,\phi_ 2(\hat{w}_ i, z_ {ij}) \rangle \leq \beta_ i & \forall i \in [N], \ \forall j \in [M_ i] \\
 & \begin{bmatrix}
     Q_ {yy} & Q \phi_ 1(\hat{w}_ i, z_ {ij}) + \hat{A}_ i^\top \lambda_ {ij} \\
     * & 4\alpha_ {ij}
@@ -68,17 +67,17 @@ where trace equality constraint $\text{Tr}(Q_ {yy}) = 1$ constraint must be adde
 
 ## Example: binary quadratic mixed-interger program
 
-In the file `MIQP.py`, you will find an example usage of the `mixed_integer_quadratic` function. For this example, the dataset $\mathcal{D} = \\{(\hat{s}_ i, \hat{x}_ i)\\}_ {i=1}^N$ is generated by solving the binary linear program
+In the file `MIQP.py`, you will find an example usage of the `mixed_integer_quadratic` function. For this example, the dataset $\mathcal{D} = \\{(\hat{s}_ i, \hat{x}_ i)\\}_ {i=1}^N$ is generated by solving the binary quadratic program
 
 $$
 \begin{aligned}
-\hat{x}_ i = (\hat{y}_ i, \hat{z}_ i) \in \arg\min_ {y, z} \quad &  y^\top Q_{yy} y + y^\top Q_{yz} z + q_ y^\top y + q_ z^\top z \\
-\text{s.t.} \quad & A_ i y + B_ i z \leq c_ i \\
+\hat{x}_ i = (\hat{y}_ i, \hat{z}_ i) \in \arg\min_ {y, z} \quad &  \langle y,Q_{yy} y \rangle + \langle y,Q_{yz} z \rangle + \langle y,q_y \rangle + \langle q_ z,z \rangle \\
+\text{s.t.} \quad & \hat{A}_ i y + \hat{B}_ i z \leq \hat{c}_ i \\
 & 0 \leq y \leq 1, \quad z \in \\{0,1\\}^n,
 \end{aligned}
 $$
 
-where $\hat{s}_ i = (A_ i, B_ i, c_ i, 0)$, and the IO problem is solved using the solution methods presented above, with $\phi_ 1(w,z) = [z^\top \ 1]^\top$ and $\phi_ 2(w,z) = z$. The way the synthetic data is generated and the way the results are evaluated follow the same template as the numerical experiments in [Zattoni Scroccaro et al. (2023)](https://arxiv.org/abs/2305.07730).
+where $\hat{s}_ i = ([\hat{A}_ i^\top \ \ I \ \ -I]^\top, [\hat{B}_ i^\top \ \ 0_ {n \times 2n} ]^\top, [\hat{c}_ i \ \ \mathbf{1} \ \ \mathbf{0}], 0)$, where $\mathbf{1}$ is the vector of ones and $\mathbf{0}$ is the vector of zeros. The IO problem is solved using the solution methods presented above, with $Q = [Q_ {yz} \ \ q_ y ]$, $q=q_z$, $\phi_ 1(\hat{w},z) = [z \ \ 1]$ and $\phi_ 2(\hat{w},z) = z$. The way the synthetic data is generated and the way the results are evaluated follow the same template as the numerical experiments in [Zattoni Scroccaro et al. (2023)](https://arxiv.org/abs/2305.07730).
 
 ## Example: simultanious classification and regression
 

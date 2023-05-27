@@ -5,7 +5,7 @@
 This function is can be for general FOPs of the form
 
 $$
-\min_ {x \in \mathbb{X}(\hat{s})} \ \theta^\top \phi(\hat{s},x).
+\min_ {x \in \mathbb{X}(\hat{s})} \ \langle \theta,\phi(\hat{s},x) \rangle .
 $$
 
 ## Solution method
@@ -19,13 +19,13 @@ $$
 using first-order methods, where $\ell_\theta$ is the loss function. When using the Augmented Suboptimality loss, the first-order algorithm uses the augmented FOP oracle
 
 $$
-\text{A-FOP}(\theta, \hat{s}, \hat{x}) = \arg\min_ {x \in \mathbb{X}(\hat{s})} \big\\{\theta^\top \phi(\hat{s},x) - d(\hat{x},x) \big\\}.
+\text{A-FOP}(\theta, \hat{s}, \hat{x}) = \arg\min_ {x \in \mathbb{X}(\hat{s})} \big\\{ \langle \theta,\phi(\hat{s},x) \rangle  - d(\hat{x},x) \big\\}.
 $$
 
 When minimizing the the Suboptimality loss, the algorithm uses a FOP oracle
 
 $$
-\text{FOP}(\theta, \hat{s}) = \arg\min_ {x \in \mathbb{X}(\hat{s})} \theta^\top \phi(\hat{s},x).
+\text{FOP}(\theta, \hat{s}) = \arg\min_ {x \in \mathbb{X}(\hat{s})} \langle \theta,\phi(\hat{s},x) \rangle.
 $$
 ___
 **First-order algorithm**
@@ -45,7 +45,7 @@ where
 - $\nabla\mathcal{R}$ is the gradient (or a subgradient) of the regularization function.
 - $\hat{\theta} \in \mathbb{R}^p$ is an a priory belief or estimate of the true cost vector.
 - $\\{ \eta_t \\}_{t=1}^T$ is the step-size sequence.
-- $\phi: \mathbb{S} \times \mathbb{X} \to \mathbb{R}^p$ is the feature mapping, which maps a signal-response pair $(s,x)$ to a feature vector $\phi(s,x)$.
+- $\phi: \mathbb{S} \times \mathbb{X} \to \mathbb{R}^p$ is the feature mapping, which maps a signal-response pair $(\hat{s},x)$ to a feature vector $\phi(\hat{s},x)$.
 - $\Theta$ is the set used to encode any prior information or assumption we may have on the expert's true cost function, e.g., nonnegativity of the cost vector.
 - $\Pi_\Theta(\theta)$ is the euclidean projection of $\theta$ onto $\Theta$.
 
@@ -85,10 +85,10 @@ In the file `first_order_methods.py`, you will find an example usage of the `FOM
 
 $$
 \begin{aligned}
-\hat{x}_ i \in \arg\min_ {x} \quad &  \theta^\top x \\
-\text{s.t.} \quad & A_ i x \leq b_ i \\
+\hat{x}_ i \in \arg\min_ {x} \quad &  \langle \theta,x \rangle \\
+\text{s.t.} \quad & \hat{A}_ i x \leq \hat{b}_ i \\
 & x \in \\{0,1\\}^n,
 \end{aligned}
 $$
 
-where $\hat{s}_ i = (A_ i, b_ i)$ and the IO problem is solved using different versions fo the first-order algorithm and its exponentiated variant. For a detailed description of this example, please see [Zattoni Scroccaro et al. (2023)](https://arxiv.org/abs/2305.07730).
+where $\hat{s}_ i = (\hat{A}_ i, \hat{b}_ i)$ and $\phi(\hat{s},x)=x$. The IO problem is solved using different versions fo the first-order algorithm and its exponentiated variant. For a detailed description of this example, please see [Zattoni Scroccaro et al. (2023)](https://arxiv.org/abs/2305.07730).
