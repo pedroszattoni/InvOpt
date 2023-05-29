@@ -11,8 +11,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 sys.path.append(dirname(dirname(abspath(__file__))))  # nopep8
-from utils_examples import (binary_linear_FOP, linear_phi, L2, linear_X, L1,
-                            mean_percentiles, colors)
+from utils_examples import (binary_linear_FOP, linear_phi, L2, linear_ind_func,
+                            L1, mean_percentiles, colors)
 
 import invopt as iop
 
@@ -117,7 +117,7 @@ N_train = 30
 N_test = 30
 n = 5
 t = 3
-decision_space = ('binary', n)
+X = ('binary', n, linear_ind_func)
 Theta = 'nonnegative'
 regularizer = 'L1'
 reg_param = 0.01
@@ -136,7 +136,7 @@ print(f'N_train = {N_train}')
 print(f'N_test = {N_test}')
 print(f'n = {n}')
 print(f't = {t}')
-print(f'decision_space = {decision_space}')
+print(f'X = {X}')
 print(f'regularizer = {regularizer}')
 print(f'reg_param = {reg_param}')
 print(f'Theta = {Theta}')
@@ -174,8 +174,7 @@ for run in range(runs):
     dataset_test_list.append(dataset_test)
 
     # Optimizer and optimal value
-    theta_opt = iop.discrete(dataset_train, decision_space, linear_phi,
-                             X=linear_X,
+    theta_opt = iop.discrete(dataset_train, X, linear_phi,
                              dist_func=L1,
                              Theta=Theta,
                              regularizer=regularizer,
