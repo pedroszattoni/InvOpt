@@ -19,14 +19,14 @@ import invopt as iop
 np.random.seed(1)
 
 
-def create_datasets(theta, FOP, n, m, N_train, N_test):
+def create_datasets(theta, FOP, n, t, N_train, N_test):
     """Create dataset for the IO problem."""
     dataset_train = []
     for i in range(N_train):
         flag = False
         while not flag:
-            A = -np.random.rand(m, n)
-            b = -np.random.rand(m)
+            A = -np.random.rand(t, n)
+            b = -np.random.rand(t)
             flag = (np.sum(A, axis=1) <= b).all()
 
         s_hat = (A, b)
@@ -37,8 +37,8 @@ def create_datasets(theta, FOP, n, m, N_train, N_test):
     for i in range(N_test):
         flag = False
         while not flag:
-            A = -np.random.rand(m, n)
-            b = -np.random.rand(m)
+            A = -np.random.rand(t, n)
+            b = -np.random.rand(t)
             flag = (np.sum(A, axis=1) <= b).all()
 
         s_hat = (A, b)
@@ -115,7 +115,7 @@ def circumcenter(dataset):
 N_train = 50
 N_test = 50
 n = 5
-m = 3
+t = 3
 X = ('binary', n, linear_ind_func)
 Theta = 'nonnegative'
 resolution = 10
@@ -125,7 +125,7 @@ print('')
 print(f'N_train = {N_train}')
 print(f'N_test = {N_test}')
 print(f'n = {n}')
-print(f'm = {m}')
+print(f't = {t}')
 print(f'X = {X}')
 print(f'Theta = {Theta}')
 print(f'resolution = {resolution}')
@@ -149,7 +149,7 @@ for run in range(runs):
 
     dataset_train, dataset_test = create_datasets(theta_true,
                                                   binary_linear_FOP,
-                                                  n, m,
+                                                  n, t,
                                                   N_train, N_test)
     dataset_train_runs.append(dataset_train)
     dataset_test_runs.append(dataset_test)

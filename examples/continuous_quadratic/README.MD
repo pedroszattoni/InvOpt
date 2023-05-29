@@ -2,12 +2,12 @@
 
 >Warning: the `continuous_quadratic` function requires `cvxpy`.
 
-## Use cases
+## Use case
 
-This function is can be used when the FOP is of the form
+This function can be used when the FOP is of the form
 
 $$
-\min_ {x \in \mathbb{X}(\hat{s})} \ \langle \theta,\phi(\hat{s}, x) \rangle
+\min_ {x \in \mathbb{X}(\hat{s})} \ \langle \theta, \phi(\hat{s}, x)\rangle 
 $$
 
 with a continuous constraint set
@@ -16,53 +16,18 @@ $$
 \mathbb{X}(\hat{s}) = \left\\{ x \in \mathbb{R}^n : \hat{A}x \leq \hat{b} \right\\},
 $$
 
-where $\hat{s} = (\hat{A}, \hat{b}, \hat{w})$ and hypothesis function
+where the signal in the form $\hat{s} = (\hat{A}, \hat{b}, \hat{w})$, and the hypothesis function is in the form
 
 $$
 \langle \theta,\phi(\hat{s}, x) \rangle = \langle x,Q_ {xx} x \rangle  + \langle x,Q \phi_ 1(\hat{w}) \rangle,
 $$
 
-where $\theta = [\text{vec}(Q_ {xx}) \ \ \text{vec}(Q)]$, and $\phi_ 1$ is a feature function.
+where $Q_ {xx} \in \mathbb{R}^{n \times n}$ is PSD, $Q \in \mathbb{R}^{n \times m}$, $\phi_ 1 : \mathbb{W} \to \mathbb{R}^m$ is a feature mapping, $\theta = [\text{vec}(Q_ {xx}) \ \ \text{vec}(Q)] \in \mathbb{R}^p$, and $\phi(\hat{s}, x) = [x \otimes x \quad \phi_ 1(\hat{w}) \otimes x]$, where $\otimes$ is the Kronecker product.
 
 ## Solution method
 
-We define $\gamma_ k \in \mathbb{R}^n$ equal the vector of zeros except for the $k$'th element, which equals $1$ if $k \leq n$. If $k > n$, then the $\text{mod}(k,n)$'th element equals $-1$. Given the a dataset of signal-response data $\mathcal{D} = \\{(\hat{s}_ i, \hat{x}_ i)\\}_ {i=1}^N$,  the `continuous_quadratic` function solves the IO problem using
 
-
-$$
-\begin{aligned}
-\min_{\theta, \beta_ i, \lambda_ {ik}, \alpha_ {ik}} \quad & \kappa\mathcal{R}(\theta - \hat{\theta}) + \frac{1}{N}\sum_ {i=1}^N \beta_ i  \\
-\text{s.t.} \quad \quad & \langle \theta,\phi(\hat{s}_ i,\hat{x}_ i) \rangle + \alpha_ {ik} + \langle \lambda_ {ik},\hat{c}_ i \rangle + \langle \gamma_ k,\hat{x}_ i \rangle  \leq \beta_ i & \forall i \in [N], \ \forall k \in [2n] \\
-& \begin{bmatrix}
-    Q_ {xx} & Q \phi_ 1(\hat{w}_ i) + \gamma_ k + \hat{A}_ i^\top \lambda_ {ik} \\
-    * & 4\alpha_ {ik}
-    \end{bmatrix} \succcurlyeq 0 & \forall i \in [N], \ \forall k \in [2n] \\
-& \theta \in \Theta, \quad \beta_i \geq 0, \quad \lambda_ {ik} \geq 0 & \forall i \in [N], \ \forall k \in [2n],
-\end{aligned}
-$$
-
-where
-- $\hat{\theta} \in \mathbb{R}^p$ is an a priory belief or estimate of the true cost vector. *(optional)*
-- $\mathcal{R} : \mathbb{R}^p \to \mathbb{R}$ is a regularization function.
-- $\kappa$ is a nonnegative regularization parameter.
-- $\phi_ 1: \mathbb{W} \times \to \mathbb{R}^m$ is the feature mapping, which maps a signal-response pair $\hat{w}$ to a feature vector $\phi_ 1(\hat{w})$.
-- $\Theta$ is the set used to encode any prior information or assumption we may have on the expert's true cost function, e.g., nonnegativity of the cost vector. *(optional)*
-
-Alternatively, if the distance penalization function $d_ z$  is not provided and $\kappa=0$ or $\hat{\theta}$ is not provided, the `continuous_quadratic` function solves the IO problem using the *Suboptimality loss*-based reformulation
-
-$$
-\begin{aligned}
-\min_{\theta, \beta_ i, \lambda_ {i}, \alpha_ {i}} \quad & \frac{1}{N}\sum_ {i=1}^N \beta_ i  \\
-\text{s.t.} \quad \quad & \langle \theta,\phi(\hat{s}_ i,\hat{x}_ i) \rangle + \alpha_ {i} + \langle \lambda_ {i},\hat{c}_ i \rangle  \leq \beta_ i & \forall i \in [N] \\
-& \begin{bmatrix}
-    Q_ {xx} & Q \phi_ 1(\hat{w}_ i) + \hat{A}_ i^\top \lambda_ {i} \\
-    * & 4\alpha_ {i}
-    \end{bmatrix} \succcurlyeq 0 & \forall i \in [N] \\
-& \theta \in \Theta, \quad \text{Tr}(Q_ {xx}) = 1, \quad \beta_ i \geq 0, \quad \lambda_ {i} \geq 0 & \forall i \in [N],
-\end{aligned}
-$$
-
-where trace equality constraint $\text{Tr}(Q_ {xx}) = 1$ constraint must be added to exclude the trivial solution $\theta = 0$.
+See [`mixed_integer_quadratic`](https://github.com/pedroszattoni/invopt/tree/main/examples/mixed_integer_quadratic), i.e, the solution method for the `quadratic_linear` function can be seen as a special case of the `mixed_integer_quadratic` function, for the case when the decision vector has no integer components.
 
 ## Example: quadratic program
 

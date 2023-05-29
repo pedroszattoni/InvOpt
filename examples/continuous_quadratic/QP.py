@@ -21,7 +21,7 @@ np.random.seed(0)
 def theta_to_Qq(theta, n):
     """Extract Q and q from cost vector theta."""
     Q = theta[:n**2].reshape((n, n))
-    q = theta[n**2:(n**2 + n)]
+    q = theta[n**2:]
     return Q, q
 
 
@@ -31,14 +31,14 @@ def Qq_to_theta(Q, q):
     return theta
 
 
-def create_datasets(theta, FOP, n, m, N_train, N_test, noise_level):
+def create_datasets(theta, FOP, n, t, N_train, N_test, noise_level):
     """Create dataset for the IO problem."""
     dataset_train = []
     for i in range(N_train):
         flag = False
         while not flag:
-            A = 1 - 2*np.random.rand(m, n)
-            b = -np.random.rand(m)
+            A = 1 - 2*np.random.rand(t, n)
+            b = -np.random.rand(t)
             for k in range(2**n):
                 x_bin = iop.dec_to_bin(k, n)
                 if (A @ x_bin <= b).all():
@@ -64,8 +64,8 @@ def create_datasets(theta, FOP, n, m, N_train, N_test, noise_level):
     for i in range(N_test):
         flag = False
         while not flag:
-            A = 1 - 2*np.random.rand(m, n)
-            b = -np.random.rand(m)
+            A = 1 - 2*np.random.rand(t, n)
+            b = -np.random.rand(t)
             for k in range(2**n):
                 x_bin = iop.dec_to_bin(k, n)
                 if (A @ x_bin <= b).all():
@@ -87,7 +87,7 @@ def create_datasets(theta, FOP, n, m, N_train, N_test, noise_level):
 def quadratic_FOP(theta, s):
     """Forward optimization approach: quadratic program."""
     A, b, _ = s
-    m, n = A.shape
+    t, n = A.shape
     Qxx, qx = theta_to_Qq(theta, n)
 
     if len(theta) != (n**2 + n):
@@ -103,7 +103,7 @@ def quadratic_FOP(theta, s):
                      GRB.MINIMIZE)
 
     mdl.addConstrs(quicksum(A[k, i]*x[i] for i in range(n))
-                   <= b[k] for k in range(m))
+                   <= b[k] for k in range(t))
 
     mdl.optimize()
 
@@ -132,7 +132,7 @@ def phi(s, x):
 N_train = 30
 N_test = 30
 n = 3
-m = 2
+t = 2
 noise_level = 0
 kappa = 0
 resolution = 10
@@ -142,7 +142,7 @@ print('')
 print(f'N_train = {N_train}')
 print(f'N_test = {N_test}')
 print(f'n = {n}')
-print(f'm = {m}')
+print(f't = {t}')
 print(f'noise_level = {noise_level}')
 print(f'kappa = {kappa}')
 print(f'resolution = {resolution}')
@@ -169,7 +169,7 @@ for run in range(runs):
 
     dataset_train, dataset_test = create_datasets(theta_true,
                                                   quadratic_FOP,
-                                                  n, m,
+                                                  n, t,
                                                   N_train, N_test,
                                                   noise_level)
     dataset_train_runs.append(dataset_train)

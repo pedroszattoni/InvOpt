@@ -2,47 +2,20 @@
 
 >Warning: the `discrete` function requires `gurobipy`.
 
-## Use cases
+## Use case
 
-This function is can be used when the FOP is of the form
+This function can be used when the FOP is of the form
 
 $$
-\min_ {x \in \mathbb{X}(\hat{s})} \ \langle \theta,\phi(\hat{s},x) \rangle 
+\min_ {x \in \mathbb{X}(\hat{s})} \ \langle \theta,\phi(\hat{s},x) \rangle,
 $$
 
-and the constraint set $\mathbb{X}(\hat{s})$ is discrete, that is, we can list all elements in this set.
+where $\theta \in \mathbb{R}^p$, $\phi: \mathbb{S} \times \mathbb{X} \to \mathbb{R}^p$ is the feature mapping, and the constraint set $\mathbb{X}(\hat{s}) \subseteq \mathbb{X}$ is discrete, that is, we can list all elements in this set.
 
 ## Solution method
 
-Given the a dataset of signal-response data $\mathcal{D} = \\{(\hat{s}_ i, \hat{x}_ i)\\}_ {i=1}^N$,  the `discrete` function solves the IO problem using the an epigraph reformulation of the *Augmented Suboptimality loss*,
 
-$$
-\begin{aligned}
- \min_ {\theta, \beta_1, \ldots, \beta_N} \quad & \kappa\mathcal{R} (\theta - \hat{\theta}) + \frac{1}{N}\sum_ {i = 1}^N \beta_ i \\ 
- \text{s.t.} \ \ \ \quad & \langle \theta,\phi(\hat{s}_ i,\hat{x}_ i) - \phi(\hat{s}_ i,x_ i) \rangle + d(\hat{x}_ i,x_ i)\leq \beta_i & \forall x_ i \in \mathbb{X}(\hat{s}_ i), \ \forall i \in [N] \\
- & \theta \in \Theta, \quad \beta_i \geq 0 & \forall i \in [N],
-\end{aligned}
-$$
-
-where
-- $\hat{\theta} \in \mathbb{R}^p$ is an a priory belief or estimate of the true cost vector. *(optional)*
-- $\mathcal{R} : \mathbb{R}^p \to \mathbb{R}$ is a regularization function.
-- $\kappa$ is a nonnegative regularization parameter.
-- $\phi: \mathbb{S} \times \mathbb{X} \to \mathbb{R}^p$ is the feature mapping, which maps a signal-response pair $(\hat{s},x)$ to a feature vector $\phi(\hat{s},x)$.
-- $d : \mathbb{X} \times \mathbb{X} \to \mathbb{R}_+$ is a distance penalization function, which given two responses, returns the distance between them according to some distance metric. *(optional)*
-- $\mathbb{X}(\hat{s}_ i)$ is the constraint set of the FOP.
-- $\Theta$ is the set used to encode any prior information or assumption we may have on the expert's true cost function, e.g., nonnegativity of the cost vector. *(optional)*
-
-Alternatively, if the distance penalization function $d$  is not provided and $\kappa=0$ or $\hat{\theta}$ is not provided, the `discrete` solves the IO problem using the epigraph reformulation of the *Suboptimality loss*
-
-$$
-\begin{aligned} \min_ {\theta, \beta_1, \ldots, \beta_N} \quad & \frac{1}{N}\sum_ {i = 1}^N \beta_i \\
-\text{s.t.} \ \ \ \quad & \langle \theta,\phi(\hat{s}_ i,\hat{x}_ i) - \phi(\hat{s}_ i,x_ i) \rangle \leq \beta_i & \forall x_ i \in \mathbb{X}(\hat{s}_ i), \ \forall i \in [N] \\
-& \theta \in \Theta, \quad \rVert \theta \rVert = 1, \quad \beta_i \geq 0 & \forall i \in [N],
-\end{aligned}
-$$
-
-where the norm equality constraint uses the $\ell_ 1$ norm if $\Theta = \\{\theta \in \mathbb{R}^p : \theta \geq 0\\}$, and the $\ell_ \infty$ norm otherwise. This equality constraint must be added to exclude the trivial solution $\theta = 0$.
+See [`mixed_integer_linear`](https://github.com/pedroszattoni/invopt/tree/main/examples/mixed_integer_linear) (or [`mixed_integer_quadratic`](https://github.com/pedroszattoni/invopt/tree/main/examples/mixed_integer_quadratic)), i.e, the solution method for the `discrete` function can be seen as a special case of the `mixed_integer_linear` (or `mixed_integer_quadratic`) function, for the case when the decision vector has no continuous components.
 
 ## Example: binary linear program with inconsistent data
 

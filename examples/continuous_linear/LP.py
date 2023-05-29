@@ -18,14 +18,14 @@ import invopt as iop
 np.random.seed(0)
 
 
-def create_datasets(theta, FOP, n, m, N_train, N_test, noise_level):
+def create_datasets(theta, FOP, n, t, N_train, N_test, noise_level):
     """Create dataset for the IO problem."""
     dataset_train = []
     for i in range(N_train):
         flag = False
         while not flag:
-            A = 1 - 2*np.random.rand(m, n)
-            b = -np.random.rand(m)
+            A = 1 - 2*np.random.rand(t, n)
+            b = -np.random.rand(t)
             for k in range(2**n):
                 x_bin = iop.dec_to_bin(k, n)
                 if (A @ x_bin <= b).all():
@@ -46,8 +46,8 @@ def create_datasets(theta, FOP, n, m, N_train, N_test, noise_level):
     for i in range(N_test):
         flag = False
         while not flag:
-            A = 1 - 2*np.random.rand(m, n)
-            b = -np.random.rand(m)
+            A = 1 - 2*np.random.rand(t, n)
+            b = -np.random.rand(t)
             for k in range(2**n):
                 x_bin = iop.dec_to_bin(k, n)
                 if (A @ x_bin <= b).all():
@@ -69,7 +69,7 @@ def create_datasets(theta, FOP, n, m, N_train, N_test, noise_level):
 def linear_FOP(theta, s):
     """Forward optimization problem: linear program."""
     A, b, _ = s
-    m, n = A.shape
+    t, n = A.shape
     p = len(theta)
 
     mdl = Model('FOP')
@@ -80,7 +80,7 @@ def linear_FOP(theta, s):
     mdl.setObjective(quicksum(theta[i]*x[i] for i in range(p)), GRB.MINIMIZE)
 
     mdl.addConstrs(quicksum(A[j, i]*x[i] for i in range(n))
-                   <= b[j] for j in range(m))
+                   <= b[j] for j in range(t))
     mdl.addConstrs(x[i] <= 1 for i in range(n))
 
     mdl.optimize()
@@ -110,7 +110,7 @@ def phi(s, x):
 N_train = 50
 N_test = 50
 n = 5
-m = 3
+t = 3
 noise_level = 0
 kappa = 0
 resolution = 10
@@ -120,7 +120,7 @@ print('')
 print(f'N_train = {N_train}')
 print(f'N_test = {N_test}')
 print(f'n = {n}')
-print(f'm = {m}')
+print(f't = {t}')
 print(f'resolution = {resolution}')
 print(f'runs = {runs}')
 print('')
@@ -142,7 +142,7 @@ for run in range(runs):
 
     dataset_train, dataset_test = create_datasets(theta_true,
                                                   linear_FOP,
-                                                  n, m,
+                                                  n, t,
                                                   N_train, N_test,
                                                   noise_level)
     dataset_train_runs.append(dataset_train)

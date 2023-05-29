@@ -3,9 +3,9 @@
 
 >Warning: the `discrete_consistent` function requires `gurobipy`.
 
-## Use cases
+## Use case
 
-This function is can be used when the FOP is of the form
+This function can be used when the FOP is of the form
 
 $$
 \min_ {x \in \mathbb{X}(\hat{s})} \ \langle \theta,\phi(\hat{s},x) \rangle ,
@@ -33,7 +33,7 @@ where
 - $\mathbb{X}(\hat{s}_ i)$ is the constraint set of the FOP.
 - $\Theta$ is the set used to encode any prior information or assumption we may have on the expert's true cost function, e.g., nonnegativity of the cost vector. *(optional)*
 
-Alternatively, if the distance penalization function $d$  and the priory belief/estimate vector $\hat{\theta}$ are not provided, the `discrete_consistent` function solves the IO problem by solving the feasibility problem
+Alternatively, if the distance penalization function $d$  and the priory belief/estimate vector $\hat{\theta}$ are not provided, the `discrete_consistent` function solves the IO problem by solving the *feasibility strategy*
 
 $$
 \begin{aligned} \min_ {\theta} \quad & 0 \\
@@ -42,7 +42,7 @@ $$
 \end{aligned}
 $$
 
-where the norm equality constraint uses the $\ell_ 1$ norm if $\Theta = \\{\theta \in \mathbb{R}^p : \theta \geq 0\\}$, and the $\ell_ \infty$ norm otherwise. This equality constraint must be added to exclude the trivial solution $\theta = 0$. Notice that both the incenter and feasibility optimization programs become infeasible if the dataset is not consistent.
+where the norm equality constraint uses the $\ell_ 1$ norm if $\Theta = \\{\theta \in \mathbb{R}^p : \theta \geq 0\\}$, and the $\ell_ \infty$ norm otherwise. This equality constraint must be added to exclude the trivial solution $\theta = 0$. Notice that both the incenter and feasibility optimization programs become infeasible if the dataset is not consistent. For more details on this reformulation, see [Zattoni Scroccaro et al. (2023)](https://arxiv.org/abs/2305.07730). 
 
 ## Example: binary linear program with consistent data
 
@@ -56,4 +56,4 @@ $$
 \end{aligned}
 $$
 
-where $\hat{s}_ i = (\hat{A}_ i, \hat{b}_ i)$ and $\phi(\hat{s},x) = x$. The IO problem is solved using the incenter and feasibilty strategies from `discrete_consistent`, as well as the circumcenter strategy from [Besbes et al. (2022)](https://arxiv.org/abs/2106.14015). For a detailed description of this example, please see [Zattoni Scroccaro et al. (2023)](https://arxiv.org/abs/2305.07730).
+where $\hat{s}_ i = (\hat{A}_ i, \hat{b}_ i)$ and $\phi(\hat{s},x) = x$. The IO problem is solved using the incenter and feasibility strategies from `discrete_consistent`, as well as the circumcenter strategy from [Besbes et al. (2022)](https://arxiv.org/abs/2106.14015). For a detailed description of this example, please see [Zattoni Scroccaro et al. (2023)](https://arxiv.org/abs/2305.07730).

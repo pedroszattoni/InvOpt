@@ -1,8 +1,8 @@
 # `FOM`
 
-## Use cases
+## Use case
 
-This function is can be for general FOPs of the form
+This function can be for general FOPs of the form
 
 $$
 \min_ {x \in \mathbb{X}(\hat{s})} \ \langle \theta,\phi(\hat{s},x) \rangle .
@@ -10,7 +10,7 @@ $$
 
 ## Solution method
 
-Given the a dataset of signal-response data $\mathcal{D} = \\{(\hat{s}_ i, \hat{x}_ i)\\}_ {i=1}^N$,  the `FOM` function solves the IO problem by minimizing the empirical risk minimization problem
+Given a dataset of signal-response data $\mathcal{D} = \\{(\hat{s}_ i, \hat{x}_ i)\\}_ {i=1}^N$,  the `FOM` function solves the IO problem by minimizing the empirical risk minimization problem
 
 $$
 \min_ {\theta \in \Theta} \ \kappa\mathcal{R}(\theta - \hat{\theta}) + \frac{1}{N}\sum_{i=1}^N \ell_\theta (\hat{s}_i, \hat{x}_i)
@@ -22,7 +22,7 @@ $$
 \text{A-FOP}(\theta, \hat{s}, \hat{x}) = \arg\min_ {x \in \mathbb{X}(\hat{s})} \big\\{ \langle \theta,\phi(\hat{s},x) \rangle  - d(\hat{x},x) \big\\}.
 $$
 
-When minimizing the the Suboptimality loss, the algorithm uses a FOP oracle
+When minimizing the Suboptimality loss, the algorithm uses a FOP oracle
 
 $$
 \text{FOP}(\theta, \hat{s}) = \arg\min_ {x \in \mathbb{X}(\hat{s})} \langle \theta,\phi(\hat{s},x) \rangle.
@@ -77,7 +77,7 @@ $$
 ___
 where $\odot$ is element-wise multiplication and $\text{exp}$ is element-wise exponentiation.
 
-**Note**: for the (A-)FOP oracles, ties in the argmin can be broken arbitrarily. Moreover, approximate oracles can also be used. For more details on the derivation of these algorithm and loss functions, see [Zattoni Scroccaro et al. (2023)](https://arxiv.org/abs/2305.07730). For more details on the algorithms implemented in the InvOpt package, and their possible variants, please see the documentation of the `FOM` function. For instance, there are different options on how to choose the batch of examples $B$, different options on what value exactly the algorithm returns (e.g., last iterate or some kind of average), or the option to normalize the subgradients.
+**Note**: for the (A-)FOP oracles, ties in the argmin can be broken arbitrarily. Moreover, approximate oracles can also be used. For more details on the derivation of these algorithms and loss functions, see [Zattoni Scroccaro et al. (2023)](https://arxiv.org/abs/2305.07730). For more details on the algorithms implemented in the InvOpt package and their possible variants, please see the documentation of the `FOM` function. For instance, there are different options on how to choose the batch of examples $B$, different options on what value exactly the algorithm returns (e.g., last iterate or some kind of average), or the option to normalize the subgradients.
 
 ## Example: binary linear program
 
@@ -91,4 +91,4 @@ $$
 \end{aligned}
 $$
 
-where $\hat{s}_ i = (\hat{A}_ i, \hat{b}_ i)$ and $\phi(\hat{s},x)=x$. The IO problem is solved using different versions fo the first-order algorithm and its exponentiated variant. For a detailed description of this example, please see [Zattoni Scroccaro et al. (2023)](https://arxiv.org/abs/2305.07730).
+where $\hat{s}_ i = (\hat{A}_ i, \hat{b}_ i)$ and $\phi(\hat{s},x)=x$. The IO problem is solved using different versions of the first-order algorithm and its exponentiated variant. For a detailed description of this example, please see [Zattoni Scroccaro et al. (2023)](https://arxiv.org/abs/2305.07730).

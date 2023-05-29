@@ -2,9 +2,9 @@
 
 >Warning: the `mixed_integer_linear` function requires `gurobipy`.
 
-## Use cases
+## Use case
 
-This function is can be used when the FOP is of the form
+This function can be used when the FOP is of the form
 
 $$
 \min_ {x \in \mathbb{X}(\hat{s})} \ \langle \theta,\phi(\hat{s}, x) \rangle
@@ -16,38 +16,36 @@ $$
 \mathbb{X}(\hat{s}) = \left\\{ x=(y,z) \in \mathbb{R}^u \times \mathbb{Z}^v : \hat{A}y + \hat{B}z \leq \hat{c}, \ z \in \mathbb{Z}(\hat{w}) \right\\},
 $$
 
-where $\hat{s} = (\hat{A}, \hat{B}, \hat{c}, \hat{w})$ and $\mathbb{Z}(\hat{w})$ is a bounded set that may depend on a signal $\hat{w}$, and hypothesis function
+where the signal in the form $\hat{s} = (\hat{A}, \hat{B}, \hat{c}, \hat{w})$ and $\mathbb{Z}(\hat{w}) \subseteq \mathbb{Z}^v$ is a bounded set that may depend on a signal $\hat{w}$, and the hypothesis function is in the form
 
 $$
 \langle \theta,\phi(\hat{s}, x) \rangle = \langle y,Q \phi_ 1(\hat{w}, z) \rangle  + \langle q,\phi_ 2(\hat{w}, z)  \rangle ,
 $$
 
-where $x = (y,z)$, $\theta = [\text{vec}(Q)  \ \ q]$, and $\phi_ 1$ and $\phi_ 2$ are feature functions.
+where $x = (y,z)$, $Q \in \mathbb{R}^{u \times m}$, $q \in \mathbb{R}^r$, $\phi_ 1: \mathbb{W} \times \mathbb{Z}^v \to \mathbb{R}^m$ and $\phi_ 2: \mathbb{W} \times \mathbb{Z}^v \to \mathbb{R}^r$ are feature mappings, $\theta = [\text{vec}(Q)  \ \ q] \in \mathbb{R}^p$ and $\phi(\hat{s}, x) = [\phi_ 1(\hat{w}, z) \otimes y \quad \phi_ 2(\hat{w}, z)] \in \mathbb{R}^p$, where $\otimes$ is the Kronecker product.
 
 ## Solution method
 
-We define $M_ i = |\mathbb{Z}(\hat{w}_ i)|$ and use the following indexing notation for the elements of $\mathbb{Z}(\hat{w}_ i) = \\{z_ {i1},\ldots,z_ {ij},\ldots,z_ {iM_ i}\\}$. We also define $\gamma_ k \in \mathbb{R}^n$ equal the vector of zeros except for the $k$'th element, which equals $1$ if $k \leq n$. If $k > n$, then the $\text{mod}(k,n)$'th element equals $-1$. Given the a dataset of signal-response data $\mathcal{D} = \\{(\hat{s}_ i, \hat{x}_ i)\\}_ {i=1}^N$,  the `mixed_integer_linear` function solves the IO problem using
+Given a dataset of signal-response data $\mathcal{D} = \\{(\hat{s}_ i, \hat{x}_ i)\\}_ {i=1}^N$, we pose the IO problem as a regularized loss minimization problem using the *Augmented Suboptimality loss*:
+
+$$
+\min_ {\theta \in \Theta} \ \kappa\mathcal{R}(\theta - \hat{\theta}) + \frac{1}{N}\sum_{i=1}^N \max_ {x_ i \in \mathbb{X}(\hat{s}_ i)} \\{ \langle \theta, \phi(\hat{s}_ i,\hat{x}_ i) - \phi(\hat{s}_ i,x_ i) \rangle + d(\hat{x}_ i,x_ i) \\},
+$$
+
+where $\Theta$ is the (optional) set used to encode any prior information or assumption we may have on the expert's true cost function (e.g., nonnegativity), $\kappa \geq 0$ is the regularization parameter, $\mathcal{R} : \mathbb{R}^p \to \mathbb{R}$ is a regularization function, $\hat{\theta} \in \mathbb{R}^p$ is an (optional) a priory belief or estimate of the true cost vector.
+
+We propose to solve this minimax problem by reformulating it as a minimization problem. To do so, we use the distance penalization $d(\hat{x}, x) = \rVert \hat{y} - y \rVert_ \infty + d_ z(\hat{z}, z)$, we define $M_ i = |\mathbb{Z}(\hat{w}_ i)|$ and use the following indexing notation for the elements of $\mathbb{Z}(\hat{w}_ i) = \\{z_ {i1},\ldots,z_ {ij},\ldots,z_ {iM_ i}\\}$, and also define $\gamma_ k \in \mathbb{R}^u$ as the vector of zeros except for the $k$'th element, which equals $1$ if $k \leq u$, and the $\text{mod}(k,u)$'th element equal to $-1$ if $k > u$. In this case, we can reformulate the regularized loss minimization problem as
 
 $$
 \begin{aligned}
 \min_{\theta, \beta_ i, \lambda_ {ijk}} \quad & \kappa\mathcal{R}(\theta - \hat{\theta}) + \frac{1}{N}\sum_ {i=1}^N \beta_ i  \\
-\text{s.t.} \ \quad & \langle \theta,\phi(\hat{s}_ i,\hat{x}_ i) \rangle + \langle \lambda_ {ijk},\hat{c}_ i - \hat{B}_ i z_ {ij} \rangle - \langle q,\phi_ 2(\hat{w}_ i, z_ {ij}) \rangle  + \langle \gamma_ k,\hat{y}_ i \rangle  + d_ z(\hat{z}_ i, z_ {ij}) \leq \beta_ i & \forall i \in [N], \ \forall j \in [M_ i], \ \forall k \in [2n] \\
-& Q \phi_ 1(\hat{w}_ i, z_ {ij}) + \gamma_ k + \hat{A}_ i^\top \lambda_ {ijk} = 0 & \forall i \in [N], \ \forall j \in [M_ i], \ \forall k \in [2n] \\
-& \theta \in \Theta, \quad \beta_i \geq 0, \quad \lambda_ {ijk} \geq 0 & \forall i \in [N], \ \forall j \in [M_ i], \ \forall k \in [2n],
+\text{s.t.} \ \quad & \langle \theta,\phi(\hat{s}_ i,\hat{x}_ i) \rangle + \langle \lambda_ {ijk},\hat{c}_ i - \hat{B}_ i z_ {ij} \rangle - \langle q,\phi_ 2(\hat{w}_ i, z_ {ij}) \rangle  + \langle \gamma_ k,\hat{y}_ i \rangle  + d_ z(\hat{z}_ i, z_ {ij}) \leq \beta_ i & \forall i \in [N], \ \forall j \in [M_ i], \ \forall k \in [2u] \\
+& Q \phi_ 1(\hat{w}_ i, z_ {ij}) + \gamma_ k + \hat{A}_ i^\top \lambda_ {ijk} = 0 & \forall i \in [N], \ \forall j \in [M_ i], \ \forall k \in [2u] \\
+& \theta \in \Theta, \quad \beta_i \geq 0, \quad \lambda_ {ijk} \geq 0 & \forall i \in [N], \ \forall j \in [M_ i], \ \forall k \in [2u].
 \end{aligned}
 $$
 
-where
-- $\hat{\theta} \in \mathbb{R}^p$ is an a priory belief or estimate of the true cost vector. *(optional)*
-- $\mathcal{R} : \mathbb{R}^p \to \mathbb{R}$ is a regularization function.
-- $\kappa$ is a nonnegative regularization parameter.
-- $\phi_ 1: \mathbb{W} \times \mathbb{Z}^v \to \mathbb{R}^m$ is the feature mapping, which maps $(\hat{w},z)$ to a feature vector $\phi_ 1(\hat{w},z)$.
-- $\phi_ 2: \mathbb{W} \times \mathbb{Z}^v \to \mathbb{R}^n$ is the feature mapping, which maps $(\hat{w},z)$ to a feature vector $\phi_ 2(\hat{w},z)$.
-- $d_ z : \mathbb{Z}^v \times \mathbb{Z}^v \to \mathbb{R}_ +$ is a distance penalization function, which given the integer part of two responses, returns the distance between them according to some distance metric. *(optional)*
-- $\mathbb{Z}(\hat{w}_ i)$ is the constraint set of the integer part of the decision vector.
-- $\Theta$ is the set used to encode any prior information or assumption we may have on the expert's true cost function, e.g., nonnegativity of the cost vector. *(optional)*
-
-Alternatively, if the distance penalization function $d_ z$  is not provided and $\kappa=0$ or $\hat{\theta}$ is not provided, the `mixed_integer_linear` function solves the IO problem using the *Suboptimality loss*-based reformulation
+For more details on this reformulation, see [Zattoni Scroccaro et al. (2023)](https://arxiv.org/abs/2305.07730). Alternatively, to decrease the number of constraints of the reformulation by a factor of $2u$, one can use $d(\hat{x}, x) = d_ z(\hat{z}, z)$, i.e., only penalize the integer part of the decision vector, which is equivalent to setting $\gamma_k =0 \ \ \forall k \in [2u]$. If a distance penalization $d$ is not provided at all, the Augmented Suboptimality loss reduces to the *Suboptimality loss*. In this case, if $\kappa=0$ or $\hat{\theta}$ is not provided, the `mixed_integer_linear` function solves the IO problem using the *Suboptimality loss*-based reformulation
 
 $$
 \begin{aligned}
@@ -60,7 +58,7 @@ $$
 
 where the norm equality constraint uses the $\ell_ 1$ norm if $\Theta = \\{\theta \in \mathbb{R}^p : \theta \geq 0\\}$, and the $\ell_ \infty$ norm otherwise. This equality constraint must be added to exclude the trivial solution $\theta = 0$.
 
-## Example: binary linear mixed-interger program
+## Example: binary linear mixed-integer program
 
 In the file `MILP.py`, you will find an example usage of the `mixed_integer_linear` function. For this example, the dataset $\mathcal{D} = \\{(\hat{s}_ i, \hat{x}_ i)\\}_ {i=1}^N$ is generated by solving the binary linear program
 
@@ -68,8 +66,8 @@ $$
 \begin{aligned}
 \hat{x}_ i = (\hat{y}_ i, \hat{z}_ i) \in \arg\min_ {y, z} \quad &  \langle y,q_ y \rangle + \langle q_z,z \rangle \\
 \text{s.t.} \quad & \hat{A}_ i y + \hat{B}_ i z \leq \hat{c}_ i \\
-& 0 \leq y \leq 1, \quad z \in \\{0,1\\}^n,
+& 0 \leq y \leq 1, \quad z \in \\{0,1\\}^v,
 \end{aligned}
 $$
 
-where $\hat{s}_ i = ([\hat{A}_ i^\top \ \ I \ \ -I]^\top, [\hat{B}_ i^\top \ \ 0_ {n \times 2n} ]^\top, [\hat{c}_ i \ \ \mathbf{1} \ \ \mathbf{0}], 0)$, where $\mathbf{1}$ is the vector of ones and $\mathbf{0}$ is the vector of zeros. The IO problem is solved using the solution methods presented above, with $Q=q_y$, $q=q_z$, $\phi_ 1(\hat{w},z) = 1$ and $\phi_ 2(\hat{w},z) = z$. For a detailed description of this example, please see [Zattoni Scroccaro et al. (2023)](https://arxiv.org/abs/2305.07730).
+where $\hat{s}_ i = ([\hat{A}_ i^\top \ \ I \ \ -I]^\top, [\hat{B}_ i^\top \ \ 0_ {u \times 2u} ]^\top, [\hat{c}_ i \ \ \mathbf{1} \ \ \mathbf{0}], 0)$, where $\mathbf{1}$ is the vector of ones and $\mathbf{0}$ is the vector of zeros. The IO problem is solved using the solution methods presented above, with $Q=q_y$, $q=q_z$, $\phi_ 1(\hat{w},z) = 1$ and $\phi_ 2(\hat{w},z) = z$. For a detailed description of this example, please see [Zattoni Scroccaro et al. (2023)](https://arxiv.org/abs/2305.07730).

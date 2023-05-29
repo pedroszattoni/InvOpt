@@ -19,14 +19,14 @@ import invopt as iop
 np.random.seed(0)
 
 
-def create_datasets(theta, FOP, n, m, N_train, N_test):
+def create_datasets(theta, FOP, n, t, N_train, N_test):
     """Create dataset for the IO approach."""
     dataset_train = []
     for i in range(N_train):
         flag = False
         while not flag:
-            A = -np.random.rand(m, n)
-            b = -(n/3)*np.random.rand(m)
+            A = -np.random.rand(t, n)
+            b = -(n/3)*np.random.rand(t)
             flag = all(np.sum(A, axis=1) <= b)
 
         s_hat = (A, b)
@@ -37,8 +37,8 @@ def create_datasets(theta, FOP, n, m, N_train, N_test):
     for i in range(N_test):
         flag = False
         while not flag:
-            A = -np.random.rand(m, n)
-            b = -(n/3)*np.random.rand(m)
+            A = -np.random.rand(t, n)
+            b = -(n/3)*np.random.rand(t)
             flag = all(np.sum(A, axis=1) <= b)
 
         s_hat = (A, b)
@@ -116,7 +116,7 @@ def interpolate(t_old, values_old, t_new):
 N_train = 30
 N_test = 30
 n = 5
-m = 3
+t = 3
 decision_space = ('binary', n)
 Theta = 'nonnegative'
 regularizer = 'L1'
@@ -135,7 +135,7 @@ print('')
 print(f'N_train = {N_train}')
 print(f'N_test = {N_test}')
 print(f'n = {n}')
-print(f'm = {m}')
+print(f't = {t}')
 print(f'decision_space = {decision_space}')
 print(f'regularizer = {regularizer}')
 print(f'reg_param = {reg_param}')
@@ -168,7 +168,7 @@ for run in range(runs):
 
     dataset_train, dataset_test = create_datasets(theta_true,
                                                   binary_linear_FOP,
-                                                  n, m,
+                                                  n, t,
                                                   N_train, N_test)
     dataset_train_list.append(dataset_train)
     dataset_test_list.append(dataset_test)

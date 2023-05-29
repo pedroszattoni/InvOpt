@@ -18,14 +18,14 @@ import invopt as iop
 np.random.seed(0)
 
 
-def create_datasets(theta, FOP, n, m, N_train, N_test, noise_level):
+def create_datasets(theta, FOP, n, t, N_train, N_test, noise_level):
     """Create dataset for the IO problem."""
     dataset_train = []
     for i in range(N_train):
         flag = False
         while not flag:
-            A = 1 - 2*np.random.rand(m, n)
-            b = -np.random.rand(m)
+            A = 1 - 2*np.random.rand(t, n)
+            b = -np.random.rand(t)
             for k in range(2**n):
                 x_bin = iop.dec_to_bin(k, n)
                 if (A @ x_bin <= b).all():
@@ -41,8 +41,8 @@ def create_datasets(theta, FOP, n, m, N_train, N_test, noise_level):
     for i in range(N_test):
         flag = False
         while not flag:
-            A = 1 - 2*np.random.rand(m, n)
-            b = -np.random.rand(m)
+            A = 1 - 2*np.random.rand(t, n)
+            b = -np.random.rand(t)
             for k in range(2**n):
                 x_bin = iop.dec_to_bin(k, n)
                 if (A @ x_bin <= b).all():
@@ -61,7 +61,7 @@ def create_datasets(theta, FOP, n, m, N_train, N_test, noise_level):
 N_train = 50
 N_test = 50
 n = 5
-m = 3
+t = 3
 noise_level = 0.05
 kappa = 0.001
 X = ('binary', n, linear_ind_func)
@@ -72,7 +72,7 @@ print('')
 print(f'N_train = {N_train}')
 print(f'N_test = {N_test}')
 print(f'n = {n}')
-print(f'm = {m}')
+print(f't = {t}')
 print(f'noise_level = {noise_level}')
 print(f'kappa = {kappa}')
 print(f'X = {X}')
@@ -96,7 +96,7 @@ for run in range(runs):
     theta_true_runs.append(theta_true)
 
     dataset_train, dataset_test = create_datasets(theta_true,
-                                                  binary_linear_FOP, n, m,
+                                                  binary_linear_FOP, n, t,
                                                   N_train, N_test, noise_level)
     dataset_train_runs.append(dataset_train)
     dataset_test_runs.append(dataset_test)

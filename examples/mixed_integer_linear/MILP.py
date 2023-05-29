@@ -18,22 +18,22 @@ import invopt as iop
 np.random.seed(0)
 
 
-def create_datasets(theta, FOP, m1, m2, n, N_train, N_test):
+def create_datasets(theta, FOP, t, u, v, N_train, N_test):
     """Create datasets for the IO problem."""
     dataset_train = []
     for i in range(N_train):
         flag = False
         while not flag:
-            A1 = -np.random.rand(m1, m2)
-            B1 = -np.random.rand(m1, n)
-            c1 = -2*np.random.rand(m1)
+            A1 = -np.random.rand(t, u)
+            B1 = -np.random.rand(t, v)
+            c1 = -2*np.random.rand(t)
             flag = all(np.sum(A1, axis=1) + np.sum(B1, axis=1) <= c1)
 
-        A2 = np.vstack((np.eye(m2), -np.eye(m2)))
-        c2 = np.hstack((np.ones(m2), np.zeros(m2)))
+        A2 = np.vstack((np.eye(u), -np.eye(u)))
+        c2 = np.hstack((np.ones(u), np.zeros(u)))
 
         A = np.vstack((A1, A2))
-        B = np.vstack((B1, np.zeros((2*m2, n))))
+        B = np.vstack((B1, np.zeros((2*u, v))))
         c = np.hstack((c1, c2))
 
         s_hat = (A, B, c, 0)
@@ -44,16 +44,16 @@ def create_datasets(theta, FOP, m1, m2, n, N_train, N_test):
     for i in range(N_test):
         flag = False
         while not flag:
-            A1 = -np.random.rand(m1, m2)
-            B1 = -np.random.rand(m1, n)
-            c1 = -2*np.random.rand(m1)
+            A1 = -np.random.rand(t, u)
+            B1 = -np.random.rand(t, v)
+            c1 = -2*np.random.rand(t)
             flag = all(np.sum(A1, axis=1) + np.sum(B1, axis=1) <= c1)
 
-        A2 = np.vstack((np.eye(m2), -np.eye(m2)))
-        c2 = np.hstack((np.ones(m2), np.zeros(m2)))
+        A2 = np.vstack((np.eye(u), -np.eye(u)))
+        c2 = np.hstack((np.ones(u), np.zeros(u)))
 
         A = np.vstack((A1, A2))
-        B = np.vstack((B1, np.zeros((2*m2, n))))
+        B = np.vstack((B1, np.zeros((2*u, v))))
         c = np.hstack((c1, c2))
 
         s_hat = (A, B, c, 0)
@@ -126,9 +126,10 @@ def dist_func(x1, x2):
 
 N_train = 30
 N_test = 30
-n = 4
-m = 3
-Z = ('binary', n, None)
+u = 4
+v = u
+t = 3
+Z = ('binary', v, None)
 Theta = 'nonnegative'
 resolution = 10
 runs = 3
@@ -136,8 +137,8 @@ runs = 3
 print('')
 print(f'N_train = {N_train}')
 print(f'N_test = {N_test}')
-print(f'n = {n}')
-print(f'm = {m}')
+print(f'u = {u}')
+print(f't = {t}')
 print(f'Z = {Z}')
 print(f'Theta = {Theta}')
 print(f'resolution = {resolution}')
@@ -156,14 +157,14 @@ grb_models_test_runs = []
 
 tic_dataset = time.time()
 for run in range(runs):
-    qy_true = np.random.rand(n)
-    qz_true = np.random.rand(n)
+    qy_true = np.random.rand(u)
+    qz_true = np.random.rand(v)
     theta_true = np.concatenate((qy_true, qz_true))
     theta_true_runs.append(theta_true)
 
     dataset_train, dataset_test = create_datasets(theta_true,
                                                   FOP_MILP,
-                                                  m, n, n,
+                                                  t, u, v,
                                                   N_train, N_test)
 
     dataset_train_runs.append(dataset_train)
