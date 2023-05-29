@@ -115,9 +115,8 @@ def ASL(theta, dataset, FOP_aug, phi, dist_func,
     reg_param : float, optional
         Nonnegative regularization parameter. The default is 0.
     theta_hat : {1D ndarray, None}, optional
-        A priory belief or estimate of the true cost vector. When
-        theta_hat=None, it is defined as the vector of zeros. The default is
-        None.
+        A priory belief or estimate of the true cost vector theta. The default
+        is None.
 
     Raises
     ------
@@ -309,8 +308,8 @@ def discrete_consistent(dataset, X, phi,
         Type of regularization on cost vector theta. The default is
         'L2_squared'.
     theta_hat : {1D ndarray, None}, optional
-        A priory belief or estimate of the true cost vector. The default is
-        None.
+        A priory belief or estimate of the true cost vector theta. The default
+        is None.
     verbose : bool, optional
         If True, print Gurobi's solver output. The default is False.
     gurobi_params : {list of tuple(str, value), None}, optional
@@ -464,9 +463,8 @@ def discrete(dataset, X, phi,
     reg_param : float, optional
         Nonnegative regularization parameter. The default is 0.
     theta_hat : {1D ndarray, None}, optional
-        A priory belief or estimate of the true cost vector. When
-        theta_hat=None, it is defined as the vector of zeros. The default is
-        None.
+        A priory belief or estimate of the true cost vector theta. The default
+        is None.
     verbose : bool, optional
         If True, print Gurobi's solver output. The default is False.
     gurobi_params : {list of tuple(str, value), None}, optional
@@ -490,7 +488,7 @@ def discrete(dataset, X, phi,
     if theta_hat is None:
         theta_hat_mod = None
     else:
-        theta_hat_mod = (np.zeros((1, 1)), theta_hat)
+        theta_hat_mod = np.concatenate(([0], theta_hat))
 
     dataset_mod = []
     for data in dataset:
@@ -549,9 +547,8 @@ def continuous_linear(dataset, phi1,
     reg_param : float, optional
         Nonnegative regularization parameter. The default is 0.
     theta_hat : {1D ndarray, None}, optional
-        A priory belief or estimate of the true cost vector. When
-        theta_hat=None, it is defined as the vector of zeros. The default is
-        None.
+        A priory belief or estimate of the true cost vector theta=vec(Q). The
+        default is None.
     verbose : bool, optional
         If True, print Gurobi's solver output. The default is False.
     gurobi_params : {list of tuple(str, value), None}, optional
@@ -575,7 +572,7 @@ def continuous_linear(dataset, phi1,
     if theta_hat is None:
         theta_hat_mod = None
     else:
-        theta_hat_mod = (theta_hat, np.array([0]))
+        theta_hat_mod = np.concatenate((theta_hat, [0]))
 
     dataset_mod = []
     for data in dataset:
@@ -634,11 +631,9 @@ def continuous_quadratic(dataset,
         'L2_squared'.
     reg_param : float, optional
         Nonnegative regularization parameter. The default is 0.
-    theta_hat : {tuple(2D ndarray, 2D ndarray), None}, optional
+    theta_hat : {1D ndarray, None}, optional
         A priory belief or estimate of the true cost vector
-        theta=(vec(Qyy), vec(Q)). Should be provided as a tuple
-        (Qyy_hat, Q_hat). When None, theta_hat is defined as zeros. The
-        default is None.
+        theta=(vec(Qyy), vec(Q)). The default is None.
     verbose : bool, optional
         If True, print the solver's output. The default is False.
 
@@ -660,8 +655,7 @@ def continuous_quadratic(dataset,
     if theta_hat is None:
         theta_hat_mod = None
     else:
-        Qyy_hat, Q_hat = theta_hat
-        theta_hat_mod = (Qyy_hat, Q_hat, np.array([0]))
+        theta_hat_mod = np.concatenate((theta_hat, [0]))
 
     dataset_mod = []
     for data in dataset:
@@ -741,10 +735,9 @@ def mixed_integer_linear(dataset, Z,
         'L2_squared'.
     reg_param : float, optional
         Nonnegative regularization parameter. The default is 0.
-    theta_hat : {tuple(2D ndarray, 1D ndarray), None}, optional
+    theta_hat : {1D ndarray, None}, optional
         A priory belief or estimate of the true cost vector theta=(vec(Q), q).
-        Should be provided as a tuple (Q_hat, q_hat). When None, theta_hat is
-        defined as zeros. The default is None.
+        The default is None.
     verbose : bool, optional
         If True, print Gurobi's solver output. The default is False.
     gurobi_params : {list of tuple(str, value), None}, optional
@@ -892,7 +885,8 @@ def mixed_integer_linear(dataset, Z,
             Q_hat = np.zeros((u, m))
             q_hat = np.zeros(r)
         else:
-            Q_hat, q_hat = theta_hat
+            Q_hat = theta_hat[:-r].reshape((u, m))
+            q_hat = theta_hat[-r:]
 
         if regularizer == 'L2_squared':
             Q_sum = gp.quicksum((Q[i, j] - Q_hat[i, j])**2 for i in range(u)
@@ -1035,11 +1029,9 @@ def mixed_integer_quadratic(dataset, Z,
         'L2_squared'.
     reg_param : float, optional
         Nonnegative regularization parameter. The default is 0.
-    theta_hat : {tuple(2D ndarray, 2D ndarray, 1D ndarray), None}, optional
+    theta_hat : {1D ndarray, None}, optional
         A priory belief or estimate of the true cost vector
-        theta=(vec(Qyy), vec(Q), q). Should be provided as a tuple
-        (Qyy_hat, Q_hat, q_hat). When None, theta_hat is defined as zeros. The
-        default is None.
+        theta=(vec(Qyy), vec(Q), q). The default is None.
     verbose : bool, optional
         If True, print the solver's output. The default is False.
 
@@ -1156,7 +1148,9 @@ def mixed_integer_quadratic(dataset, Z,
             Q_hat = np.zeros((u, m))
             q_hat = np.zeros((r, 1))
         else:
-            Qyy_hat, Q_hat, q_hat = theta_hat
+            Qyy_hat = theta_hat[:u**2].reshape((u, u))
+            Q_hat = theta_hat[u**2:-r].reshape((u, m))
+            q_hat = theta_hat[-r:].reshape((r, 1))
 
         if regularizer == 'L2_squared':
             Qyy_sum = cp.sum_squares(Qyy - Qyy_hat)
@@ -1252,8 +1246,7 @@ def FOM(dataset, phi, theta_0, FOP, step_size, T,
     reg_param : float, optional
         Nonnegative regularization parameter. The default is 0.
     theta_hat : {1D ndarray, None}, optional
-        A priory belief or estimate of the true cost vector. When
-        theta_hat=None, it is defined as the vector of zeros. The default is
+        A priory belief or estimate of the true cost vector. The default is
         None.
     batch_type : {float, 'reshuffled'}, optional
         If float, it is the fraction of the dataset used to compute stochastic
@@ -1315,8 +1308,8 @@ def FOM(dataset, phi, theta_0, FOP, step_size, T,
                         'regularizer = \'L1\' is required.')
 
     if (step == 'exponentiated') and (theta_hat is not None):
-        raise Exception('To use step = \'exponentiated\', '
-                        'theta_hat = None is required.')
+        raise Exception('When step=\'exponentiated\', '
+                        'theta_hat must be None.')
 
     # Get the number of examples and dimension of the problem
     N = len(dataset)
@@ -1390,8 +1383,7 @@ def gradient_regularizer(theta_t, regularizer, reg_param, theta_hat):
     reg_param : float
         Nonnegative regularization parameter..
     theta_hat : 1D ndarray
-        A priory belief or estimate of the true cost vector. When not None, the
-        cost vector returned will be the feasible vector closest to theta_hat.
+        A priory belief or estimate of the true cost vector.
 
     Returns
     -------
