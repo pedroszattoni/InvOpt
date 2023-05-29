@@ -138,6 +138,7 @@ N_train = 10
 N_test = 10
 n = 3
 m = 2
+reg_param = 0.001
 Z = ('binary', n, None)
 Theta = 'nonnegative'
 resolution = 5
@@ -148,6 +149,7 @@ print(f'N_train = {N_train}')
 print(f'N_test = {N_test}')
 print(f'n = {n}')
 print(f'm = {m}')
+print(f'reg_param = {reg_param}')
 print(f'Z = {Z}')
 print(f'Theta = {Theta}')
 print(f'resolution = {resolution}')
@@ -231,7 +233,8 @@ for approach in approaches:
                                                    phi1=phi1,
                                                    phi2=phi2,
                                                    dist_func_z=dist_func_z,
-                                                   add_dist_func_y=add_y)
+                                                   add_dist_func_y=add_y,
+                                                   reg_param=reg_param)
 
             x_diff_train, obj_diff_train, theta_diff = \
                 iop.evaluate(theta_IO,
