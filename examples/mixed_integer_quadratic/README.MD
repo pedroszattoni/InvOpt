@@ -33,9 +33,9 @@ $$
 \min_ {\theta \in \Theta} \ \kappa\mathcal{R}(\theta - \hat{\theta}) + \frac{1}{N}\sum_{i=1}^N \max_ {x_ i \in \mathbb{X}(\hat{s}_ i)} \\{ \langle \theta, \phi(\hat{s}_ i,\hat{x}_ i) - \phi(\hat{s}_ i,x_ i) \rangle + d(\hat{x}_ i,x_ i) \\},
 $$
 
-where $\Theta$ is the (optional) set used to encode any prior information or assumption we may have on the expert's true cost function (e.g., nonnegativity), $\kappa \geq 0$ is the regularization parameter, $\mathcal{R} : \mathbb{R}^p \to \mathbb{R}$ is a regularization function, $\hat{\theta} \in \mathbb{R}^p$ is an (optional) a priory belief or estimate of the true cost vector.
+where $\Theta$ is an (optional) set used to encode any prior information or assumption we may have on the expert's true cost function (e.g., nonnegativity), $\kappa \geq 0$ is the regularization parameter, $\mathcal{R} : \mathbb{R}^p \to \mathbb{R}$ is a regularization function, $\hat{\theta} \in \mathbb{R}^p$ is an (optional) a priory belief or estimate of the true cost vector.
 
-We propose to solve this minimax problem by reformulating it as a minimization problem. To do so, we use the distance penalization $d(\hat{x}, x) = \rVert \hat{y} - y \rVert_ \infty + d_ z(\hat{z}, z)$, we define $M_ i = |\mathbb{Z}(\hat{w}_ i)|$ and use the following indexing notation for the elements of $\mathbb{Z}(\hat{w}_ i) = \\{z_ {i1},\ldots,z_ {ij},\ldots,z_ {iM_ i}\\}$, and also define $\gamma_ k \in \mathbb{R}^u$ as the vector of zeros except for the $k$'th element, which equals $1$ if $k \leq u$, and the $\text{mod}(k,u)$'th element equal to $-1$ if $k > u$. In this case, we can reformulate the regularized loss minimization problem as
+We propose to solve this minimax problem by reformulating it as a minimization problem. To do so, we use the distance penalization $d(\hat{x}, x) = \rVert \hat{y} - y \rVert_ \infty + d_ z(\hat{z}, z)$, we define $M_ i = |\mathbb{Z}(\hat{w}_ i)|$ and use the following indexing notation for the elements of $\mathbb{Z}(\hat{w}_ i) = \\{z_ {i1},\ldots,z_ {ij},\ldots,z_ {iM_ i}\\}$, and also define $\gamma_ k \in \mathbb{R}^u$ as the vector of zeros except for the $k$'th element, which equals $1$ if $k \leq u$. If $k > u$, the $\text{mod}(k,u)$'th element equals to $-1$. In this case, we can reformulate the regularized loss minimization problem as
 
 $$
 \begin{aligned}

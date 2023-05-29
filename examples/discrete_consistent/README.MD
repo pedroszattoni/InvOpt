@@ -42,7 +42,7 @@ $$
 \end{aligned}
 $$
 
-where the norm equality constraint uses the $\ell_ 1$ norm if $\Theta = \\{\theta \in \mathbb{R}^p : \theta \geq 0\\}$, and the $\ell_ \infty$ norm otherwise. This equality constraint must be added to exclude the trivial solution $\theta = 0$. Notice that both the incenter and feasibility optimization programs become infeasible if the dataset is not consistent. For more details on this reformulation, see [Zattoni Scroccaro et al. (2023)](https://arxiv.org/abs/2305.07730). 
+where the norm equality constraint uses the $\ell_ 1$ norm if $\Theta = \\{\theta \in \mathbb{R}^p : \theta \geq 0\\}$, and the $\ell_ \infty$ norm otherwise. This equality constraint must be added to exclude the trivial solution $\theta = 0$. Notice that both the incenter and feasibility optimization programs become infeasible if the dataset is not consistent. For more details on these reformulations, see [Zattoni Scroccaro et al. (2023)](https://arxiv.org/abs/2305.07730). 
 
 ## Example: binary linear program with consistent data
 
