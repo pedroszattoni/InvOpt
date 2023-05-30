@@ -27,4 +27,4 @@
 
 - Add the option for consistent data for mixed-integer cases?
 
-- Add support to theta_hat for MIP cases?
+- Add support for more general convex contraint sets for continuous/mixed-integer cases?
