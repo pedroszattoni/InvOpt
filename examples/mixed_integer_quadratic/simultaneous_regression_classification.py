@@ -1,5 +1,5 @@
 """
-InvOpt package example: simultanious regression and classification.
+InvOpt package example: simultaneous regression and classification.
 
 Dataset: Breast Cancer Wisconsin Prognostic (BCWP)
 https://archive.ics.uci.edu/ml/datasets/breast+cancer+wisconsin+(Prognostic)
@@ -143,7 +143,7 @@ print('')
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%% Solve IO problem %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-kappa_list = np.logspace(-4, 1, 5).tolist()
+kappa_list = np.logspace(-3, 3, 10).tolist()
 reg_size = len(kappa_list)
 
 y_diff_train_hist = np.empty((runs, reg_size))
@@ -163,7 +163,8 @@ for run in range(runs):
                                                phi1=phi1,
                                                phi2=phi2,
                                                dist_func_z=L1,
-                                               reg_param=kappa)
+                                               reg_param=kappa,
+                                               add_dist_func_y=True)
 
         y_diff_train = iop.evaluate(theta_IO,
                                     dataset_train,
