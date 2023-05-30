@@ -1,3 +1,4 @@
+
 # `mixed_integer_linear`
 
 >Warning: the `mixed_integer_linear` function requires `gurobipy`.
@@ -45,18 +46,7 @@ $$
 \end{aligned}
 $$
 
-For more details on this reformulation, see [Zattoni Scroccaro et al. (2023)](https://arxiv.org/abs/2305.07730). Alternatively, to decrease the number of constraints of the reformulation by a factor of $2u$, one can use $d(\hat{x}, x) = d_ z(\hat{z}, z)$, i.e., only penalize the integer part of the decision vector, which is equivalent to setting $\gamma_k =0 \ \ \forall k \in [2u]$. If a distance penalization $d$ is not provided at all, the Augmented Suboptimality loss reduces to the *Suboptimality loss*. In this case, if $\kappa=0$ or $\hat{\theta}$ is not provided, the `mixed_integer_linear` function solves the IO problem using the *Suboptimality loss*-based reformulation
-
-$$
-\begin{aligned}
-\min_{\theta, \beta_ i, \lambda_ {ij}} \quad & \frac{1}{N}\sum_ {i=1}^N \beta_ i  \\
-\text{s.t.} \ \quad & \langle \theta,\phi(\hat{s}_ i,\hat{x}_ i) \rangle^\top + \langle \lambda_ {ij},\hat{c}_ i - \hat{B}_ i z_ {ij} \rangle - \langle q,\phi_ 2(\hat{w}_ i, z_ {ij}) \rangle \leq \beta_ i & \forall i \in [N], \ \forall j \in [M_ i] \\
-& Q \phi_ 1(\hat{w}_ i, z_ {ij}) + \hat{A}_ i^\top \lambda_ {ij} = 0 & \forall i \in [N], \ \forall j \in [M_ i] \\
-& \theta \in \Theta, \quad \rVert \theta \rVert = 1, \quad \beta_ i \geq 0, \quad \lambda_ {ij} \geq 0 & \forall i \in [N], \ \forall j \in [M_ i],
-\end{aligned}
-$$
-
-where the norm equality constraint uses the $\ell_ 1$ norm if $\Theta = \\{\theta \in \mathbb{R}^p : \theta \geq 0\\}$, and the $\ell_ \infty$ norm otherwise. This equality constraint must be added to exclude the trivial solution $\theta = 0$.
+For more details on this reformulation, see [Zattoni Scroccaro et al. (2023)](https://arxiv.org/abs/2305.07730). Alternatively, to decrease the number of constraints of the reformulation by a factor of $2u$, one can use $d(\hat{x}, x) = d_ z(\hat{z}, z)$, i.e., only penalize the integer part of the decision vector, which is equivalent to setting $\gamma_k =0 \ \ \forall k \in [2u]$. If a distance penalization function $d$ is not provided at all, the Augmented Suboptimality loss reduces to the *Suboptimality loss*. In this case, if $\kappa=0$ or $\hat{\theta}$ is not provided, we add a norm equality constraint $\rVert \theta \rVert = 1$ to the reformulation above, to exclude the trivial solution $\theta = 0$. The norm equality constraint uses the $\ell_ 1$ norm if $\Theta = \\{\theta \in \mathbb{R}^p : \theta \geq 0\\}$, and the $\ell_ \infty$ norm otherwise. 
 
 ## Example: binary linear mixed-integer program
 

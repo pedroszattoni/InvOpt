@@ -50,21 +50,7 @@ $$
 $$
 
 
-For more details on this reformulation, see [Zattoni Scroccaro et al. (2023)](https://arxiv.org/abs/2305.07730). Alternatively, to decrease the number of constraints of the reformulation by a factor of $2u$, one can use $d(\hat{x}, x) = d_ z(\hat{z}, z)$, i.e., only penalize the integer part of the decision vector, which is equivalent to setting $\gamma_k =0 \ \ \forall k \in [2u]$. If a distance penalization $d$ is not provided at all, the Augmented Suboptimality loss reduces to the *Suboptimality loss*. In this case, if $\kappa=0$ or $\hat{\theta}$ is not provided, the `mixed_integer_quadratic` function solves the IO problem using the *Suboptimality loss*-based reformulation
-
-$$
-\begin{aligned}
-\min_{\theta, \beta_ i, \lambda_ {ij}, \alpha_ {ij}} \quad & \frac{1}{N}\sum_ {i=1}^N \beta_ i  \\
-\text{s.t.} \quad \quad & \langle \theta,\phi(\hat{s}_ i,\hat{x}_ i) \rangle  + \alpha_ {ij} + \langle \lambda_ {ij},\hat{c}_ i - \hat{B}_ i z_ {ij} \rangle - \langle q,\phi_ 2(\hat{w}_ i, z_ {ij}) \rangle \leq \beta_ i & \forall i \in [N], \ \forall j \in [M_ i] \\
-& \begin{bmatrix}
-    Q_ {yy} & Q \phi_ 1(\hat{w}_ i, z_ {ij}) + \hat{A}_ i^\top \lambda_ {ij} \\
-    * & 4\alpha_ {ij}
-    \end{bmatrix} \succcurlyeq 0 & \forall i \in [N], \ \forall j \in [M_ i] \\
-& \theta \in \Theta, \quad \text{Tr}(Q_ {yy}) = 1, \quad \beta_ i \geq 0, \quad \lambda_ {ij} \geq 0 & \forall i \in [N], \ \forall j \in [M_ i],
-\end{aligned}
-$$
-
-where trace equality constraint $\text{Tr}(Q_ {yy}) = 1$ constraint must be added to exclude the trivial solution $\theta = 0$.
+For more details on this reformulation, see [Zattoni Scroccaro et al. (2023)](https://arxiv.org/abs/2305.07730). Alternatively, to decrease the number of constraints of the reformulation by a factor of $2u$, one can use $d(\hat{x}, x) = d_ z(\hat{z}, z)$, i.e., only penalize the integer part of the decision vector, which is equivalent to setting $\gamma_k =0 \ \ \forall k \in [2u]$. If a distance penalization function $d$ is not provided at all, the Augmented Suboptimality loss reduces to the *Suboptimality loss*. In this case, we add a trace equality constraint $\text{Tr}(Q_ {yy}) = 1$ to the reformulation above, to exclude the trivial solution $\theta = 0$.
 
 ## Example: binary quadratic mixed-integer program
 
