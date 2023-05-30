@@ -532,8 +532,10 @@ def continuous_linear(dataset, phi1,
     Parameters
     ----------
     dataset : list of tuples
-        List of tuples (s, x), where s is the signal and x is the response.
-    phi : callable
+        List of tuples (s, x), where s is the signal and x is the response. The
+        signal s must be provided as a tuple (A,b,w). For more details, see the
+        link above.
+    phi1 : callable
         Feature function. Given a signal s and response x, returns a 1D
         ndarray feature vector. Syntax: phi(s, x).
     add_dist_func_y: bool, optional
@@ -616,7 +618,9 @@ def continuous_quadratic(dataset,
     Parameters
     ----------
     dataset : list of tuples
-        List of tuples (s, x), where s is the signal and x is the response.
+        List of tuples (s, x), where s is the signal and x is the response. The
+        signal s must be provided as a tuple (A,b,w). For more details, see the
+        link above.
     phi1 : {callable, None}, optional
         Feature function. Given w and response z, returns a 1D
         ndarray feature vector. Syntax: phi1(w, z). If None, it will be defined
@@ -700,7 +704,9 @@ def mixed_integer_linear(dataset, Z,
     Parameters
     ----------
     dataset : list of tuples
-        List of tuples (s, x), where s is the signal and x is the response.
+        List of tuples (s, x), where s is the signal and x is the response. The
+        signal s must be provided as a tuple (A,B,c,w), and the reponse x must
+        be provided as a tuple (y,z). For more details, see the link above.
     Z : tuple(str, int, {callable, None})
         Constraint set for the integer part of the decision vector. Given a
         signal s = (A, B, c, w) and response x = (y, z), Z is a tuple
@@ -994,7 +1000,9 @@ def mixed_integer_quadratic(dataset, Z,
     Parameters
     ----------
     dataset : list of tuples
-        List of tuples (s, x), where s is the signal and x is the response.
+        List of tuples (s, x), where s is the signal and x is the response. The
+        signal s must be provided as a tuple (A,B,c,w), and the reponse x must
+        be provided as a tuple (y,z). For more details, see the link above.
     Z : tuple(str, int, {callable, None})
         Constraint set for the integer part of the decision vector. Given a
         signal s = (A, B, c, w) and response x = (y, z), Z is a tuple
