@@ -17,9 +17,9 @@ def check_Theta(Theta):
 
 def check_decision_space(decision_space):
     """Check if decision_space is valid."""
-    if decision_space != 'binary':
+    if decision_space not in ['binary', 'one_hot']:
         raise Exception('Invalid decision space. Accepted values are: ' +
-                        '\'binary\'.')
+                        '\'binary\' and \'one_hot\'.')
 
 
 def check_regularizer(regularizer):
@@ -179,6 +179,34 @@ def dec_to_bin(decimal_value, num_bits):
     return x_bin
 
 
+def candidate_action(k, decision_space, n):
+    """
+    Generate candidate action x.
+
+    Parameters
+    ----------
+    k : int
+        Index.
+    decision_space : str
+        Type of the decision space.
+    n : int
+        Dimention of the decision space.
+
+    Returns
+    -------
+    x : 1D ndarray
+        Candidate action.
+
+    """
+    if decision_space == 'binary':
+        x = dec_to_bin(k, n)
+    elif decision_space == 'one_hot':
+        x = np.zeros(n)
+        x[k] = 1
+
+    return x
+
+
 def evaluate(theta, dataset, FOP, dist_func,
              theta_true=None,
              phi=None,
@@ -331,6 +359,10 @@ def discrete_consistent(dataset, X, phi,
     import gurobipy as gp
 
     decision_space, n, ind_func = X
+    if decision_space == 'binary':
+        cardinality = 2**n
+    elif decision_space == 'one_hot':
+        cardinality = n
 
     # Check if the inputs are valid
     check_Theta(Theta)
@@ -364,18 +396,17 @@ def discrete_consistent(dataset, X, phi,
     # Add constraints
     for i in range(N):
         s_hat, x_hat = dataset[i]
-        if decision_space == 'binary':
-            for k in range(2**n):
-                x = dec_to_bin(k, n)
-                if ind_func(s_hat, x):
-                    phi_1 = phi(s_hat, x)
-                    phi_2 = phi(s_hat, x_hat)
-                    if dist_func is None:
-                        dist = 0
-                    else:
-                        dist = dist_func(x_hat, x)
-                    mdl.addConstr(gp.quicksum(theta[j]*(phi_1[j] - phi_2[j])
-                                              for j in range(p)) >= dist)
+        for k in range(cardinality):
+            x = candidate_action(k, decision_space, n)
+            if ind_func(s_hat, x):
+                phi_1 = phi(s_hat, x)
+                phi_2 = phi(s_hat, x_hat)
+                if dist_func is None:
+                    dist = 0
+                else:
+                    dist = dist_func(x_hat, x)
+                mdl.addConstr(gp.quicksum(theta[j]*(phi_1[j] - phi_2[j])
+                                          for j in range(p)) >= dist)
 
     if (dist_func is None) and (theta_hat is None):
         if Theta == 'nonnegative':
@@ -766,6 +797,10 @@ def mixed_integer_linear(dataset, Z,
     import gurobipy as gp
 
     decision_space, v, ind_func = Z
+    if decision_space == 'binary':
+        cardinality = 2**v
+    elif decision_space == 'one_hot':
+        cardinality = v
 
     # Check if the inputs are valid
     check_Theta(Theta)
@@ -831,60 +866,59 @@ def mixed_integer_linear(dataset, Z,
         s_hat, x_hat = dataset[i]
         y_hat, z_hat = x_hat
         A, B, c, w_hat = s_hat
-        if decision_space == 'binary':
-            for k in range(2**v):
-                z = dec_to_bin(k, v)
-                if ind_func(w_hat, z):
-                    if dist_func_z is None:
-                        dist_z = 0
-                    else:
-                        dist_z = dist_func_z(z_hat, z)
+        for k in range(cardinality):
+            z = candidate_action(k, decision_space, v)
+            if ind_func(w_hat, z):
+                if dist_func_z is None:
+                    dist_z = 0
+                else:
+                    dist_z = dist_func_z(z_hat, z)
+                    dist_z = np.linalg.norm(phi2(w_hat, z)
+                                            - phi2(w_hat, z_hat))
 
-                    if add_dist_func_y:
-                        gamma_list = []
-                        for index in range(u):
-                            gamma = np.zeros(u)
-                            gamma[index] = 1
-                            gamma_list.append(gamma)
-                        for index in range(u):
-                            gamma = np.zeros(u)
-                            gamma[index] = -1
-                            gamma_list.append(gamma)
-                    else:
-                        gamma_list = [np.zeros(u)]
+                if add_dist_func_y:
+                    gamma_list = []
+                    for index in range(u):
+                        gamma = np.zeros(u)
+                        gamma[index] = 1
+                        gamma_list.append(gamma)
+                    for index in range(u):
+                        gamma = np.zeros(u)
+                        gamma[index] = -1
+                        gamma_list.append(gamma)
+                else:
+                    gamma_list = [np.zeros(u)]
 
-                    for gamma in gamma_list:
-                        lamb = mdl.addVars(t, vtype=gp.GRB.CONTINUOUS)
+                for gamma in gamma_list:
+                    lamb = mdl.addVars(t, vtype=gp.GRB.CONTINUOUS)
 
-                        ph1_hat = phi1(w_hat, z_hat)
-                        ph2_hat = phi2(w_hat, z_hat)
-                        Qph1_hat = [gp.quicksum(Q[i, j]*ph1_hat[j]
-                                                for j in range(m))
-                                    for i in range(u)]
-                        yQph1_hat = gp.quicksum(y_hat[j]*Qph1_hat[j]
-                                                for j in range(u))
-                        qphi2_hat = gp.quicksum(q[j]*ph2_hat[j]
-                                                for j in range(r))
-                        theta_phi = yQph1_hat + qphi2_hat
+                    ph1_hat = phi1(w_hat, z_hat)
+                    ph2_hat = phi2(w_hat, z_hat)
+                    Qph1_hat = [gp.quicksum(Q[i, j]*ph1_hat[j]
+                                            for j in range(m))
+                                for i in range(u)]
+                    yQph1_hat = gp.quicksum(y_hat[j]*Qph1_hat[j]
+                                            for j in range(u))
+                    qphi2_hat = gp.quicksum(q[j]*ph2_hat[j] for j in range(r))
+                    theta_phi = yQph1_hat + qphi2_hat
 
-                        Bz = B @ z
-                        lambcBz = gp.quicksum(lamb[j]*(c[j] - Bz[j])
-                                              for j in range(t))
-                        ph2 = phi2(w_hat, z)
-                        qphi2 = gp.quicksum(q[j]*ph2[j] for j in range(r))
+                    Bz = B @ z
+                    lambcBz = gp.quicksum(lamb[j]*(c[j] - Bz[j])
+                                          for j in range(t))
+                    ph2 = phi2(w_hat, z)
+                    qphi2 = gp.quicksum(q[j]*ph2[j] for j in range(r))
 
-                        gammay_hat = gp.quicksum(gamma[j]*y_hat[j]
-                                                 for j in range(u))
-                        mdl.addConstr(theta_phi + lambcBz - qphi2
-                                      + gammay_hat + dist_z <= beta[i])
+                    gammay_hat = gp.quicksum(gamma[j]*y_hat[j]
+                                             for j in range(u))
+                    mdl.addConstr(theta_phi + lambcBz - qphi2 + gammay_hat
+                                  + dist_z <= beta[i])
 
-                        ph1 = phi1(w_hat, z)
-                        mdl.addConstrs(gp.quicksum(Q[i, j]*ph1[j]
-                                                   for j in range(m))
-                                       + gp.quicksum(lamb[j]*A[j, i]
-                                                     for j in range(t))
-                                       + gamma[i]
-                                       == 0 for i in range(u))
+                    ph1 = phi1(w_hat, z)
+                    mdl.addConstrs(gp.quicksum(Q[i, j]*ph1[j]
+                                               for j in range(m))
+                                   + gp.quicksum(lamb[j]*A[j, i]
+                                                 for j in range(t)) + gamma[i]
+                                   == 0 for i in range(u))
 
     if reg_param > 0:
         if theta_hat is None:
@@ -1059,6 +1093,10 @@ def mixed_integer_quadratic(dataset, Z,
     import cvxpy as cp
 
     decision_space, v, ind_func = Z
+    if decision_space == 'binary':
+        cardinality = 2**v
+    elif decision_space == 'one_hot':
+        cardinality = v
 
     # Check if the inputs are valid
     check_Theta(Theta)
@@ -1105,50 +1143,49 @@ def mixed_integer_quadratic(dataset, Z,
         s_hat, x_hat = dataset[i]
         y_hat, z_hat = x_hat
         A, B, c, w_hat = s_hat
-        if decision_space == 'binary':
-            for k in range(2**v):
-                z = dec_to_bin(k, v)
-                if ind_func(w_hat, z):
-                    if dist_func_z is None:
-                        dist_z = 0
-                    else:
-                        dist_z = dist_func_z(z_hat, z)
+        for k in range(cardinality):
+            z = candidate_action(k, decision_space, v)
+            if ind_func(w_hat, z):
+                if dist_func_z is None:
+                    dist_z = 0
+                else:
+                    dist_z = dist_func_z(z_hat, z)
 
-                    if add_dist_func_y:
-                        gamma_list = []
-                        for index in range(u):
-                            gamma = np.zeros(u)
-                            gamma[index] = 1
-                            gamma_list.append(gamma)
-                        for index in range(u):
-                            gamma = np.zeros(u)
-                            gamma[index] = -1
-                            gamma_list.append(gamma)
-                    else:
-                        gamma_list = [np.zeros(u)]
+                if add_dist_func_y:
+                    gamma_list = []
+                    for index in range(u):
+                        gamma = np.zeros(u)
+                        gamma[index] = 1
+                        gamma_list.append(gamma)
+                    for index in range(u):
+                        gamma = np.zeros(u)
+                        gamma[index] = -1
+                        gamma_list.append(gamma)
+                else:
+                    gamma_list = [np.zeros(u)]
 
-                    for gamma in gamma_list:
-                        alpha = cp.Variable((1, 1))
-                        lamb = cp.Variable((t, 1))
+                for gamma in gamma_list:
+                    alpha = cp.Variable((1, 1))
+                    lamb = cp.Variable((t, 1))
 
-                        theta_phi_hat = (y_hat.T @ Qyy @ y_hat
-                                         + y_hat.T @ Q @ phi1(w_hat, z_hat)
-                                         + q.T @ phi2(w_hat, z_hat))
+                    theta_phi_hat = (y_hat.T @ Qyy @ y_hat
+                                     + y_hat.T @ Q @ phi1(w_hat, z_hat)
+                                     + q.T @ phi2(w_hat, z_hat))
 
-                        lambcBz = lamb.T @ (c - B @ z)
+                    lambcBz = lamb.T @ (c - B @ z)
 
-                        qphi2 = q.T @ phi2(w_hat, z)
+                    qphi2 = q.T @ phi2(w_hat, z)
 
-                        gammay_hat = gamma.T @ y_hat
+                    gammay_hat = gamma.T @ y_hat
 
-                        constraints += [theta_phi_hat + alpha + lambcBz - qphi2
-                                        + gammay_hat + dist_z <= beta[i]]
+                    constraints += [theta_phi_hat + alpha + lambcBz - qphi2
+                                    + gammay_hat + dist_z <= beta[i]]
 
-                        off_diag = (Q @ phi1(w_hat, z).reshape((m, 1))
-                                    + A.T @ lamb + gamma.reshape((u, 1)))
-                        constraints += [cp.bmat([[Qyy, off_diag],
-                                                 [off_diag.T, 4*alpha]]) >> 0]
-                        constraints += [lamb >= 0]
+                    off_diag = (Q @ phi1(w_hat, z).reshape((m, 1))
+                                + A.T @ lamb + gamma.reshape((u, 1)))
+                    constraints += [cp.bmat([[Qyy, off_diag],
+                                             [off_diag.T, 4*alpha]]) >> 0]
+                    constraints += [lamb >= 0]
 
     if reg_param > 0:
         if theta_hat is None:
