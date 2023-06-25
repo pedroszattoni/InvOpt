@@ -107,8 +107,13 @@ def ASL(theta, dataset, FOP_aug, phi, dist_func,
         Feature function. Given a signal s and response x, returns a 1D
         ndarray feature vector. Syntax: phi(s, x).
     dist_func : callable
-        Distance function. Given two responses x1 and x2, returns the distance
-        between them according to some distance metric.
+        Distance penalization function. Given two responses x1 and x2, returns
+        the distance between them according to some distance metric. Syntax:
+        dist_func(x1, x2). Alternatively, the function can also take the signal
+        s_hat as a third argument. For instace, to use a distance function in
+        feature space instead of action space, we can use
+        dist_func(x1, x2, s_hat) = dist(phi(s_hat, x1), phi(s_hat, x2)). In
+        some cases, this can improve the performance of the model.
     regularizer : {'L2_squared', 'L1'}, optional
         Type of regularization on cost vector theta. The default is
         'L2_squared'.
@@ -148,7 +153,12 @@ def ASL(theta, dataset, FOP_aug, phi, dist_func,
         s_hat, x_hat = dataset[i]
         x = FOP_aug(theta, s_hat, x_hat)
         phi_diff = phi(s_hat, x_hat) - phi(s_hat, x)
-        loss += theta @ phi_diff + dist_func(x_hat, x)
+        try:
+            dist = dist_func(x_hat, x)
+        except TypeError:
+            dist = dist_func(x_hat, x, s_hat)
+
+        loss += theta @ phi_diff + dist
 
     return reg_term + (1/N)*loss
 
@@ -230,8 +240,8 @@ def evaluate(theta, dataset, FOP, dist_func,
         theta and a signal s. Returns an optimal response for the problem.
         Syntax: FOP(theta, s).
     dist_func : callable
-        Distance function. Given two responses x1 and x2, returns the distance
-        between them according to some distance metric. Syntax:
+        Distance penalization function. Given two responses x1 and x2, returns
+        the distance between them according to some distance metric. Syntax:
         dist_func(x1, x2).
     theta_true : {1D ndarray, None}, optional
         Cost vector used to generate the data. The default is None.
@@ -329,7 +339,12 @@ def discrete_consistent(dataset, X, phi,
     dist_func : {callable, None}, optional
         Distance penalization function. Given two responses x1 and x2, returns
         the distance between them according to some distance metric. Syntax:
-        dist_func(x1, x2). The default is None.
+        dist_func(x1, x2). Alternatively, the function can also take the signal
+        s_hat as a third argument. For instace, to use a distance function in
+        feature space instead of action space, we can use
+        dist_func(x1, x2, s_hat) = dist(phi(s_hat, x1), phi(s_hat, x2)). In
+        some cases, this can improve the performance of the model. The default
+        is None.
     Theta : {None, 'nonnegative'}, optional
         Constraints on cost vector theta. The default is None.
     regularizer : {'L2_squared', 'L1'}, optional
@@ -404,7 +419,11 @@ def discrete_consistent(dataset, X, phi,
                 if dist_func is None:
                     dist = 0
                 else:
-                    dist = dist_func(x_hat, x)
+                    try:
+                        dist = dist_func(x_hat, x)
+                    except TypeError:
+                        dist = dist_func(x_hat, x, s_hat)
+
                 mdl.addConstr(gp.quicksum(theta[j]*(phi_1[j] - phi_2[j])
                                           for j in range(p)) >= dist)
 
@@ -485,7 +504,12 @@ def discrete(dataset, X, phi,
     dist_func : {callable, None}, optional
         Distance penalization function. Given two responses x1 and x2, returns
         the distance between them according to some distance metric. Syntax:
-        dist_func(x1, x2). The default is None.
+        dist_func(x1, x2). Alternatively, the function can also take the signal
+        s_hat as a third argument. For instace, to use a distance function in
+        feature space instead of action space, we can use
+        dist_func(x1, x2, s_hat) = dist(phi(s_hat, x1), phi(s_hat, x2)). In
+        some cases, this can improve the performance of the model. The default
+        is None.
     Theta : {None, 'nonnegative'}, optional
         Constraints on cost vector theta. The default is None.
     regularizer : {'L2_squared', 'L1'}, optional
@@ -762,9 +786,15 @@ def mixed_integer_linear(dataset, Z,
         If True, adds l-infinity distance penalization to the continuous part
         of the response vector. The default is None.
     dist_func_z : {callable, None}, optional
-        Distance penalization function. Given two responses x1=(y1,z1) and
-        x2=(y2,z2), returns the distance of their integer parts according to
-        some distance metric. Syntax: dist_func_z(z1, z2). The default is None.
+        Distance penalization function. Given the integer parts of two
+        responses x1=(y1,z1) and x2=(y2,z2), returns their distance according
+        to some distance metric. Syntax: dist_func_z(z1, z2). Alternatively,
+        the function can also take the signal w_hat as a third argument. For
+        instace, to use a distance function in feature space instead of action
+        space, we can use
+        dist_func_z(z1, z2, w_hat) = dist(phi2(w_hat, z1), phi2(w_hat, z2)). In
+        some cases, this can improve the performance of the model. The default
+        is None.
     Theta : {None, 'nonnegative'}, optional
         Constraints on cost vector theta. The default is None.
     regularizer : {'L2_squared', 'L1'}, optional
@@ -872,9 +902,10 @@ def mixed_integer_linear(dataset, Z,
                 if dist_func_z is None:
                     dist_z = 0
                 else:
-                    dist_z = dist_func_z(z_hat, z)
-                    dist_z = np.linalg.norm(phi2(w_hat, z)
-                                            - phi2(w_hat, z_hat))
+                    try:
+                        dist_z = dist_func_z(z_hat, z)
+                    except TypeError:
+                        dist_z = dist_func_z(z_hat, z, w_hat)
 
                 if add_dist_func_y:
                     gamma_list = []
@@ -1012,6 +1043,7 @@ def mixed_integer_linear(dataset, Z,
         q_opt = np.array([q[i].X for i in range(r)])
 
     theta_opt = np.concatenate((Q_opt.flatten('F'), q_opt))
+
     return theta_opt
 
 
@@ -1061,9 +1093,15 @@ def mixed_integer_quadratic(dataset, Z,
         If True, adds l-infinity distance penalization to the continuous part
         of the response vector. The default is None.
     dist_func_z : {callable, None}, optional
-        Distance penalization function. Given two responses x1=(y1,z1) and
-        x2=(y2,z2), returns the distance of their integer parts according to
-        some distance metric. Syntax: dist_func_z(z1, z2). The default is None.
+        Distance penalization function. Given the integer parts of two
+        responses x1=(y1,z1) and x2=(y2,z2), returns their distance according
+        to some distance metric. Syntax: dist_func_z(z1, z2). Alternatively,
+        the function can also take the signal w_hat as a third argument. For
+        instace, to use a distance function in feature space instead of action
+        space, we can use
+        dist_func_z(z1, z2, w_hat) = dist(phi2(w_hat, z1), phi2(w_hat, z2)). In
+        some cases, this can improve the performance of the model. The default
+        is None.
     Theta : {None, 'nonnegative'}, optional
         Constraints on cost vector theta. The default is None.
     regularizer : {'L2_squared', 'L1'}, optional
@@ -1149,7 +1187,10 @@ def mixed_integer_quadratic(dataset, Z,
                 if dist_func_z is None:
                     dist_z = 0
                 else:
-                    dist_z = dist_func_z(z_hat, z)
+                    try:
+                        dist_z = dist_func_z(z_hat, z)
+                    except TypeError:
+                        dist_z = dist_func_z(z_hat, z, w_hat)
 
                 if add_dist_func_y:
                     gamma_list = []
@@ -1550,7 +1591,7 @@ def grad_step(theta_t, eta_t, reg_grad, loss_grad, reg_param, Theta, step,
             norm_theta_t1 = np.sum(theta_t1)
         else:
             warnings.warn('The combination of  step = \'exponentiated\' and '
-                          'Theta != \'nonnegative\' still needs to be tested.')
+                          'Theta != \'nonnegative\' still need to be tested.')
             theta_pos_t = np.clip(theta_t, 0, None)
             theta_neg_t = np.clip(theta_t, None, 0)
             theta_pos_t1 = np.multiply(theta_pos_t, np.exp(-eta_t*grad))
@@ -1564,6 +1605,6 @@ def grad_step(theta_t, eta_t, reg_grad, loss_grad, reg_param, Theta, step,
 
     # Projection onto Theta
     if Theta == 'nonnegative':
-        theta_t = np.clip(theta_t, 0, None)
+        theta_t1 = np.clip(theta_t1, 0, None)
 
     return theta_t1
