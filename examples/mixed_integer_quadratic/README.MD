@@ -50,7 +50,7 @@ $$
 $$
 
 
-For more details on this reformulation, see [Zattoni Scroccaro et al. (2023)](https://arxiv.org/abs/2305.07730). Alternatively, to decrease the number of constraints of the reformulation by a factor of $2u$, one can use $d(\hat{x}, x) = d_ z(\hat{z}, z)$, i.e., only penalize the integer part of the decision vector, which is equivalent to setting $\gamma_k =0 \ \ \forall k \in [2u]$. If a distance penalization function $d$ is not provided at all, the Augmented Suboptimality loss reduces to the *Suboptimality loss*. In this case, we add a trace equality constraint $\text{Tr}(Q_ {yy}) = 1$ to the reformulation above, to exclude the trivial solution $\theta = 0$.
+For more details on this reformulation, see [Zattoni Scroccaro et al. (2023)](https://arxiv.org/abs/2305.07730). Alternatively, to decrease the number of constraints of the reformulation by a factor of $2u$, one can use $d(\hat{x}, x) = d_ z(\hat{z}, z)$, i.e., only penalize the integer part of the decision vector, which is equivalent to setting $\gamma_k =0 \ \ \forall k \in [2u]$. Moreover, the distance function can also take the signal $\hat{w}$ as a third argument. This is useful if one wants the distance to be computed in feature space, that is, $d_ z(\hat{z}, z, \hat{w}) = d_ z(phi_ 2(\hat{w}, \hat{z}), phi_ 2(\hat{w}, z))$, which in some cases can improve the performance of the model. If a distance penalization function $d$ is not provided at all, the Augmented Suboptimality loss reduces to the *Suboptimality loss*. In this case, we add a trace equality constraint $\text{Tr}(Q_ {yy}) = 1$ to the reformulation above, to exclude the trivial solution $\theta = 0$.
 
 ## Example: binary quadratic mixed-integer program
 
