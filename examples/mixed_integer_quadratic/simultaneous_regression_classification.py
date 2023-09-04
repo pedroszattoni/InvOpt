@@ -155,9 +155,7 @@ tic = time.time()
 for run in range(runs):
     dataset_train, dataset_test = load_data(train_test_slip)
 
-    for kappa in kappa_list:
-        r_index = kappa_list.index(kappa)
-
+    for r_index, kappa in enumerate(kappa_list):
         theta_IO = iop.mixed_integer_quadratic(dataset_train,
                                                ('binary', 1, None),
                                                phi1=phi1,

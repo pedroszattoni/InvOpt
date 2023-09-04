@@ -274,8 +274,7 @@ def evaluate(theta, dataset, FOP, dist_func,
     x_diff = 0
     theta_diff = 0
     obj_diff = 0
-    for i in range(N):
-        s_hat, x_hat = dataset[i]
+    for s_hat, x_hat in dataset:
         x_IO = FOP(theta, s_hat)
 
         # Response difference

@@ -338,9 +338,7 @@ for approach in approaches:
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%% Plot results %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-for approach in approaches:
-    a_index = approaches.index(approach)
-
+for a_index, approach in enumerate(approaches):
     # Retrieve results
     x_diff_train_appro = x_diff_train_hist[a_index]
     obj_diff_train_appro = obj_diff_train_hist[a_index]

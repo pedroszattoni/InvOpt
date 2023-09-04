@@ -121,8 +121,7 @@ obj_diff_test_hist = np.empty((len_prob, runs, resolution))
 
 gap = round(N_train/resolution)
 N_list = np.linspace(gap, N_train, resolution, dtype=int).tolist()
-for approach in approaches:
-    a_index = approaches.index(approach)
+for a_index, approach in enumerate(approaches):
     print(f'Approach: {approach}')
 
     if approach == 'SL':
@@ -138,7 +137,7 @@ for approach in approaches:
         dataset_test = dataset_test_runs[run]
         theta_true = theta_true_runs[run]
 
-        for N in N_list:
+        for N_index, N in enumerate(N_list):
             theta_IO = iop.discrete(dataset_train[:N],
                                     X,
                                     linear_phi,
@@ -160,7 +159,6 @@ for approach in approaches:
                                                          theta_true=theta_true,
                                                          phi=linear_phi)
 
-            N_index = N_list.index(N)
             x_diff_train_hist[a_index, run, N_index] = x_diff_train
             obj_diff_train_hist[a_index, run, N_index] = obj_diff_train
             x_diff_test_hist[a_index, run, N_index] = x_diff_test
