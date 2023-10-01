@@ -40,7 +40,7 @@ We propose to solve this minimax problem by reformulating it as a minimization p
 $$
 \begin{aligned}
 \min \quad & \kappa\mathcal{R}(\theta - \hat{\theta}) + \frac{1}{N}\sum_ {i=1}^N \beta_ i  \\
-\text{s.t.} \quad & \theta = (\emph{vec}(Q), q) \in \Theta, \quad \lambda_{ijk}\geq 0, \quad \beta_i \in \mathbb{R} & \forall (i, j, k) \in [N] \times [M_ i] \times [2u] \\
+\text{s.t.} \quad & \theta = (\text{vec}(Q), q) \in \Theta, \quad \lambda_{ijk}\geq 0, \quad \beta_i \in \mathbb{R} & \forall (i, j, k) \in [N] \times [M_ i] \times [2u] \\
 & \langle \theta,\phi(\hat{s}_ i,\hat{x}_ i) \rangle + \langle \lambda_ {ijk},\hat{c}_ i - \hat{B}_ i z_ {ij} \rangle - \langle q,\phi_ 2(\hat{w}_ i, z_ {ij}) \rangle  + \langle \gamma_ k,\hat{y}_ i \rangle  + d_ z(\hat{z}_ i, z_ {ij}) \leq \beta_ i & \forall (i, j, k) \in [N] \times [M_ i] \times [2u] \\
 & Q \phi_ 1(\hat{w}_ i, z_ {ij}) + \gamma_ k + \hat{A}_ i^\top \lambda_ {ijk} = 0 & \forall (i, j, k) \in [N] \times [M_ i] \times [2u].
 \end{aligned}
