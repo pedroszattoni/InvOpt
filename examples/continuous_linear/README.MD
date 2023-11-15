@@ -26,7 +26,7 @@ where $Q \in \mathbb{R}^{n \times m}$, $\phi_ 1 : \mathbb{W} \to \mathbb{R}^m$ i
 
 ## Solution method
 
-See [`mixed_integer_linear`](https://github.com/pedroszattoni/invopt/tree/main/examples/mixed_integer_linear), i.e, the solution method for the `continuous_linear` function can be seen as a special case of the `mixed_integer_linear` function, for the case when the decision vector has no integer components.
+See [`mixed_integer_linear`](https://github.com/pedroszattoni/invopt/tree/main/examples/mixed_integer_linear), i.e., the solution method for the `continuous_linear` function can be seen as a special case of the `mixed_integer_linear` function, for the case when the decision vector has no integer components.
 
 ## Example: linear program
 

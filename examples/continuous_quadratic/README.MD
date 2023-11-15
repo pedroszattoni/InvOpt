@@ -27,7 +27,7 @@ where $Q_ {xx} \in \mathbb{R}^{n \times n}$ is PSD, $Q \in \mathbb{R}^{n \times 
 ## Solution method
 
 
-See [`mixed_integer_quadratic`](https://github.com/pedroszattoni/invopt/tree/main/examples/mixed_integer_quadratic), i.e, the solution method for the `quadratic_linear` function can be seen as a special case of the `mixed_integer_quadratic` function, for the case when the decision vector has no integer components.
+See [`mixed_integer_quadratic`](https://github.com/pedroszattoni/invopt/tree/main/examples/mixed_integer_quadratic), i.e., the solution method for the `quadratic_linear` function can be seen as a special case of the `mixed_integer_quadratic` function, for the case when the decision vector has no integer components.
 
 ## Example: quadratic program
 

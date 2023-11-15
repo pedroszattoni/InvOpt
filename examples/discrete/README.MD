@@ -15,7 +15,7 @@ where $\theta \in \mathbb{R}^p$, $\phi: \mathbb{S} \times \mathbb{X} \to \mathbb
 ## Solution method
 
 
-See [`mixed_integer_linear`](https://github.com/pedroszattoni/invopt/tree/main/examples/mixed_integer_linear) (or [`mixed_integer_quadratic`](https://github.com/pedroszattoni/invopt/tree/main/examples/mixed_integer_quadratic)), i.e, the solution method for the `discrete` function can be seen as a special case of the `mixed_integer_linear` (or `mixed_integer_quadratic`) function, for the case when the decision vector has no continuous components.
+See [`mixed_integer_linear`](https://github.com/pedroszattoni/invopt/tree/main/examples/mixed_integer_linear) (or [`mixed_integer_quadratic`](https://github.com/pedroszattoni/invopt/tree/main/examples/mixed_integer_quadratic)), i.e., the solution method for the `discrete` function can be seen as a special case of the `mixed_integer_linear` (or `mixed_integer_quadratic`) function, for the case when the decision vector has no continuous components.
 
 ## Example: binary linear program with inconsistent data
 

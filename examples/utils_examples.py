@@ -9,8 +9,10 @@ import numpy as np
 from gurobipy import Model, GRB, quicksum
 import matplotlib.pyplot as plt
 
-colors = ['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00', '#ffff33',
-          '#a65628', '#f781bf']
+# colors = ['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00', '#ffff33',
+#           '#a65628', '#f781bf']
+colors = ['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00', '#808080',
+          '#a65628', '#FFD700']
 
 
 def linear_phi(s, x):
@@ -110,8 +112,7 @@ def plot_results(results):
     obj_diff_train_hist = results['obj_diff_train_hist']
     obj_diff_test_hist = results['obj_diff_test_hist']
 
-    for approach in approaches:
-        a_index = approaches.index(approach)
+    for a_index, approach in enumerate(approaches):
         theta_diff_runs = theta_diff_hist[a_index]
         x_diff_train_runs = x_diff_train_hist[a_index]
         x_diff_test_runs = x_diff_test_hist[a_index]
@@ -142,7 +143,8 @@ def plot_results(results):
                    fontsize=18)
         plt.xlabel(r'Number of training examples', fontsize=14)
         plt.grid(visible=True)
-        plt.legend(fontsize='14', loc='upper right')
+        # plt.legend(fontsize='14', loc='upper right')
+        plt.legend(fontsize='12', loc='upper left')
         plt.tight_layout()
 
         plt.figure(2)
@@ -154,7 +156,8 @@ def plot_results(results):
                    fontsize=18)
         plt.xlabel(r'Number of training examples', fontsize=14)
         plt.grid(visible=True)
-        plt.legend(fontsize='14', loc='upper right')
+        # plt.legend(fontsize='14', loc='upper right')
+        plt.legend(fontsize='12', loc='lower left', ncol=1)
         plt.tight_layout()
 
         plt.figure(3)
@@ -168,7 +171,8 @@ def plot_results(results):
                    fontsize=20)
         plt.xlabel(r'Number of training examples', fontsize=14)
         plt.grid(visible=True)
-        plt.legend(fontsize='14', loc='upper right')
+        # plt.legend(fontsize='14', loc='upper right')
+        plt.legend(fontsize='12', loc='lower left', ncol=1)
         plt.tight_layout()
 
         plt.figure(4)
@@ -180,7 +184,8 @@ def plot_results(results):
                    fontsize=18)
         plt.xlabel(r'Number of training examples', fontsize=14)
         plt.grid(visible=True)
-        plt.legend(fontsize='14', loc='upper right')
+        # plt.legend(fontsize='14', loc='upper right')
+        plt.legend(fontsize='12', loc='lower left', ncol=1)
         plt.tight_layout()
 
         plt.figure(5)
@@ -194,5 +199,6 @@ def plot_results(results):
                    fontsize=20)
         plt.xlabel(r'Number of training examples', fontsize=14)
         plt.grid(visible=True)
-        plt.legend(fontsize='14', loc='upper right')
+        # plt.legend(fontsize='14', loc='upper right')
+        plt.legend(fontsize='12', loc='lower left', ncol=1)
         plt.tight_layout()

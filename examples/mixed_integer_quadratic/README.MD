@@ -35,22 +35,22 @@ $$
 
 where $\Theta$ is an (optional) set used to encode any prior information or assumption we may have on the expert's true cost function (e.g., nonnegativity), $\kappa \geq 0$ is the regularization parameter, $\mathcal{R} : \mathbb{R}^p \to \mathbb{R}$ is a regularization function, $\hat{\theta} \in \mathbb{R}^p$ is an (optional) a priory belief or estimate of the true cost vector.
 
-We propose to solve this minimax problem by reformulating it as a minimization problem. To do so, we use the distance penalization $d(\hat{x}, x) = \rVert \hat{y} - y \rVert_ \infty + d_ z(\hat{z}, z)$, we define $M_ i = |\mathbb{Z}(\hat{w}_ i)|$ and use the following indexing notation for the elements of $\mathbb{Z}(\hat{w}_ i) = \\{z_ {i1},\ldots,z_ {ij},\ldots,z_ {iM_ i}\\}$, and also define $\gamma_ k \in \mathbb{R}^u$ as the vector of zeros except for the $k$'th element ($\text{mod}(k,u)$'th element), which equals $1$ ($-1$) if $k \leq u$ ($k > u$). In this case, we can reformulate the regularized loss minimization problem as
+We propose to solve this minimax problem by reformulating it as a minimization problem. To do so, we use the distance penalization $d(\hat{x}, x) = \rVert \hat{y} - y \rVert_ \infty + d_ z(\hat{z}, z)$, we define $M_ i = |\mathbb{Z}(\hat{w}_ i)|$ and use the following indexing notation for the elements of $\mathbb{Z}(\hat{w}_ i) = \\{z_ {i1},\ldots,z_ {ij},\ldots,z_ {iM_ i}\\}$, and also define $h_ k \in \mathbb{R}^u$ as the vector of zeros except for the $k$'th element ($(k-u)$'th element), which equals $1$ ($-1$) if $k \leq u$ ($k > u$). In this case, we can reformulate the regularized loss minimization problem as
 
 $$
 \begin{aligned}
 \min \quad & \kappa\mathcal{R}(\theta - \hat{\theta}) + \frac{1}{N}\sum_ {i=1}^N \beta_ i  \\
 \text{s.t.} \quad & \theta = (\text{vec}(Q_{yy}), \text{vec}(Q), q) \in \Theta, \quad \lambda_{ijk}\geq 0, \quad \alpha_{ijk}, \beta_i \in \mathbb{R} & \forall (i, j, k) \in [N] \times [M_ i] \times [2u] \\
-& \langle \theta,\phi(\hat{s}_ i,\hat{x}_ i) \rangle  + \alpha_ {ijk} + \langle \lambda_ {ijk},\hat{c}_ i - \hat{B}_ i z_ {ij} \rangle - \langle q,\phi_ 2(\hat{w}_ i, z_ {ij}) \rangle  + \langle \gamma_ k,\hat{y}_ i \rangle + d_ z(\hat{z}_ i, z_ {ij}) \leq \beta_ i & \forall (i, j, k) \in [N] \times [M_ i] \times [2u] \\
+& \langle \theta,\phi(\hat{s}_ i,\hat{x}_ i) \rangle  + \alpha_ {ijk} + \langle \lambda_ {ijk},\hat{c}_ i - \hat{B}_ i z_ {ij} \rangle - \langle q,\phi_ 2(\hat{w}_ i, z_ {ij}) \rangle  + \langle h_ k,\hat{y}_ i \rangle + d_ z(\hat{z}_ i, z_ {ij}) \leq \beta_ i & \forall (i, j, k) \in [N] \times [M_ i] \times [2u] \\
 & \begin{bmatrix}
-    Q_ {yy} & Q \phi_ 1(\hat{w}_ i, z_ {ij}) + \gamma_ k + \hat{A}_ i^\top \lambda_ {ijk} \\
+    Q_ {yy} & Q \phi_ 1(\hat{w}_ i, z_ {ij}) + h_ k + \hat{A}_ i^\top \lambda_ {ijk} \\
     * & 4\alpha_ {ijk}
     \end{bmatrix} \succcurlyeq 0 & \forall (i, j, k) \in [N] \times [M_ i] \times [2u].
 \end{aligned}
 $$
 
 
-For more details on this reformulation, see [Zattoni Scroccaro et al. (2023)](https://arxiv.org/abs/2305.07730). Alternatively, to decrease the number of constraints of the reformulation by a factor of $2u$, one can use $d(\hat{x}, x) = d_ z(\hat{z}, z)$, i.e., only penalize the integer part of the decision vector, which is equivalent to setting $\gamma_k =0 \ \ \forall k \in [2u]$. Moreover, the distance function can also take the signal $\hat{w}$ as a third argument. This is useful if one wants the distance to be computed in feature space, that is, $d_ z(\hat{z}, z, \hat{w}) = d_ z(\phi_ 2(\hat{w}, \hat{z}), \phi_ 2(\hat{w}, z))$, which in some cases can improve the performance of the model. If a distance penalization function $d$ is not provided at all, the Augmented Suboptimality loss reduces to the *Suboptimality loss*. In this case, we add a trace equality constraint $\text{Tr}(Q_ {yy}) = 1$ to the reformulation above, to exclude the trivial solution $\theta = 0$.
+For more details on this reformulation, see [Zattoni Scroccaro et al. (2023)](https://arxiv.org/abs/2305.07730). Alternatively, to decrease the number of constraints of the reformulation by a factor of $2u$, one can use $d(\hat{x}, x) = d_ z(\hat{z}, z)$, i.e., only penalize the integer part of the decision vector, which is equivalent to setting $h_k =0 \ \ \forall k \in [2u]$. Moreover, the distance function can also take the signal $\hat{w}$ as a third argument. This is useful if one wants the distance to be computed in feature space, that is, $d_ z(\hat{z}, z, \hat{w}) = d_ z(\phi_ 2(\hat{w}, \hat{z}), \phi_ 2(\hat{w}, z))$, which in some cases can improve the performance of the model. If a distance penalization function $d$ is not provided at all, the Augmented Suboptimality loss reduces to the *Suboptimality loss*. In this case, we add a trace equality constraint $\text{Tr}(Q_ {yy}) = 1$ to the reformulation above, to exclude the trivial solution $\theta = 0$.
 
 ## Example 1: binary quadratic mixed-integer program
 
