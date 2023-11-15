@@ -162,7 +162,6 @@ loss_opt_list = []
 print('Creating datasets...')
 tic_dataset = time.time()
 for run in range(runs):
-    print(run)
     theta_true = np.random.rand(n)
     theta_true_list.append(theta_true)
 
@@ -178,8 +177,7 @@ for run in range(runs):
                              dist_func=L1,
                              Theta=Theta,
                              regularizer=regularizer,
-                             reg_param=reg_param,
-                             gurobi_params=[('Threads', 1)])
+                             reg_param=reg_param)
     theta_opt_list.append(theta_opt)
     loss_opt = iop.ASL(theta_opt, dataset_train, FOP_aug, linear_phi, L1,
                        regularizer=regularizer, reg_param=reg_param)
@@ -196,9 +194,12 @@ print('')
 # MD: mirror-descent. For this case, it corresponds to an exponentiated
 #   subgradient method.
 # SSM: stochastic subgradient method.
-# ASM: approximated subgradient method.
-# SAMD: stochastic approximated mirror descent
-approaches = ['SM', 'MD', 'SSM', 'ASM', 'SAMD']
+# ASM: approximate subgradient method.
+# SMD: stochastic mirror descent
+# AMD: approximate mirror descent
+# SASM: stochastic approximate subgradient method
+# SAMD: stochastic approximate mirror descent
+approaches = ['SM', 'MD', 'SSM', 'ASM', 'SMD', 'AMD', 'SASM', 'SAMD']
 
 x_diff_train_hist = []
 obj_diff_train_hist = []
@@ -226,6 +227,18 @@ for approach in approaches:
     elif approach == 'ASM':
         step = 'standard'
         batch = 1
+        time_limit = time_limit_approx
+    elif approach == 'SMD':
+        step = 'exponentiated'
+        batch = batch_ratio
+        time_limit = 600
+    elif approach == 'AMD':
+        step = 'exponentiated'
+        batch = 1
+        time_limit = time_limit_approx
+    elif approach == 'SASM':
+        step = 'standard'
+        batch = batch_ratio
         time_limit = time_limit_approx
     elif approach == 'SAMD':
         step = 'exponentiated'

@@ -9,13 +9,22 @@ Author: Pedro Zattoni Scroccaro
 
 from os.path import dirname, abspath
 import sys
-sys.path.append(dirname(dirname(abspath(__file__))))  # nopep8
 import time
 import numpy as np
-from gurobipy import Model, GRB, quicksum
+import gurobipy as gp
 import matplotlib.pyplot as plt
-from utils_examples import colors, mean_percentiles, L1
 import invopt as iop
+from sklearn import svm
+from sklearn import linear_model
+from sklearn import neighbors
+from sklearn import gaussian_process
+from sklearn import tree
+from sklearn import ensemble
+from sklearn import neural_network
+from sklearn import kernel_ridge
+
+sys.path.append(dirname(dirname(abspath(__file__))))  # nopep8
+from utils_examples import colors, mean_percentiles, L1
 
 np.random.seed(0)
 
@@ -32,18 +41,18 @@ def FOP_MIQP(theta, s):
     if len(theta) != (1 + cQ + cQ):
         raise Exception('Dimentions do not match!')
 
-    mdl = Model('MIQP')
+    mdl = gp.Model('MIQP')
     mdl.setParam('OutputFlag', 0)
-    y = mdl.addVar(vtype=GRB.CONTINUOUS, name='y')
-    z = mdl.addVar(vtype=GRB.BINARY, name='z')
+    y = mdl.addVar(vtype=gp.GRB.CONTINUOUS, name='y')
+    z = mdl.addVar(vtype=gp.GRB.BINARY, name='z')
 
     phi1_wz = [wi for wi in w] + [z] + [z*wi for wi in w] + [1]
     phi2_wz = [wi for wi in w] + [z] + [z*wi for wi in w] + [1]
 
     mdl.setObjective(Qyy*y**2
-                     + y*quicksum(Q[i]*phi1_wz[i] for i in range(cQ))
-                     + quicksum(q[i]*phi2_wz[i] for i in range(cQ)),
-                     GRB.MINIMIZE)
+                     + y*gp.quicksum(Q[i]*phi1_wz[i] for i in range(cQ))
+                     + gp.quicksum(q[i]*phi2_wz[i] for i in range(cQ)),
+                     gp.GRB.MINIMIZE)
 
     mdl.optimize()
 
@@ -55,6 +64,9 @@ def FOP_MIQP(theta, s):
 
 def load_data(train_test_slip):
     """Load and preprosses BCWP data."""
+    # dataset = np.genfromtxt(path_to_invopt + r'\examples\mixed_integer_quadratic\breast-cancer-wisconsin-data\wpbc_data.csv',   # nopep8
+    #                         delimiter=',')
+
     dataset = np.genfromtxt(r'breast-cancer-wisconsin-data\wpbc_data.csv',
                             delimiter=',')
 
@@ -65,7 +77,7 @@ def load_data(train_test_slip):
 
     N, m = S.shape
     N_train = round(N*(1-train_test_slip))
-    N_test = round(N*train_test_slip)
+    # N_test = round(N*train_test_slip)
 
     train_idx = np.random.choice(N, N_train, replace=False)
     train_mask = np.zeros(N, dtype=bool)
@@ -77,9 +89,17 @@ def load_data(train_test_slip):
     S_test = S[~train_mask, :].copy()
     X_test = X[~train_mask, :].copy()
 
+    return S_train, X_train, S_test, X_test
+
+
+def IO_preprocessing(S_train, X_train, S_test, X_test):
+    """Preprocess data for IO."""
     A = -np.eye(1)
     B = np.zeros((1, 1))
     c = np.zeros((1))
+
+    N_train = len(S_train)
+    N_test = len(S_test)
 
     # Create dataset for IO
     dataset_train = []
@@ -134,57 +154,83 @@ def dist_z(x1, x2):
 
 train_test_slip = 0.1
 runs = 3
+add_y = False
+kappa = 10**3
 
 print('')
 print(f'train_test_slip = {train_test_slip}')
 print(f'runs = {runs}')
+print(f'add_y = {add_y}')
+print(f'kappa = {kappa}')
 print('')
 
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%% Solve IO problem %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+y_diff_train_hist = np.empty(runs)
+y_diff_test_hist = np.empty(runs)
+z_diff_train_hist = np.empty(runs)
+z_diff_test_hist = np.empty(runs)
 
-kappa_list = np.logspace(-3, 3, 10).tolist()
-reg_size = len(kappa_list)
-
-y_diff_train_hist = np.empty((runs, reg_size))
-y_diff_test_hist = np.empty((runs, reg_size))
-z_diff_train_hist = np.empty((runs, reg_size))
-z_diff_test_hist = np.empty((runs, reg_size))
+y_diff_train_sk_hist = np.empty(runs)
+y_diff_test_sk_hist = np.empty(runs)
+z_diff_train_sk_hist = np.empty(runs)
+z_diff_test_sk_hist = np.empty(runs)
 
 tic = time.time()
 for run in range(runs):
-    dataset_train, dataset_test = load_data(train_test_slip)
+    np.random.seed(run)  # Make sure the same random slipt is used
+    S_train, X_train, S_test, X_test = load_data(train_test_slip)
+    dataset_train, dataset_test = IO_preprocessing(S_train, X_train,
+                                                   S_test, X_test)
 
-    for r_index, kappa in enumerate(kappa_list):
-        theta_IO = iop.mixed_integer_quadratic(dataset_train,
-                                               ('binary', 1, None),
-                                               phi1=phi1,
-                                               phi2=phi2,
-                                               dist_func_z=L1,
-                                               reg_param=kappa,
-                                               add_dist_func_y=True)
+    theta_IO = iop.mixed_integer_quadratic(dataset_train,
+                                           ('binary', 1, None),
+                                           phi1=phi1,
+                                           phi2=phi2,
+                                           dist_func_z=L1,
+                                           reg_param=kappa,
+                                           add_dist_func_y=add_y)
 
-        y_diff_train = iop.evaluate(theta_IO,
-                                    dataset_train,
-                                    FOP_MIQP,
-                                    dist_y)
-        y_diff_test = iop.evaluate(theta_IO,
-                                   dataset_test,
-                                   FOP_MIQP,
-                                   dist_y)
-        z_diff_train = iop.evaluate(theta_IO,
-                                    dataset_train,
-                                    FOP_MIQP,
-                                    dist_z)
-        z_diff_test = iop.evaluate(theta_IO,
-                                   dataset_test,
-                                   FOP_MIQP,
-                                   dist_z)
+    y_diff_train = iop.evaluate(theta_IO, dataset_train, FOP_MIQP, dist_y)
+    y_diff_test = iop.evaluate(theta_IO, dataset_test, FOP_MIQP, dist_y)
+    z_diff_train = iop.evaluate(theta_IO, dataset_train, FOP_MIQP, dist_z)
+    z_diff_test = iop.evaluate(theta_IO, dataset_test, FOP_MIQP, dist_z)
 
-        y_diff_train_hist[run, r_index] = y_diff_train
-        y_diff_test_hist[run, r_index] = y_diff_test
-        z_diff_train_hist[run, r_index] = z_diff_train
-        z_diff_test_hist[run, r_index] = z_diff_test
+    y_diff_train_hist[run] = y_diff_train
+    y_diff_test_hist[run] = y_diff_test
+    z_diff_train_hist[run] = z_diff_train
+    z_diff_test_hist[run] = z_diff_test
+
+    # Scikit-learn regressors
+    # reg = svm.SVR()
+    # reg = linear_model.LinearRegression()
+    reg = kernel_ridge.KernelRidge()
+    # reg = neural_network.MLPRegressor(max_iter=3000)
+    # reg = neighbors.KNeighborsRegressor()
+    # reg = gaussian_process.GaussianProcessRegressor()
+    # reg = tree.DecisionTreeRegressor()
+
+    reg.fit(S_train, X_train[:, 0])
+    y_diff_train_sk = np.mean(np.abs(reg.predict(S_train) - X_train[:, 0]))
+    y_diff_test_sk = np.mean(np.abs(reg.predict(S_test) - X_test[:, 0]))
+    y_diff_train_sk_hist[run] = y_diff_train_sk
+    y_diff_test_sk_hist[run] = y_diff_test_sk
+
+    # Scikit-learn classifiers
+    clf = svm.SVC()
+    # clf = linear_model.LogisticRegression(max_iter=2000)
+    # clf = neighbors.KNeighborsClassifier()
+    # clf = gaussian_process.GaussianProcessClassifier()
+    # clf = tree.DecisionTreeClassifier()
+    # clf = ensemble.RandomForestClassifier()
+    # clf = neural_network.MLPClassifier(max_iter=1000)
+    # clf = ensemble.AdaBoostClassifier()
+
+    clf.fit(S_train, X_train[:, 1])
+    z_diff_train_sk = np.mean(np.abs(clf.predict(S_train) - X_train[:, 1]))
+    z_diff_test_sk = np.mean(np.abs(clf.predict(S_test) - X_test[:, 1]))
+    z_diff_train_sk_hist[run] = z_diff_train_sk
+    z_diff_test_sk_hist[run] = z_diff_test_sk
 
     print(f'{round(100*(run+1)/runs)}%')
 
@@ -192,57 +238,12 @@ toc = time.time()
 print(f"Simulation time = {round(toc-tic,2)} seconds")
 print('')
 
-
-# %%%%%%%%%%%%%%%%%%%%%%%%%%% Plot results %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-y_diff_train_mean, y_diff_train_p5, y_diff_train_p95 = \
-    mean_percentiles(y_diff_train_hist)
-y_diff_test_mean, y_diff_test_p5, y_diff_test_p95 = \
-    mean_percentiles(y_diff_test_hist)
-z_diff_train_mean, z_diff_train_p5, z_diff_train_p95 = \
-    mean_percentiles(z_diff_train_hist)
-z_diff_test_mean, z_diff_test_p5, z_diff_test_p95 = \
-    mean_percentiles(z_diff_test_hist)
-
-plt.rcParams["mathtext.fontset"] = 'cm'
-plt.rcParams['font.family'] = 'serif'
-
-plt.figure(1)
-plt.plot(kappa_list, y_diff_train_mean, c=colors[0])
-plt.fill_between(kappa_list, y_diff_train_p5, y_diff_train_p95, alpha=0.3,
-                 facecolor=colors[0])
-plt.xscale('log')
-plt.ylabel(r'$| y_{\mathrm{IO}} - y_{\mathrm{true}} |$', fontsize=18)
-plt.xlabel(r'$\kappa$', fontsize=18)
-plt.grid(visible=True)
-plt.tight_layout()
-
-plt.figure(2)
-plt.plot(kappa_list, z_diff_train_mean, c=colors[1])
-plt.fill_between(kappa_list, z_diff_train_p5, z_diff_train_p95, alpha=0.3,
-                 facecolor=colors[1])
-plt.xscale('log')
-plt.ylabel(r'$| z_{\mathrm{IO}} - z_{\mathrm{true}} |$', fontsize=18)
-plt.xlabel(r'$\kappa$', fontsize=18)
-plt.grid(visible=True)
-plt.tight_layout()
-
-plt.figure(3)
-plt.plot(kappa_list, y_diff_test_mean, c=colors[0])
-plt.fill_between(kappa_list, y_diff_test_p5, y_diff_test_p95, alpha=0.3,
-                 facecolor=colors[0])
-plt.xscale('log')
-plt.ylabel(r'$| y_{\mathrm{IO}} - y_{\mathrm{true}} |$', fontsize=18)
-plt.xlabel(r'$\kappa$', fontsize=18)
-plt.grid(visible=True)
-plt.tight_layout()
-
-plt.figure(4)
-plt.plot(kappa_list, z_diff_test_mean, c=colors[1])
-plt.fill_between(kappa_list, z_diff_test_p5, z_diff_test_p95, alpha=0.3,
-                 facecolor=colors[1])
-plt.xscale('log')
-plt.ylabel(r'$| z_{\mathrm{IO}} - z_{\mathrm{true}} |$', fontsize=18)
-plt.xlabel(r'$\kappa$', fontsize=18)
-plt.grid(visible=True)
-plt.tight_layout()
+print(f'y_diff train error = {mean_percentiles(y_diff_train_hist)[0]}')
+print(f'y_diff test error = {mean_percentiles(y_diff_test_hist)[0]}')
+print(f'z_diff train error = {mean_percentiles(z_diff_train_hist)[0]}')
+print(f'z_diff test error = {mean_percentiles(z_diff_test_hist)[0]}')
+print('')
+print(f'SK y_diff train error = {mean_percentiles(y_diff_train_sk_hist)[0]}')
+print(f'SK y_diff test error = {mean_percentiles(y_diff_test_sk_hist)[0]}')
+print(f'SK z_diff train error = {mean_percentiles(z_diff_train_sk_hist)[0]}')
+print(f'SK z_diff test error = {mean_percentiles(z_diff_test_sk_hist)[0]}')
