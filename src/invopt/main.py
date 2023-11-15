@@ -461,10 +461,10 @@ def discrete_consistent(dataset, X, phi,
     theta_opt = np.array([theta[i].X for i in range(p)])
 
     if mdl.status != 2:
-        raise Exception('Optimal solution not found. Gurobi status code '
-                        f'= {mdl.status}. Set the flag verbose=True for more '
-                        'details. The optimization problem will '
-                        'always be infeasible if the data is not consistent.')
+        print('Optimal solution not found. Gurobi status code '
+              f'= {mdl.status}. Set the flag verbose=True for more '
+              'details. The optimization problem will '
+              'always be infeasible if the data is not consistent.')
 
     return theta_opt
 
@@ -990,9 +990,9 @@ def mixed_integer_linear(dataset, Z,
             mdl.optimize()
 
             if mdl.status != 2:
-                raise Exception('Optimal solution not found. Gurobi status '
-                                f'code = {mdl.status}. Set the flag '
-                                'verbose=True for more details.')
+                print('Optimal solution not found. Gurobi status '
+                      f'code = {mdl.status}. Set the flag '
+                      'verbose=True for more details.')
 
             Q_opt = np.array([[Q[i, j].X for i in range(u)]
                              for j in range(m)])
@@ -1033,16 +1033,15 @@ def mixed_integer_linear(dataset, Z,
         mdl.optimize()
 
         if mdl.status != 2:
-            raise Exception('Optimal solution not found. Gurobi status code '
-                            f'= {mdl.status}. Set the flag verbose=True for '
-                            'more details.')
+            print('Optimal solution not found. Gurobi status code '
+                  f'= {mdl.status}. Set the flag verbose=True for '
+                  'more details.')
 
         Q_opt = np.array([[Q[i, j].X for i in range(u)]
                          for j in range(m)])
         q_opt = np.array([q[i].X for i in range(r)])
 
     theta_opt = np.concatenate((Q_opt.flatten('F'), q_opt))
-
     return theta_opt
 
 
@@ -1164,7 +1163,7 @@ def mixed_integer_quadratic(dataset, Z,
     r = len(phi2(w_test, z_test))
     t, u = A_test.shape
 
-    Qyy = cp.Variable((u, u), symmetric=True)
+    Qyy = cp.Variable((u, u), PSD=True)
     Q = cp.Variable((u, m))
     q = cp.Variable((r, 1))
     beta = cp.Variable(N)
