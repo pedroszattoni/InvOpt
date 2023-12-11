@@ -11,22 +11,28 @@ import warnings
 def check_Theta(Theta):
     """Check if Theta is valid."""
     if Theta not in [None, 'nonnegative']:
-        raise Exception('Invalid Theta. Accepted values are: None (default) '
-                        'and \'nonnegative\'.')
+        raise Exception(
+            'Invalid Theta. Accepted values are: None (default)'
+            'and \'nonnegative\'.'
+        )
 
 
 def check_decision_space(decision_space):
     """Check if decision_space is valid."""
     if decision_space not in ['binary', 'one_hot']:
-        raise Exception('Invalid decision space. Accepted values are: ' +
-                        '\'binary\' and \'one_hot\'.')
+        raise Exception(
+            'Invalid decision space. Accepted values are:'
+            '\'binary\' and \'one_hot\'.'
+        )
 
 
 def check_regularizer(regularizer):
     """Check if regularizer is valid."""
     if regularizer not in ['L2_squared', 'L1']:
-        raise Exception('Invalid regularizer. Accepted values are:' +
-                        ' \'L2_squared\' (default) and \'L1\'.')
+        raise Exception(
+            'Invalid regularizer. Accepted values are:'
+            ' \'L2_squared\' (default) and \'L1\'.'
+        )
 
 
 def check_reg_parameter(reg_param):
@@ -38,11 +44,13 @@ def check_reg_parameter(reg_param):
 def warning_large_decision_space(decision_space, n):
     """Warn user if decision space is binary and high-dimensional."""
     if (decision_space == 'binary') and (n > 15):
-        warnings.warn('Attention! Using this function for FOPs with binary '
-                      'decision variables requires solving an optimization '
-                      'problem with potentially O(N*2^n) constraints, '
-                      'where N is the number of training examples and n is '
-                      'the dimension of the binary decision vector.')
+        warnings.warn(
+            'Attention! Using this function for FOPs with binary decision'
+            'variables requires solving an optimization problem with'
+            'potentially O(N*2^n) constraints, where N is the number of'
+            'training examples and n is the dimension of the binary'
+            'decision vector.'
+        )
 
 
 def warning_theta_hat_reg_param(theta_hat, reg_param):
@@ -54,10 +62,11 @@ def warning_theta_hat_reg_param(theta_hat, reg_param):
 def warning_add_dist_func_y(add_dist_func_y):
     """Warn user that add_dist_func_y increases the size of the problem."""
     if add_dist_func_y:
-        warnings.warn('Setting add_dist_func_y=True increases the number of '
-                      'constraints of the IO problem by a factor of 2n, '
-                      'where n is the dimension of the continuous part of '
-                      'the decision vector.')
+        warnings.warn(
+            'Setting add_dist_func_y=True increases the number of constraints'
+            'of the IO problem by a factor of 2n, where n is the dimension of'
+            'the continuous part of the decision vector.'
+        )
 
 
 def normalize(vec, norm):
@@ -422,8 +431,11 @@ def discrete_consistent(dataset, X, phi,
                     except TypeError:
                         dist = dist_func(x_hat, x, s_hat)
 
-                mdl.addConstr(gp.quicksum(theta[j]*(phi_1[j] - phi_2[j])
-                                          for j in range(p)) >= dist)
+                mdl.addConstr(
+                    gp.quicksum(
+                        theta[j]*(phi_1[j] - phi_2[j]) for j in range(p)
+                    ) >= dist
+                )
 
     if (dist_func is None) and (theta_hat is None):
         if Theta == 'nonnegative':
@@ -446,8 +458,9 @@ def discrete_consistent(dataset, X, phi,
             theta_hat = np.zeros(p)
 
         if regularizer == 'L2_squared':
-            obj = 0.5 * gp.quicksum((theta[i] - theta_hat[i])**2
-                                    for i in range(p))
+            obj = 0.5 * gp.quicksum(
+                (theta[i] - theta_hat[i])**2 for i in range(p)
+            )
         elif regularizer == 'L1':
             t = mdl.addVars(p, lb=-gp.GRB.INFINITY, vtype=gp.GRB.CONTINUOUS)
             obj = gp.quicksum(t)
@@ -460,10 +473,12 @@ def discrete_consistent(dataset, X, phi,
     theta_opt = np.array([theta[i].X for i in range(p)])
 
     if mdl.status != 2:
-        print('Optimal solution not found. Gurobi status code '
-              f'= {mdl.status}. Set the flag verbose=True for more '
-              'details. The optimization problem will '
-              'always be infeasible if the data is not consistent.')
+        print(
+            f'Optimal solution not found. Gurobi status code = {mdl.status}.'
+            'Set the flag verbose=True for more details. Note: the IO'
+            'optimization problem will always be infeasible if the data is not'
+            'consistent.'
+        )
 
     return theta_opt
 
@@ -546,10 +561,9 @@ def discrete(dataset, X, phi,
     dataset_mod = []
     for data in dataset:
         s_hat, x_hat = data
-        s_hat_mod = (np.zeros((1, 1)),
-                     np.zeros((1, n)),
-                     np.array([0]),
-                     s_hat)
+        s_hat_mod = (
+            np.zeros((1, 1)), np.zeros((1, n)), np.array([0]), s_hat
+        )
         x_hat_mod = (np.array([0]), x_hat)
         dataset_mod.append((s_hat_mod, x_hat_mod))
 
@@ -923,31 +937,37 @@ def mixed_integer_linear(dataset, Z,
 
                     ph1_hat = phi1(w_hat, z_hat)
                     ph2_hat = phi2(w_hat, z_hat)
-                    Qph1_hat = [gp.quicksum(Q[i, j]*ph1_hat[j]
-                                            for j in range(m))
-                                for i in range(u)]
-                    yQph1_hat = gp.quicksum(y_hat[j]*Qph1_hat[j]
-                                            for j in range(u))
+                    Qph1_hat = [
+                        gp.quicksum(Q[i, j]*ph1_hat[j] for j in range(m))
+                        for i in range(u)
+                    ]
+                    yQph1_hat = gp.quicksum(
+                        y_hat[j]*Qph1_hat[j] for j in range(u)
+                    )
                     qphi2_hat = gp.quicksum(q[j]*ph2_hat[j] for j in range(r))
                     theta_phi = yQph1_hat + qphi2_hat
 
                     Bz = B @ z
-                    lambcBz = gp.quicksum(lamb[j]*(c[j] - Bz[j])
-                                          for j in range(t))
+                    lambcBz = gp.quicksum(
+                        lamb[j]*(c[j] - Bz[j]) for j in range(t)
+                    )
                     ph2 = phi2(w_hat, z)
                     qphi2 = gp.quicksum(q[j]*ph2[j] for j in range(r))
 
-                    gammay_hat = gp.quicksum(gamma[j]*y_hat[j]
-                                             for j in range(u))
-                    mdl.addConstr(theta_phi + lambcBz - qphi2 + gammay_hat
-                                  + dist_z <= beta[i])
+                    gammay_hat = gp.quicksum(
+                        gamma[j]*y_hat[j] for j in range(u)
+                    )
+                    mdl.addConstr(
+                        theta_phi + lambcBz - qphi2 + gammay_hat + dist_z
+                        <= beta[i]
+                    )
 
                     ph1 = phi1(w_hat, z)
-                    mdl.addConstrs(gp.quicksum(Q[i, j]*ph1[j]
-                                               for j in range(m))
-                                   + gp.quicksum(lamb[j]*A[j, i]
-                                                 for j in range(t)) + gamma[i]
-                                   == 0 for i in range(u))
+                    mdl.addConstrs(
+                        gp.quicksum(Q[i, j]*ph1[j] for j in range(m))
+                        + gp.quicksum(lamb[j]*A[j, i] for j in range(t))
+                        + gamma[i] == 0 for i in range(u)
+                    )
 
     if reg_param > 0:
         if theta_hat is None:
@@ -958,21 +978,27 @@ def mixed_integer_linear(dataset, Z,
             q_hat = theta_hat[-r:]
 
         if regularizer == 'L2_squared':
-            Q_sum = gp.quicksum((Q[i, j] - Q_hat[i, j])**2 for i in range(u)
-                                for j in range(m))
+            Q_sum = gp.quicksum(
+                (Q[i, j] - Q_hat[i, j])**2 for i in range(u) for j in range(m)
+            )
             q_sum = gp.quicksum((q[i] - q_hat[i])**2 for i in range(r))
             reg_term = (reg_param/2)*(Q_sum + q_sum)
         elif regularizer == 'L1':
-            tQ = mdl.addVars(u, m, lb=-gp.GRB.INFINITY,
-                             vtype=gp.GRB.CONTINUOUS)
+            tQ = mdl.addVars(
+                u, m, lb=-gp.GRB.INFINITY, vtype=gp.GRB.CONTINUOUS
+            )
             tq = mdl.addVars(r, lb=-gp.GRB.INFINITY, vtype=gp.GRB.CONTINUOUS)
 
             reg_term = reg_param*(gp.quicksum(tQ) + gp.quicksum(tq))
 
-            mdl.addConstrs(Q[i, j] - Q_hat[i, j] <= tQ[i, j]
-                           for i in range(u) for j in range(m))
-            mdl.addConstrs(Q_hat[i, j] - Q[i, j] <= tQ[i, j]
-                           for i in range(u) for j in range(m))
+            mdl.addConstrs(
+                Q[i, j] - Q_hat[i, j] <= tQ[i, j] for i in range(u)
+                for j in range(m)
+            )
+            mdl.addConstrs(
+                Q_hat[i, j] - Q[i, j] <= tQ[i, j] for i in range(u)
+                for j in range(m)
+            )
             mdl.addConstrs(q[i] - q_hat[i] <= tq[i] for i in range(r))
             mdl.addConstrs(q_hat[i] - q[i] <= tq[i] for i in range(r))
     else:
@@ -989,12 +1015,15 @@ def mixed_integer_linear(dataset, Z,
             mdl.optimize()
 
             if mdl.status != 2:
-                print('Optimal solution not found. Gurobi status '
-                      f'code = {mdl.status}. Set the flag '
-                      'verbose=True for more details.')
+                print(
+                    'Optimal solution not found. Gurobi status code ='
+                    f'{mdl.status}. Set the flag verbose=True for more'
+                    'details.'
+                )
 
-            Q_opt = np.array([[Q[i, j].X for i in range(u)]
-                             for j in range(m)])
+            Q_opt = np.array(
+                [[Q[i, j].X for i in range(u)] for j in range(m)]
+            )
             q_opt = np.array([q[i].X for i in range(r)])
         else:
             # Search over facets of unit L-infinity sphere for the solution
@@ -1010,8 +1039,10 @@ def mixed_integer_linear(dataset, Z,
                         obj_val = mdl.objVal
                         if obj_val < best_obj:
                             best_obj = obj_val
-                            Q_opt = np.array([[Q[i, j].X for i in range(u)]
-                                              for j in range(m)])
+                            Q_opt = np.array(
+                                [[Q[i, j].X for i in range(u)]
+                                 for j in range(m)]
+                            )
                             q_opt = np.array([q[i].X for i in range(r)])
             for i in range(u):
                 for k in range(m):
@@ -1024,20 +1055,23 @@ def mixed_integer_linear(dataset, Z,
                             obj_val = mdl.objVal
                             if obj_val < best_obj:
                                 best_obj = obj_val
-                                Q_opt = np.array([[Q[i, j].X
-                                                   for i in range(u)]
-                                                  for j in range(m)])
+                                Q_opt = np.array(
+                                    [[Q[i, j].X for i in range(u)]
+                                     for j in range(m)]
+                                )
                                 q_opt = np.array([q[i].X for i in range(r)])
     else:
         mdl.optimize()
 
         if mdl.status != 2:
-            print('Optimal solution not found. Gurobi status code '
-                  f'= {mdl.status}. Set the flag verbose=True for '
-                  'more details.')
+            print(
+                'Optimal solution not found. Gurobi status code ='
+                f' {mdl.status}.Set the flag verbose=True for more details.'
+            )
 
-        Q_opt = np.array([[Q[i, j].X for i in range(u)]
-                         for j in range(m)])
+        Q_opt = np.array(
+            [[Q[i, j].X for i in range(u)] for j in range(m)]
+        )
         q_opt = np.array([q[i].X for i in range(r)])
 
     theta_opt = np.concatenate((Q_opt.flatten('F'), q_opt))
@@ -1206,9 +1240,11 @@ def mixed_integer_quadratic(dataset, Z,
                     alpha = cp.Variable((1, 1))
                     lamb = cp.Variable((t, 1))
 
-                    theta_phi_hat = (y_hat.T @ Qyy @ y_hat
-                                     + y_hat.T @ Q @ phi1(w_hat, z_hat)
-                                     + q.T @ phi2(w_hat, z_hat))
+                    theta_phi_hat = (
+                        y_hat.T @ Qyy @ y_hat
+                        + y_hat.T @ Q @ phi1(w_hat, z_hat)
+                        + q.T @ phi2(w_hat, z_hat)
+                    )
 
                     lambcBz = lamb.T @ (c - B @ z)
 
@@ -1216,13 +1252,18 @@ def mixed_integer_quadratic(dataset, Z,
 
                     gammay_hat = gamma.T @ y_hat
 
-                    constraints += [theta_phi_hat + alpha + lambcBz - qphi2
-                                    + gammay_hat + dist_z <= beta[i]]
+                    constraints += [
+                        theta_phi_hat + alpha + lambcBz - qphi2 + gammay_hat
+                        + dist_z <= beta[i]
+                    ]
 
-                    off_diag = (Q @ phi1(w_hat, z).reshape((m, 1))
-                                + A.T @ lamb + gamma.reshape((u, 1)))
-                    constraints += [cp.bmat([[Qyy, off_diag],
-                                             [off_diag.T, 4*alpha]]) >> 0]
+                    off_diag = (
+                        Q @ phi1(w_hat, z).reshape((m, 1)) + A.T @ lamb
+                        + gamma.reshape((u, 1))
+                    )
+                    constraints += [
+                        cp.bmat([[Qyy, off_diag], [off_diag.T, 4*alpha]]) >> 0
+                    ]
                     constraints += [lamb >= 0]
 
     if reg_param > 0:
@@ -1263,17 +1304,18 @@ def mixed_integer_quadratic(dataset, Z,
     prob.solve(verbose=verbose)
 
     if prob.status != 'optimal':
-        raise Exception('Optimal solution not found. CVXPY status code '
-                        f'= {prob.status}. Set the flag verbose=True for more '
-                        'details.')
+        raise Exception(
+            f'Optimal solution not found. CVXPY status code = {prob.status}.'
+            'Set the flag verbose=True for more details.'
+        )
 
     Qyy_opt = Qyy.value
     Q_opt = Q.value
     q_opt = q.value
 
-    theta_opt = np.concatenate((Qyy_opt.flatten('F'),
-                                Q_opt.flatten('F'),
-                                q_opt.flatten('F')))
+    theta_opt = np.concatenate(
+        (Qyy_opt.flatten('F'), Q_opt.flatten('F'), q_opt.flatten('F'))
+    )
     return theta_opt
 
 
@@ -1387,12 +1429,15 @@ def FOM(dataset, phi, theta_0, FOP, step_size, T,
     warning_theta_hat_reg_param(theta_hat, reg_param)
 
     if (step == 'exponentiated') and (regularizer != 'L1'):
-        raise Exception('To use step = \'exponentiated\', '
-                        'regularizer = \'L1\' is required.')
+        raise Exception(
+            'To use step = \'exponentiated\', regularizer = \'L1\' is'
+            'required.'
+        )
 
     if (step == 'exponentiated') and (theta_hat is not None):
-        raise Exception('When step=\'exponentiated\', '
-                        'theta_hat must be None.')
+        raise Exception(
+            'When step=\'exponentiated\', theta_hat must be None.'
+        )
 
     # Get the number of examples and dimension of the problem
     N = len(dataset)
@@ -1419,20 +1464,25 @@ def FOM(dataset, phi, theta_0, FOP, step_size, T,
             np.random.shuffle(arr)
             for i in arr:
                 samples = [dataset[i]]
-                reg_grad, loss_grad = compute_grad(theta_t, samples, phi, FOP,
-                                                   regularizer, reg_param,
-                                                   theta_hat)
-                theta_t = grad_step(theta_t, eta_t, reg_grad, loss_grad,
-                                    reg_param, Theta, step, normalize_grad)
+                reg_grad, loss_grad = compute_grad(
+                    theta_t, samples, phi, FOP, regularizer, reg_param,
+                    theta_hat
+                )
+                theta_t = grad_step(
+                    theta_t, eta_t, reg_grad, loss_grad, reg_param, Theta,
+                    step, normalize_grad
+                )
         else:
             batch_size = int(np.ceil(batch_type*N))
             sample_idxs = np.random.choice(N, batch_size, replace=False)
             samples = [dataset[i] for i in sample_idxs]
-            reg_grad, loss_grad = compute_grad(theta_t, samples, phi, FOP,
-                                               regularizer, reg_param,
-                                               theta_hat)
-            theta_t = grad_step(theta_t, eta_t, reg_grad, loss_grad, reg_param,
-                                Theta, step, normalize_grad)
+            reg_grad, loss_grad = compute_grad(
+                theta_t, samples, phi, FOP, regularizer, reg_param, theta_hat
+            )
+            theta_t = grad_step(
+                theta_t, eta_t, reg_grad, loss_grad, reg_param, Theta, step,
+                normalize_grad
+            )
 
         if averaged == 0:
             theta_avg = theta_t
