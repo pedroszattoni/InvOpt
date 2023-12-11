@@ -49,8 +49,9 @@ def binary_linear_FOP(theta, s, gurobi_params=None):
 
     mdl.setObjective(quicksum(theta[i]*x[i] for i in range(p)), GRB.MINIMIZE)
 
-    mdl.addConstrs(quicksum(A[j, i]*x[i] for i in range(n))
-                   <= b[j] for j in range(m))
+    mdl.addConstrs(
+        quicksum(A[j, i]*x[i] for i in range(n)) <= b[j] for j in range(m)
+    )
 
     if gurobi_params is not None:
         for param, value in gurobi_params:
@@ -64,8 +65,9 @@ def binary_linear_FOP(theta, s, gurobi_params=None):
         # Time limit reched. Return vector a all ones
         x_opt = np.ones(n)
     else:
-        raise Exception('Optimal solution not found. Gurobi status code '
-                        f'= {mdl.status}.')
+        raise Exception(
+            f'Optimal solution not found. Gurobi status code = {mdl.status}.'
+        )
 
     return x_opt
 
@@ -137,10 +139,13 @@ def plot_results(results):
 
         plt.figure(1)
         plt.plot(N_list, theta_diff_mean, c=color, label=approach)
-        plt.fill_between(N_list, theta_diff_p5, theta_diff_p95, alpha=0.3,
-                         facecolor=color)
-        plt.ylabel(r'$\| \theta_{\mathrm{IO}} - \theta_{\mathrm{true}} \|_2$',
-                   fontsize=18)
+        plt.fill_between(
+            N_list, theta_diff_p5, theta_diff_p95, alpha=0.3, facecolor=color
+        )
+        plt.ylabel(
+            r'$\| \theta_{\mathrm{IO}} - \theta_{\mathrm{true}} \|_2$',
+            fontsize=18
+        )
         plt.xlabel(r'Number of training examples', fontsize=14)
         plt.grid(visible=True)
         # plt.legend(fontsize='14', loc='upper right')
@@ -149,11 +154,14 @@ def plot_results(results):
 
         plt.figure(2)
         plt.plot(N_list, x_diff_train_mean, c=color, label=approach)
-        plt.fill_between(N_list, x_diff_train_p5, x_diff_train_p95, alpha=0.3,
-                         facecolor=color)
+        plt.fill_between(
+            N_list, x_diff_train_p5, x_diff_train_p95, alpha=0.3,
+            facecolor=color
+        )
         plt.yscale('log')
-        plt.ylabel(r'$\| x_{\mathrm{IO}} - x_{\mathrm{true}} \|_2$',
-                   fontsize=18)
+        plt.ylabel(
+            r'$\| x_{\mathrm{IO}} - x_{\mathrm{true}} \|_2$', fontsize=18
+        )
         plt.xlabel(r'Number of training examples', fontsize=14)
         plt.grid(visible=True)
         # plt.legend(fontsize='14', loc='upper right')
@@ -162,13 +170,15 @@ def plot_results(results):
 
         plt.figure(3)
         plt.plot(N_list, obj_diff_train_mean, c=color, label=approach)
-        plt.fill_between(N_list, obj_diff_train_p5, obj_diff_train_p95,
-                         alpha=0.3, facecolor=color)
+        plt.fill_between(
+            N_list, obj_diff_train_p5, obj_diff_train_p95, alpha=0.3,
+            facecolor=color
+        )
         plt.yscale('log')
-        plt.ylabel((r'$\frac{\mathrm{Cost}_\mathrm{IO} - ' +
-                    r'\mathrm{Cost}_\mathrm{true}}' +
-                    r'{\mathrm{Cost}_\mathrm{true}}$'),
-                   fontsize=20)
+        plt.ylabel(
+            (r'$\frac{\mathrm{Cost}_\mathrm{IO} - \mathrm{Cost}_\mathrm{true}}'
+             r'{\mathrm{Cost}_\mathrm{true}}$'), fontsize=20
+        )
         plt.xlabel(r'Number of training examples', fontsize=14)
         plt.grid(visible=True)
         # plt.legend(fontsize='14', loc='upper right')
@@ -177,11 +187,13 @@ def plot_results(results):
 
         plt.figure(4)
         plt.plot(N_list, x_diff_test_mean, c=color, label=approach)
-        plt.fill_between(N_list, x_diff_test_p5, x_diff_test_p95, alpha=0.3,
-                         facecolor=color)
+        plt.fill_between(
+            N_list, x_diff_test_p5, x_diff_test_p95, alpha=0.3, facecolor=color
+        )
         plt.yscale('log')
-        plt.ylabel(r'$\| x_{\mathrm{IO}} - x_{\mathrm{true}} \|_2$',
-                   fontsize=18)
+        plt.ylabel(
+            r'$\| x_{\mathrm{IO}} - x_{\mathrm{true}} \|_2$', fontsize=18
+        )
         plt.xlabel(r'Number of training examples', fontsize=14)
         plt.grid(visible=True)
         # plt.legend(fontsize='14', loc='upper right')
@@ -190,13 +202,15 @@ def plot_results(results):
 
         plt.figure(5)
         plt.plot(N_list, obj_diff_test_mean, c=color, label=approach)
-        plt.fill_between(N_list, obj_diff_test_p5, obj_diff_test_p95,
-                         alpha=0.3, facecolor=color)
+        plt.fill_between(
+            N_list, obj_diff_test_p5, obj_diff_test_p95, alpha=0.3,
+            facecolor=color
+        )
         plt.yscale('log')
-        plt.ylabel((r'$\frac{\mathrm{Cost}_\mathrm{IO} - ' +
-                    r'\mathrm{Cost}_\mathrm{true}}' +
-                    r'{\mathrm{Cost}_\mathrm{true}}$'),
-                   fontsize=20)
+        plt.ylabel(
+            (r'$\frac{\mathrm{Cost}_\mathrm{IO} - \mathrm{Cost}_\mathrm{true}}'
+             r'{\mathrm{Cost}_\mathrm{true}}$'), fontsize=20
+        )
         plt.xlabel(r'Number of training examples', fontsize=14)
         plt.grid(visible=True)
         # plt.legend(fontsize='14', loc='upper right')

@@ -97,21 +97,24 @@ def quadratic_FOP(theta, s):
     mdl.setParam('OutputFlag', 0)
     x = mdl.addVars(n, lb=-GRB.INFINITY, vtype=GRB.CONTINUOUS, name='x')
 
-    mdl.setObjective(quicksum(Qxx[i, j]*x[i]*x[j]
-                              for i in range(n) for j in range(n))
-                     + quicksum(qx[i]*x[i] for i in range(n)),
-                     GRB.MINIMIZE)
+    mdl.setObjective(
+        quicksum(Qxx[i, j]*x[i]*x[j] for i in range(n) for j in range(n))
+        + quicksum(qx[i]*x[i] for i in range(n)),
+        GRB.MINIMIZE
+    )
 
-    mdl.addConstrs(quicksum(A[k, i]*x[i] for i in range(n))
-                   <= b[k] for k in range(t))
+    mdl.addConstrs(
+        quicksum(A[k, i]*x[i] for i in range(n)) <= b[k] for k in range(t)
+    )
 
     mdl.optimize()
 
     if mdl.status == 2:
         x_opt = np.array([x[k].X for k in range(n)])
     else:
-        raise Exception('Optimal solution not found. Gurobi status code '
-                        f'= {mdl.status}.')
+        raise Exception(
+            f'Optimal solution not found. Gurobi status code = {mdl.status}.'
+        )
 
     return x_opt
 
@@ -167,11 +170,9 @@ for run in range(runs):
     theta_true = Qq_to_theta(Qxx_true, qx_true)
     theta_true_runs.append(theta_true)
 
-    dataset_train, dataset_test = create_datasets(theta_true,
-                                                  quadratic_FOP,
-                                                  n, t,
-                                                  N_train, N_test,
-                                                  noise_level)
+    dataset_train, dataset_test = create_datasets(
+        theta_true, quadratic_FOP, n, t, N_train, N_test, noise_level
+    )
     dataset_train_runs.append(dataset_train)
     dataset_test_runs.append(dataset_test)
 
@@ -211,25 +212,19 @@ for p_index, approach in enumerate(approaches):
         theta_true = theta_true_runs[run]
 
         for N_index, N in enumerate(N_list):
-            theta_IO = iop.continuous_quadratic(dataset_train[:N],
-                                                phi1,
-                                                add_dist_func_y=add_y,
-                                                reg_param=kappa)
+            theta_IO = iop.continuous_quadratic(
+                dataset_train[:N], phi1, add_dist_func_y=add_y, reg_param=kappa
+            )
 
-            x_diff_train, obj_diff_train, theta_diff = \
-                iop.evaluate(theta_IO,
-                             dataset_train[:N],
-                             quadratic_FOP,
-                             L2,
-                             theta_true=theta_true,
-                             phi=phi)
+            x_diff_train, obj_diff_train, theta_diff = iop.evaluate(
+                theta_IO, dataset_train[:N], quadratic_FOP, L2,
+                theta_true=theta_true, phi=phi
+            )
 
-            x_diff_test, obj_diff_test, _ = iop.evaluate(theta_IO,
-                                                         dataset_test,
-                                                         quadratic_FOP,
-                                                         L2,
-                                                         theta_true=theta_true,
-                                                         phi=phi)
+            x_diff_test, obj_diff_test, _ = iop.evaluate(
+                theta_IO, dataset_test, quadratic_FOP, L2,
+                theta_true=theta_true, phi=phi
+            )
 
             x_diff_train_hist[p_index, run, N_index] = x_diff_train
             obj_diff_train_hist[p_index, run, N_index] = obj_diff_train

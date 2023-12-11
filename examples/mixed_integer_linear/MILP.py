@@ -75,13 +75,16 @@ def FOP_MILP(theta, s):
     y = mdl.addVars(m2, vtype=gp.GRB.CONTINUOUS, name='y')
     z = mdl.addVars(n, vtype=gp.GRB.BINARY, name='z')
 
-    mdl.setObjective(gp.quicksum(qy[i]*y[i] for i in range(m2))
-                     + gp.quicksum(qz[i]*z[i] for i in range(n)),
-                     gp.GRB.MINIMIZE)
+    mdl.setObjective(
+        gp.quicksum(qy[i]*y[i] for i in range(m2))
+        + gp.quicksum(qz[i]*z[i] for i in range(n)), gp.GRB.MINIMIZE
+    )
 
-    mdl.addConstrs(gp.quicksum(A[k, i]*y[i] for i in range(m2))
-                   + gp.quicksum(B[k, j]*z[j] for j in range(n))
-                   <= c[k] for k in range(m1))
+    mdl.addConstrs(
+        gp.quicksum(A[k, i]*y[i] for i in range(m2))
+        + gp.quicksum(B[k, j]*z[j] for j in range(n)) <= c[k]
+        for k in range(m1)
+    )
     mdl.addConstrs(y[i] <= 1 for i in range(m2))
 
     mdl.optimize()
@@ -90,8 +93,9 @@ def FOP_MILP(theta, s):
         y_opt = np.array([y[k].X for k in range(m2)])
         z_opt = np.array([z[k].X for k in range(n)])
     else:
-        raise Exception('Optimal solution not found. Gurobi status code '
-                        f'= {mdl.status}.')
+        raise Exception(
+            f'Optimal solution not found. Gurobi status code = {mdl.status}.'
+        )
 
     return (y_opt, z_opt)
 
@@ -146,16 +150,16 @@ def circumcenter_cut(N, T, tol, time_limit):
 
         for qy_cut, qz_cut in extreme_p:
             # Rescale extreme points so that they lie on the L2-sphere
-            mdl.addConstr(gp.quicksum((qy_cut[i] - qy_u[i])**2
-                                      for i in range(u)) +
-                          gp.quicksum((qz_cut[i] - qz_u[i])**2
-                                      for i in range(v))
-                          <= r)
+            mdl.addConstr(
+                gp.quicksum((qy_cut[i] - qy_u[i])**2 for i in range(u))
+                + gp.quicksum((qz_cut[i] - qz_u[i])**2 for i in range(v)) <= r
+            )
 
         mdl.setParam('NonConvex', 2)
-        mdl.addConstr(gp.quicksum(qy_u[i]**2 for i in range(u)) +
-                      gp.quicksum(qz_u[i]**2 for i in range(v))
-                      == 1)
+        mdl.addConstr(
+            gp.quicksum(qy_u[i]**2 for i in range(u))
+            + gp.quicksum(qz_u[i]**2 for i in range(v)) == 1
+        )
 
         mdl.optimize()
 
@@ -163,9 +167,9 @@ def circumcenter_cut(N, T, tol, time_limit):
         qz_upper = np.array([qz_u[i].X for i in range(v)])
 
         # Lower (constraint) optmization problem
-        qy_lower, qz_lower, opt_val = circumcenter_lower_opt(N, qy_upper,
-                                                             qz_upper, T, tol,
-                                                             time_limit)
+        qy_lower, qz_lower, opt_val = circumcenter_lower_opt(
+            N, qy_upper, qz_upper, T, tol, time_limit
+        )
 
         if opt_val > r.X + tol:
             extreme_p.append((qy_lower, qz_lower))
@@ -197,20 +201,21 @@ def circumcenter_lower_opt(N, qy_upper, qz_upper, T, tol, time_limit):
         mdl.setObjective(obj, gp.GRB.MAXIMIZE)
 
         mdl.setParam('NonConvex', 2)
-        mdl.addConstr(gp.quicksum(qy_l[i]**2 for i in range(u)) +
-                      gp.quicksum(qz_l[i]**2 for i in range(v))
-                      == 1)
+        mdl.addConstr(
+            gp.quicksum(qy_l[i]**2 for i in range(u)) +
+            gp.quicksum(qz_l[i]**2 for i in range(v)) == 1
+        )
 
         for i in range(N):
             s_hat, x_hat = dataset_train[i]
             y_hat, z_hat = x_hat
             for x in X_cuts[i]:
                 y, z = x
-                mdl.addConstr(gp.quicksum(qy_l[j]*(y_hat[j] - y[j])
-                                          for j in range(u))
-                              + gp.quicksum(qz_l[j]*(z_hat[j] - z[j])
-                                            for j in range(v))
-                              <= 0)
+                mdl.addConstr(
+                    gp.quicksum(qy_l[j]*(y_hat[j] - y[j]) for j in range(u))
+                    + gp.quicksum(qz_l[j]*(z_hat[j] - z[j]) for j in range(v))
+                    <= 0
+                )
 
         time_flag = 1
         extra_time = 0
@@ -224,8 +229,10 @@ def circumcenter_lower_opt(N, qy_upper, qz_upper, T, tol, time_limit):
                 extra_time += time_limit
 
         if mdl.status != 2:
-            print('Optimal solution not found. Gurobi status '
-                  f'code = {mdl.status}.')
+            print(
+                'Optimal solution not found. Gurobi status code ='
+                f'{mdl.status}.'
+            )
 
         qy_lower = np.array([qy_l[i].X for i in range(u)])
         qz_lower = np.array([qz_l[i].X for i in range(v)])
@@ -286,16 +293,18 @@ def cutting_plane(N, T, tol):
             for x in X_cuts[i]:
                 y, z = x
 
-                mdl.addConstr(gp.quicksum(qy[j]*(y_hat[j] - y[j])
-                                          for j in range(u))
-                              + gp.quicksum(qz[j]*(z_hat[j] - z[j])
-                                            for j in range(v))
-                              <= 0)
+                mdl.addConstr(
+                    gp.quicksum(qy[j]*(y_hat[j] - y[j]) for j in range(u))
+                    + gp.quicksum(qz[j]*(z_hat[j] - z[j]) for j in range(v))
+                    <= 0
+                )
         mdl.optimize()
 
         if mdl.status != 2:
-            print('Optimal solution not found. Gurobi status '
-                  f'code = {mdl.status}.')
+            print(
+                'Optimal solution not found. Gurobi status code ='
+                f'{mdl.status}.'
+            )
 
         qy_IO = np.array([qy[i].X for i in range(u)])
         qz_IO = np.array([qz[i].X for i in range(v)])
@@ -357,18 +366,19 @@ def predictability_loss(N, T, tol):
             obj += gp.quicksum((y_p[i] - y_hat[i])**2 for i in range(u))
             obj += gp.quicksum((z_p[i] - z_hat[i])**2 for i in range(v))
 
-            mdl.addConstrs(gp.quicksum(A[k, i]*y_p[i] for i in range(m2))
-                           + gp.quicksum(B[k, j]*z_p[j] for j in range(n))
-                           <= c[k] for k in range(m1))
+            mdl.addConstrs(
+                gp.quicksum(A[k, i]*y_p[i] for i in range(m2))
+                + gp.quicksum(B[k, j]*z_p[j] for j in range(n)) <= c[k]
+                for k in range(m1)
+            )
             mdl.addConstrs(y_p[i] <= 1 for i in range(m2))
 
             for x in X[i]:
                 y, z = x
-                mdl.addConstr(gp.quicksum(qy[j]*(y_p[j] - y[j])
-                                          for j in range(u))
-                              + gp.quicksum(qz[j]*(z_p[j] - z[j])
-                                            for j in range(v))
-                              <= 0)
+                mdl.addConstr(
+                    gp.quicksum(qy[j]*(y_p[j] - y[j]) for j in range(u))
+                    + gp.quicksum(qz[j]*(z_p[j] - z[j]) for j in range(v)) <= 0
+                )
 
         mdl.setParam('NonConvex', 2)
         mdl.setParam('TimeLimit', 1*60)
@@ -387,12 +397,15 @@ def predictability_loss(N, T, tol):
         for i in range(N):
             s_hat, x_hat = dataset_train[i]
             y_IO, z_IO = FOP_MILP(theta_IO, s_hat)
-            y_p = [mdl.getVarByName('y'+str(i)+'['+str(j)+']').X
-                   for j in range(u)]
-            z_p = [mdl.getVarByName('z'+str(i)+'['+str(j)+']').X
-                   for j in range(v)]
-            cost = (qy_IO @ (np.array(y_p) - y_IO)
-                    + qz_IO @ (np.array(z_p) - z_IO))
+            y_p = [
+                mdl.getVarByName('y'+str(i)+'['+str(j)+']').X for j in range(u)
+            ]
+            z_p = [
+                mdl.getVarByName('z'+str(i)+'['+str(j)+']').X for j in range(v)
+            ]
+            cost = (
+                qy_IO @ (np.array(y_p) - y_IO) + qz_IO @ (np.array(z_p) - z_IO)
+            )
             if cost > tol:
                 flag = 0
                 X[i].append((y_IO, z_IO))
@@ -415,10 +428,9 @@ Theta = 'nonnegative'
 resolution = 5
 runs = 3
 
-# Tested approaches
-approaches = ['SL-MILP', 'ASL-MILP-z']
 # approaches = ['SL-MILP', 'ASL-MILP-z', 'ASL-MILP-yz', 'Circumcenter',
 #               'Cutting plane', 'Predictability loss']
+approaches = ['SL-MILP', 'ASL-MILP-z']
 
 print('')
 print(f'N_train = {N_train}')
@@ -448,10 +460,9 @@ for run in range(runs):
     theta_true = np.concatenate((qy_true, qz_true))
     theta_true_runs.append(theta_true)
 
-    dataset_train, dataset_test = create_datasets(theta_true,
-                                                  FOP_MILP,
-                                                  t, u, v,
-                                                  N_train, N_test)
+    dataset_train, dataset_test = create_datasets(
+        theta_true, FOP_MILP, t, u, v, N_train, N_test
+    )
 
     dataset_train_runs.append(dataset_train)
     dataset_test_runs.append(dataset_test)
@@ -485,29 +496,20 @@ for p_index, approach in enumerate(approaches):
         for N_index, N in enumerate(N_list):
 
             if approach == 'SL-MILP':
-                theta_IO = iop.mixed_integer_linear(dataset_train[:N],
-                                                    Z,
-                                                    phi1=phi1,
-                                                    phi2=phi2,
-                                                    Theta=Theta,
-                                                    dist_func_z=None,
-                                                    add_dist_func_y=False)
+                theta_IO = iop.mixed_integer_linear(
+                    dataset_train[:N], Z, phi1=phi1, phi2=phi2, Theta=Theta,
+                    dist_func_z=None, add_dist_func_y=False
+                )
             elif approach == 'ASL-MILP-z':
-                theta_IO = iop.mixed_integer_linear(dataset_train[:N],
-                                                    Z,
-                                                    phi1=phi1,
-                                                    phi2=phi2,
-                                                    Theta=Theta,
-                                                    dist_func_z=L2,
-                                                    add_dist_func_y=False)
+                theta_IO = iop.mixed_integer_linear(
+                    dataset_train[:N], Z, phi1=phi1, phi2=phi2, Theta=Theta,
+                    dist_func_z=L2, add_dist_func_y=False
+                )
             elif approach == 'ASL-MILP-yz':
-                theta_IO = iop.mixed_integer_linear(dataset_train[:N],
-                                                    Z,
-                                                    phi1=phi1,
-                                                    phi2=phi2,
-                                                    Theta=Theta,
-                                                    dist_func_z=L2,
-                                                    add_dist_func_y=True)
+                theta_IO = iop.mixed_integer_linear(
+                    dataset_train[:N], Z, phi1=phi1, phi2=phi2, Theta=Theta,
+                    dist_func_z=L2, add_dist_func_y=True
+                )
             elif approach == 'Circumcenter':
                 T = 100
                 tol = 1e-5
@@ -522,20 +524,15 @@ for p_index, approach in enumerate(approaches):
                 tol = 1e-10
                 theta_IO = predictability_loss(N, T, tol)
 
-            x_diff_train, obj_diff_train, theta_diff = \
-                iop.evaluate(theta_IO,
-                             dataset_train[:N],
-                             FOP_MILP,
-                             dist_func,
-                             theta_true=theta_true,
-                             phi=phi)
+            x_diff_train, obj_diff_train, theta_diff = iop.evaluate(
+                theta_IO, dataset_train[:N], FOP_MILP, dist_func,
+                theta_true=theta_true, phi=phi
+            )
 
-            x_diff_test, obj_diff_test, _ = iop.evaluate(theta_IO,
-                                                         dataset_test,
-                                                         FOP_MILP,
-                                                         dist_func,
-                                                         theta_true=theta_true,
-                                                         phi=phi)
+            x_diff_test, obj_diff_test, _ = iop.evaluate(
+                theta_IO, dataset_test, FOP_MILP, dist_func,
+                theta_true=theta_true, phi=phi
+            )
 
             x_diff_train_hist[p_index, run, N_index] = x_diff_train
             obj_diff_train_hist[p_index, run, N_index] = obj_diff_train

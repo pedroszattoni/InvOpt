@@ -11,8 +11,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 sys.path.append(dirname(dirname(abspath(__file__))))  # nopep8
-from utils_examples import (binary_linear_FOP, linear_phi, L2, linear_ind_func,
-                            L1, mean_percentiles, colors)
+from utils_examples import (
+    binary_linear_FOP, linear_phi, L2, linear_ind_func, L1, mean_percentiles,
+    colors
+)
 
 import invopt as iop
 
@@ -93,8 +95,10 @@ def interpolate(t_old, values_old, t_new):
     t_new_list = []
 
     current_index = 0
-    current_points = (t_old[current_index], values_old[current_index],
-                      t_old[current_index+1], values_old[current_index+1])
+    current_points = (
+        t_old[current_index], values_old[current_index],
+        t_old[current_index+1], values_old[current_index+1]
+    )
     while t_list:
         t_new = t_list[0]
         if t_new <= current_points[2]:
@@ -104,9 +108,10 @@ def interpolate(t_old, values_old, t_new):
             t_list.pop(0)
         else:
             current_index += 1
-            current_points = (t_old[current_index], values_old[current_index],
-                              t_old[current_index+1],
-                              values_old[current_index+1])
+            current_points = (
+                t_old[current_index], values_old[current_index],
+                t_old[current_index+1], values_old[current_index+1]
+            )
 
     return np.array(values_new_list)
 
@@ -165,22 +170,22 @@ for run in range(runs):
     theta_true = np.random.rand(n)
     theta_true_list.append(theta_true)
 
-    dataset_train, dataset_test = create_datasets(theta_true,
-                                                  binary_linear_FOP,
-                                                  n, t,
-                                                  N_train, N_test)
+    dataset_train, dataset_test = create_datasets(
+        theta_true, binary_linear_FOP, n, t, N_train, N_test
+    )
     dataset_train_list.append(dataset_train)
     dataset_test_list.append(dataset_test)
 
     # Optimizer and optimal value
-    theta_opt = iop.discrete(dataset_train, X, linear_phi,
-                             dist_func=L1,
-                             Theta=Theta,
-                             regularizer=regularizer,
-                             reg_param=reg_param)
+    theta_opt = iop.discrete(
+        dataset_train, X, linear_phi, dist_func=L1, Theta=Theta,
+        regularizer=regularizer, reg_param=reg_param
+    )
     theta_opt_list.append(theta_opt)
-    loss_opt = iop.ASL(theta_opt, dataset_train, FOP_aug, linear_phi, L1,
-                       regularizer=regularizer, reg_param=reg_param)
+    loss_opt = iop.ASL(
+        theta_opt, dataset_train, FOP_aug, linear_phi, L1,
+        regularizer=regularizer, reg_param=reg_param
+    )
     loss_opt_list.append(loss_opt)
 
 toc_dataset = time.time()
@@ -291,20 +296,15 @@ for approach in approaches:
 
         # Evaluate theta's from first-order algorithm
         for theta_IO in theta_IO_list:
-            x_diff_train, obj_diff_train, theta_diff = \
-                iop.evaluate(theta_IO,
-                             dataset_train,
-                             binary_linear_FOP,
-                             L2,
-                             theta_true=theta_true,
-                             phi=linear_phi)
+            x_diff_train, obj_diff_train, theta_diff = iop.evaluate(
+                theta_IO, dataset_train, binary_linear_FOP, L2,
+                theta_true=theta_true, phi=linear_phi
+            )
 
-            x_diff_test, obj_diff_test, _ = iop.evaluate(theta_IO,
-                                                         dataset_test,
-                                                         binary_linear_FOP,
-                                                         L2,
-                                                         theta_true=theta_true,
-                                                         phi=linear_phi)
+            x_diff_test, obj_diff_test, _ = iop.evaluate(
+                theta_IO, dataset_test, binary_linear_FOP, L2,
+                theta_true=theta_true, phi=linear_phi
+            )
 
             loss = iop.ASL(theta_IO, dataset_train, FOP_aug, linear_phi, L1)
 
@@ -319,19 +319,26 @@ for approach in approaches:
         # we can compare the performance of the algorithm in terms of time
         # instead of number of iterations.
         t_list_new = np.arange(
-            time_list[0], time_list[-1], new_interval).tolist()
-        x_diff_train_appro.append(interpolate(time_list, x_diff_train_runs,
-                                              t_list_new))
-        obj_diff_train_appro.append(interpolate(time_list, obj_diff_train_runs,
-                                                t_list_new))
-        x_diff_test_appro.append(interpolate(time_list, x_diff_test_runs,
-                                             t_list_new))
-        obj_diff_test_appro.append(interpolate(time_list, obj_diff_test_runs,
-                                               t_list_new))
-        theta_diff_appro.append(interpolate(
-            time_list, theta_diff_runs, t_list_new))
-        loss_diff_appro.append(interpolate(
-            time_list, loss_diff_runs, t_list_new))
+            time_list[0], time_list[-1], new_interval
+        ).tolist()
+        x_diff_train_appro.append(
+            interpolate(time_list, x_diff_train_runs, t_list_new)
+        )
+        obj_diff_train_appro.append(
+            interpolate(time_list, obj_diff_train_runs, t_list_new)
+        )
+        x_diff_test_appro.append(
+            interpolate(time_list, x_diff_test_runs, t_list_new)
+        )
+        obj_diff_test_appro.append(
+            interpolate(time_list, obj_diff_test_runs, t_list_new)
+        )
+        theta_diff_appro.append(
+            interpolate(time_list, theta_diff_runs, t_list_new)
+        )
+        loss_diff_appro.append(
+            interpolate(time_list, loss_diff_runs, t_list_new)
+        )
         time_list_appro.append(t_list_new)
 
         print(f'{round(100*(run+1)/runs)}%')
@@ -369,25 +376,31 @@ for a_index, approach in enumerate(approaches):
     # Trim data according to shortest run
     x_diff_train_appro = np.array([x[:len_data] for x in x_diff_train_appro])
     obj_diff_train_appro = np.array(
-        [x[:len_data] for x in obj_diff_train_appro])
+        [x[:len_data] for x in obj_diff_train_appro]
+    )
     x_diff_test_appro = np.array([x[:len_data] for x in x_diff_test_appro])
     obj_diff_test_appro = np.array([x[:len_data] for x in obj_diff_test_appro])
     theta_diff_appro = np.array([x[:len_data] for x in theta_diff_appro])
     loss_diff_appro = np.array([x[:len_data] for x in loss_diff_appro])
 
     # Compute mean and percentiles
-    x_diff_train_mean, x_diff_train_p5, x_diff_train_p95 = \
-        mean_percentiles(x_diff_train_appro)
+    x_diff_train_mean, x_diff_train_p5, x_diff_train_p95 = mean_percentiles(
+        x_diff_train_appro
+    )
     obj_diff_train_mean, obj_diff_train_p5, obj_diff_train_p95 = \
         mean_percentiles(obj_diff_train_appro)
-    x_diff_test_mean, x_diff_test_p5, x_diff_test_p95 = \
-        mean_percentiles(x_diff_test_appro)
-    obj_diff_test_mean, obj_diff_test_p5, obj_diff_test_p95 = \
-        mean_percentiles(obj_diff_test_appro)
-    theta_diff_mean, theta_diff_p5, theta_diff_p95 = \
-        mean_percentiles(theta_diff_appro)
-    loss_diff_mean, loss_diff_p5, loss_diff_p95 = \
-        mean_percentiles(loss_diff_appro)
+    x_diff_test_mean, x_diff_test_p5, x_diff_test_p95 = mean_percentiles(
+        x_diff_test_appro
+    )
+    obj_diff_test_mean, obj_diff_test_p5, obj_diff_test_p95 = mean_percentiles(
+        obj_diff_test_appro
+    )
+    theta_diff_mean, theta_diff_p5, theta_diff_p95 = mean_percentiles(
+        theta_diff_appro
+    )
+    loss_diff_mean, loss_diff_p5, loss_diff_p95 = mean_percentiles(
+        loss_diff_appro
+    )
 
     color = colors[a_index]
 
@@ -396,10 +409,12 @@ for a_index, approach in enumerate(approaches):
 
     plt.figure(1)
     plt.plot(timestamps, theta_diff_mean, c=color, label=approach)
-    plt.fill_between(timestamps, theta_diff_p5, theta_diff_p95, alpha=0.3,
-                     facecolor=color)
-    plt.ylabel(r'$\| \theta_{\mathrm{IO}} - \theta_{\mathrm{true}} \|_2$',
-               fontsize=18)
+    plt.fill_between(
+        timestamps, theta_diff_p5, theta_diff_p95, alpha=0.3, facecolor=color
+    )
+    plt.ylabel(
+        r'$\| \theta_{\mathrm{IO}} - \theta_{\mathrm{true}} \|_2$', fontsize=18
+    )
     plt.xlabel(r'Time (s)', fontsize=14)
     plt.grid(visible=True)
     plt.legend(fontsize='14', loc='upper right')
@@ -407,8 +422,10 @@ for a_index, approach in enumerate(approaches):
 
     plt.figure(2)
     plt.plot(timestamps, x_diff_train_mean, c=color, label=approach)
-    plt.fill_between(timestamps, x_diff_train_p5, x_diff_train_p95, alpha=0.3,
-                     facecolor=color)
+    plt.fill_between(
+        timestamps, x_diff_train_p5, x_diff_train_p95, alpha=0.3,
+        facecolor=color
+    )
     plt.yscale('log')
     plt.ylabel(r'$\| x_{\mathrm{IO}} - x_{\mathrm{true}} \|_2$', fontsize=18)
     plt.xlabel(r'Time (s)', fontsize=14)
@@ -418,12 +435,15 @@ for a_index, approach in enumerate(approaches):
 
     plt.figure(3)
     plt.plot(timestamps, obj_diff_train_mean, c=color, label=approach)
-    plt.fill_between(timestamps, obj_diff_train_p5, obj_diff_train_p95,
-                     alpha=0.3, facecolor=color)
+    plt.fill_between(
+        timestamps, obj_diff_train_p5, obj_diff_train_p95, alpha=0.3,
+        facecolor=color
+    )
     plt.yscale('log')
-    plt.ylabel((r'$\frac{\mathrm{Cost}_\mathrm{IO} ' +
-                r'- \mathrm{Cost}_\mathrm{true}}' +
-                r'{ \mathrm{Cost}_\mathrm{true}}$'), fontsize=20)
+    plt.ylabel(
+        (r'$\frac{\mathrm{Cost}_\mathrm{IO} - \mathrm{Cost}_\mathrm{true}}'
+         r'{\mathrm{Cost}_\mathrm{true}}$'), fontsize=20
+    )
     plt.xlabel(r'Time (s)', fontsize=14)
     plt.grid(visible=True)
     plt.legend(fontsize='14', loc='upper right')
@@ -431,8 +451,9 @@ for a_index, approach in enumerate(approaches):
 
     plt.figure(4)
     plt.plot(timestamps, x_diff_test_mean, c=color, label=approach)
-    plt.fill_between(timestamps, x_diff_test_p5, x_diff_test_p95, alpha=0.3,
-                     facecolor=color)
+    plt.fill_between(
+        timestamps, x_diff_test_p5, x_diff_test_p95, alpha=0.3, facecolor=color
+    )
     plt.yscale('log')
     plt.ylabel(r'$\| x_{\mathrm{IO}} - x_{\mathrm{true}} \|_2$', fontsize=18)
     plt.xlabel(r'Time (s)', fontsize=14)
@@ -442,12 +463,15 @@ for a_index, approach in enumerate(approaches):
 
     plt.figure(5)
     plt.plot(timestamps, obj_diff_test_mean, c=color, label=approach)
-    plt.fill_between(timestamps, obj_diff_test_p5, obj_diff_test_p95,
-                     alpha=0.3, facecolor=color)
+    plt.fill_between(
+        timestamps, obj_diff_test_p5, obj_diff_test_p95, alpha=0.3,
+        facecolor=color
+    )
     plt.yscale('log')
-    plt.ylabel((r'$\frac{\mathrm{Cost}_\mathrm{IO} - ' +
-                r'\mathrm{Cost}_\mathrm{true}}' +
-                r'{\mathrm{Cost}_\mathrm{true}}$'), fontsize=20)
+    plt.ylabel(
+        (r'$\frac{\mathrm{Cost}_\mathrm{IO} - \mathrm{Cost}_\mathrm{true}}' +
+         r'{\mathrm{Cost}_\mathrm{true}}$'), fontsize=20
+    )
     plt.xlabel(r'Time (s)', fontsize=14)
     plt.grid(visible=True)
     plt.legend(fontsize='14', loc='upper right')
@@ -455,8 +479,9 @@ for a_index, approach in enumerate(approaches):
 
     plt.figure(6)
     plt.plot(timestamps, loss_diff_mean, c=color, label=approach)
-    plt.fill_between(timestamps, loss_diff_p5, loss_diff_p95, alpha=0.3,
-                     facecolor=color)
+    plt.fill_between(
+        timestamps, loss_diff_p5, loss_diff_p95, alpha=0.3, facecolor=color
+    )
     plt.yscale('log')
     plt.ylabel(r'Training loss gap', fontsize=14)
     plt.xlabel(r'Time (s)', fontsize=14)

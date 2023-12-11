@@ -13,8 +13,9 @@ import gurobipy as gp
 import invopt as iop
 
 sys.path.append(dirname(dirname(abspath(__file__))))  # nopep8
-from utils_examples import (binary_linear_FOP, linear_ind_func, linear_phi, L2,
-                            plot_results)
+from utils_examples import (
+    binary_linear_FOP, linear_ind_func, linear_phi, L2, plot_results
+)
 
 np.random.seed(0)
 
@@ -79,16 +80,19 @@ def ellipsoidal_ASL(N):
             x = iop.candidate_action(k, decision_space, n)
             if ind_func(s_hat, x):
                 x_diff = x - x_hat
-                constraints += [cp.SOC(theta @ x_diff + beta[i],
-                                       A @ x_diff)]
+                constraints += [
+                    cp.SOC(theta @ x_diff + beta[i], A @ x_diff)
+                ]
 
     obj = cp.Minimize(-kappa*cp.log_det(A) + (1/N)*cp.sum(beta))
     prob = cp.Problem(obj, constraints)
     prob.solve()
 
     if prob.status != 'optimal':
-        print(f'Optimal solution not found. CVXPY status code = {prob.status}.'
-              ' Set the flag verbose=True for more details.')
+        print(
+            f'Optimal solution not found. CVXPY status code = {prob.status}.'
+            'Set the flag verbose=True for more details.'
+        )
 
     theta_IO = theta.value
     return theta_IO
@@ -125,27 +129,31 @@ def cutting_plane(N, T, tol):
         mdl = gp.Model()
         mdl.setParam('OutputFlag', 0)
 
-        theta = mdl.addVars(n, lb=-gp.GRB.INFINITY,
-                            vtype=gp.GRB.CONTINUOUS)
+        theta = mdl.addVars(n, lb=-gp.GRB.INFINITY,  vtype=gp.GRB.CONTINUOUS)
 
         obj = 0
         for i in range(N):
             s_hat, x_hat = dataset_train[i]
 
-            theta_i = mdl.addVars(n, lb=-gp.GRB.INFINITY,
-                                  vtype=gp.GRB.CONTINUOUS, name='theta'+str(i))
+            theta_i = mdl.addVars(
+                n, lb=-gp.GRB.INFINITY, vtype=gp.GRB.CONTINUOUS,
+                name='theta'+str(i)
+            )
             theta_abs = mdl.addVars(n, vtype=gp.GRB.CONTINUOUS)
 
             obj += gp.quicksum(theta_abs[j] for j in range(n))
-            mdl.addConstrs(theta_i[j] - theta[j] <= theta_abs[j]
-                           for j in range(n))
-            mdl.addConstrs(theta_i[j] - theta[j] >= -theta_abs[j]
-                           for j in range(n))
+            mdl.addConstrs(
+                theta_i[j] - theta[j] <= theta_abs[j] for j in range(n)
+            )
+            mdl.addConstrs(
+                theta_i[j] - theta[j] >= -theta_abs[j] for j in range(n)
+            )
 
             for x in X_cuts[i]:
-                mdl.addConstr(gp.quicksum(theta_i[j]*(x_hat[j] - x[j])
-                                          for j in range(n))
-                              <= 0)
+                mdl.addConstr(
+                    gp.quicksum(theta_i[j]*(x_hat[j] - x[j])
+                                for j in range(n)) <= 0
+                )
 
         mdl.setObjective((1/N)*obj, gp.GRB.MINIMIZE)
         # Search over facets of unit L-infinity sphere for the
@@ -169,8 +177,10 @@ def cutting_plane(N, T, tol):
         for i in range(N):
             s_hat, x_hat = dataset_train[i]
 
-            theta_i = [mdl.getVarByName('theta' + str(i)+'['+str(j)+']').X
-                       for j in range(n)]
+            theta_i = [
+                mdl.getVarByName('theta' + str(i)+'['+str(j)+']').X
+                for j in range(n)
+            ]
             theta_i = np.array(theta_i)
 
             x_i = binary_linear_FOP(theta_i, s_hat)
@@ -199,24 +209,28 @@ def predictability_loss(N):
     mdl = gp.Model()
     mdl.setParam('OutputFlag', 0)
 
-    theta = mdl.addVars(n, lb=-gp.GRB.INFINITY, vtype=gp.GRB.CONTINUOUS,
-                        name='theta')
+    theta = mdl.addVars(
+        n, lb=-gp.GRB.INFINITY, vtype=gp.GRB.CONTINUOUS, name='theta'
+    )
 
     obj = 0
     for i in range(N):
         s_hat, x_hat = dataset_train[i]
         A_hat, b_hat = s_hat
         y = mdl.addVars(n, vtype=gp.GRB.BINARY, name='y'+str(i))
-        mdl.addConstrs(gp.quicksum(A_hat[j, i]*y[i] for i in range(n))
-                       <= b_hat[j] for j in range(t))
+        mdl.addConstrs(
+            gp.quicksum(A_hat[j, i]*y[i] for i in range(n)) <= b_hat[j]
+            for j in range(t)
+        )
 
         obj += gp.quicksum((y[i] - x_hat[i])**2 for i in range(n))
 
         for k in range(2**n):
             x = iop.candidate_action(k, decision_space, n)
             if ind_func(s_hat, x):
-                mdl.addConstr(gp.quicksum(theta[i]*(x[i] - y[i])
-                                          for i in range(n)) >= 0)
+                mdl.addConstr(
+                    gp.quicksum(theta[i]*(x[i] - y[i]) for i in range(n)) >= 0
+                )
 
     mdl.setObjective((1/N)*obj, gp.GRB.MINIMIZE)
     mdl.setParam('TimeLimit', 10)
@@ -256,10 +270,10 @@ X = (decision_space, n, ind_func)
 resolution = 5
 runs = 3
 
-# Approaches to be tested
-# approaches = ['SL', 'ASL']
-approaches = ['SL', 'ASL', 'Ellipsoidal ASL', 'Cutting plane',
-              'Predictability loss']
+approaches = ['SL', 'ASL']
+# approaches = [
+#     'SL', 'ASL', 'Ellipsoidal ASL', 'Cutting plane', 'Predictability loss'
+# ]
 
 print('')
 print(f'N_train = {N_train}')
@@ -288,9 +302,9 @@ for run in range(runs):
     theta_true = 2*np.random.rand(n)-1
     theta_true_runs.append(theta_true)
 
-    dataset_train, dataset_test = create_datasets(theta_true,
-                                                  binary_linear_FOP, n, t,
-                                                  N_train, N_test, noise_level)
+    dataset_train, dataset_test = create_datasets(
+        theta_true, binary_linear_FOP, n, t, N_train, N_test, noise_level
+    )
     dataset_train_runs.append(dataset_train)
     dataset_test_runs.append(dataset_test)
 
@@ -324,15 +338,12 @@ for a_index, approach in enumerate(approaches):
 
         for N_index, N in enumerate(N_list):
             if approach == 'SL':
-                theta_IO = iop.discrete(dataset_train[:N],
-                                        X,
-                                        linear_phi)
+                theta_IO = iop.discrete(dataset_train[:N], X, linear_phi)
             elif approach == 'ASL':
-                theta_IO = iop.discrete(dataset_train[:N],
-                                        X,
-                                        linear_phi,
-                                        reg_param=kappa,
-                                        dist_func=L2)
+                theta_IO = iop.discrete(
+                    dataset_train[:N], X, linear_phi, reg_param=kappa,
+                    dist_func=L2
+                )
             elif approach == 'Ellipsoidal ASL':
                 theta_IO = ellipsoidal_ASL(N)
             elif approach == 'Cutting plane':
@@ -342,20 +353,15 @@ for a_index, approach in enumerate(approaches):
             elif approach == 'Predictability loss':
                 theta_IO = predictability_loss(N)
 
-            x_diff_train, obj_diff_train, theta_diff = \
-                iop.evaluate(theta_IO,
-                             dataset_train[:N],
-                             binary_linear_FOP,
-                             L2,
-                             theta_true=theta_true,
-                             phi=linear_phi)
+            x_diff_train, obj_diff_train, theta_diff = iop.evaluate(
+                theta_IO, dataset_train[:N], binary_linear_FOP, L2,
+                theta_true=theta_true, phi=linear_phi
+            )
 
-            x_diff_test, obj_diff_test, _ = iop.evaluate(theta_IO,
-                                                         dataset_test,
-                                                         binary_linear_FOP,
-                                                         L2,
-                                                         theta_true=theta_true,
-                                                         phi=linear_phi)
+            x_diff_test, obj_diff_test, _ = iop.evaluate(
+                theta_IO, dataset_test, binary_linear_FOP, L2,
+                theta_true=theta_true, phi=linear_phi
+            )
 
             x_diff_train_hist[a_index, run, N_index] = x_diff_train
             obj_diff_train_hist[a_index, run, N_index] = obj_diff_train

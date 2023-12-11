@@ -14,8 +14,9 @@ import gurobipy as gp
 import invopt as iop
 
 sys.path.append(dirname(dirname(abspath(__file__))))  # nopep8
-from utils_examples import (binary_linear_FOP, linear_ind_func, linear_phi, L2,
-                            plot_results)
+from utils_examples import (
+    binary_linear_FOP, linear_ind_func, linear_phi, L2, plot_results
+)
 
 np.random.seed(1)
 
@@ -182,8 +183,10 @@ def ellip_circumcenter(N):
     prob.solve()
 
     if prob.status != 'optimal':
-        print(f'Optimal solution not found. CVXPY status code = {prob.status}.'
-              ' Set the flag verbose=True for more details.')
+        print(
+            f'Optimal solution not found. CVXPY status code = {prob.status}.'
+            'Set the flag verbose=True for more details.'
+        )
 
     if b.value is None:
         b_opt = np.zeros(n)
@@ -229,9 +232,10 @@ def cutting_plane(N, T, tol):
         for i in range(N):
             s_hat, x_hat = dataset_train[i]
             for x in X_cuts[i]:
-                mdl.addConstr(gp.quicksum(theta[j]*(x_hat[j] - x[j])
-                                          for j in range(n))
-                              <= 0)
+                mdl.addConstr(
+                    gp.quicksum(theta[j]*(x_hat[j] - x[j]) for j in range(n))
+                    <= 0
+                )
 
         mdl.optimize()
         theta_IO = np.array([theta[i].X for i in range(n)])
@@ -278,17 +282,19 @@ def predictability_loss(N):
         s_hat, x_hat = dataset_train[i]
         A_hat, b_hat = s_hat
         y = mdl.addVars(n, vtype=gp.GRB.BINARY, name='y'+str(i))
-        mdl.addConstrs(gp.quicksum(A_hat[j, i]*y[i]
-                                   for i in range(n))
-                       <= b_hat[j] for j in range(t))
+        mdl.addConstrs(
+            gp.quicksum(A_hat[j, i]*y[i] for i in range(n)) <= b_hat[j]
+            for j in range(t)
+        )
 
         obj += gp.quicksum((y[i] - x_hat[i])**2 for i in range(n))
 
         for k in range(2**n):
             x = iop.candidate_action(k, decision_space, n)
             if ind_func(s_hat, x):
-                mdl.addConstr(gp.quicksum(theta[i]*(x[i] - y[i])
-                                          for i in range(n)) >= 0)
+                mdl.addConstr(
+                    gp.quicksum(theta[i]*(x[i] - y[i]) for i in range(n)) >= 0
+                )
 
     mdl.setObjective((1/N)*obj, gp.GRB.MINIMIZE)
     mdl.optimize()
@@ -315,9 +321,11 @@ resolution = 5
 runs = 3
 
 # Approaches to be tested
+# approaches = [
+#     'Feasibility', 'Incenter', 'Circumcenter', 'Ellip. incenter',
+#     'Ellip. circumcenter', 'Cutting plane', 'Predictability loss'
+# ]
 approaches = ['Feasibility', 'Incenter', 'Circumcenter']
-# approaches = ['Feasibility', 'Incenter', 'Circumcenter', 'Ellip. incenter',
-#               'Ellip. circumcenter', 'Cutting plane', 'Predictability loss']
 
 print('')
 print(f'N_train = {N_train}')
@@ -345,10 +353,9 @@ for run in range(runs):
     theta_true = np.random.rand(n)
     theta_true_runs.append(theta_true)
 
-    dataset_train, dataset_test = create_datasets(theta_true,
-                                                  binary_linear_FOP,
-                                                  n, t,
-                                                  N_train, N_test)
+    dataset_train, dataset_test = create_datasets(
+        theta_true, binary_linear_FOP, n, t, N_train, N_test
+    )
     dataset_train_runs.append(dataset_train)
     dataset_test_runs.append(dataset_test)
 
@@ -382,16 +389,13 @@ for p_index, approach in enumerate(approaches):
 
         for N_index, N in enumerate(N_list):
             if approach == 'Feasibility':
-                theta_IO = iop.discrete_consistent(dataset_train[:N],
-                                                   X,
-                                                   linear_phi,
-                                                   Theta=Theta)
+                theta_IO = iop.discrete_consistent(
+                    dataset_train[:N], X, linear_phi, Theta=Theta
+                )
             elif approach == 'Incenter':
-                theta_IO = iop.discrete_consistent(dataset_train[:N],
-                                                   X,
-                                                   linear_phi,
-                                                   Theta=Theta,
-                                                   dist_func=L2)
+                theta_IO = iop.discrete_consistent(
+                    dataset_train[:N], X, linear_phi, Theta=Theta, dist_func=L2
+                )
             elif approach == 'Circumcenter':
                 theta_IO = circumcenter(N)
             elif approach == 'Ellip. incenter':
@@ -405,20 +409,15 @@ for p_index, approach in enumerate(approaches):
             elif approach == 'Predictability loss':
                 theta_IO = predictability_loss(N)
 
-            x_diff_train, obj_diff_train, theta_diff = \
-                iop.evaluate(theta_IO,
-                             dataset_train[:N],
-                             binary_linear_FOP,
-                             L2,
-                             theta_true=theta_true,
-                             phi=linear_phi)
+            x_diff_train, obj_diff_train, theta_diff = iop.evaluate(
+                theta_IO, dataset_train[:N], binary_linear_FOP, L2,
+                theta_true=theta_true, phi=linear_phi
+            )
 
-            x_diff_test, obj_diff_test, _ = iop.evaluate(theta_IO,
-                                                         dataset_test,
-                                                         binary_linear_FOP,
-                                                         L2,
-                                                         theta_true=theta_true,
-                                                         phi=linear_phi)
+            x_diff_test, obj_diff_test, _ = iop.evaluate(
+                theta_IO, dataset_test, binary_linear_FOP, L2,
+                theta_true=theta_true, phi=linear_phi
+            )
 
             x_diff_train_hist[p_index, run, N_index] = x_diff_train
             obj_diff_train_hist[p_index, run, N_index] = obj_diff_train

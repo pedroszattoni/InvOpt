@@ -11,7 +11,7 @@ import numpy as np
 from gurobipy import Model, GRB, quicksum
 
 sys.path.append(dirname(dirname(abspath(__file__))))  # nopep8
-from utils_examples import (L2, plot_results)
+from utils_examples import L2, plot_results
 
 import invopt as iop
 
@@ -79,8 +79,9 @@ def linear_FOP(theta, s):
 
     mdl.setObjective(quicksum(theta[i]*x[i] for i in range(p)), GRB.MINIMIZE)
 
-    mdl.addConstrs(quicksum(A[j, i]*x[i] for i in range(n))
-                   <= b[j] for j in range(t))
+    mdl.addConstrs(
+        quicksum(A[j, i]*x[i] for i in range(n)) <= b[j] for j in range(t)
+    )
     mdl.addConstrs(x[i] <= 1 for i in range(n))
 
     mdl.optimize()
@@ -88,8 +89,9 @@ def linear_FOP(theta, s):
     if mdl.status == 2:
         x_opt = np.array([x[k].X for k in range(n)])
     else:
-        raise Exception('Optimal solution not found. Gurobi status code '
-                        f'= {mdl.status}.')
+        raise Exception(
+            f'Optimal solution not found. Gurobi status code = {mdl.status}.'
+        )
 
     return x_opt
 
@@ -140,11 +142,9 @@ for run in range(runs):
     theta_true = np.random.rand(n)
     theta_true_runs.append(theta_true)
 
-    dataset_train, dataset_test = create_datasets(theta_true,
-                                                  linear_FOP,
-                                                  n, t,
-                                                  N_train, N_test,
-                                                  noise_level)
+    dataset_train, dataset_test = create_datasets(
+        theta_true, linear_FOP, n, t, N_train, N_test, noise_level
+    )
     dataset_train_runs.append(dataset_train)
     dataset_test_runs.append(dataset_test)
 
@@ -184,24 +184,19 @@ for p_index, approach in enumerate(approaches):
         theta_true = theta_true_runs[run]
 
         for N_index, N in enumerate(N_list):
-            theta_IO = iop.continuous_linear(dataset_train[:N], phi1,
-                                             add_dist_func_y=add_y,
-                                             reg_param=kappa)
+            theta_IO = iop.continuous_linear(
+                dataset_train[:N], phi1, add_dist_func_y=add_y, reg_param=kappa
+            )
 
-            x_diff_train, obj_diff_train, theta_diff = \
-                iop.evaluate(theta_IO,
-                             dataset_train[:N],
-                             linear_FOP,
-                             L2,
-                             theta_true=theta_true,
-                             phi=phi)
+            x_diff_train, obj_diff_train, theta_diff = iop.evaluate(
+                theta_IO, dataset_train[:N], linear_FOP, L2,
+                theta_true=theta_true, phi=phi
+            )
 
-            x_diff_test, obj_diff_test, _ = iop.evaluate(theta_IO,
-                                                         dataset_test,
-                                                         linear_FOP,
-                                                         L2,
-                                                         theta_true=theta_true,
-                                                         phi=phi)
+            x_diff_test, obj_diff_test, _ = iop.evaluate(
+                theta_IO, dataset_test, linear_FOP, L2, theta_true=theta_true,
+                phi=phi
+            )
 
             x_diff_train_hist[p_index, run, N_index] = x_diff_train
             obj_diff_train_hist[p_index, run, N_index] = obj_diff_train

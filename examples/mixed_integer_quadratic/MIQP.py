@@ -81,16 +81,17 @@ def FOP_MIQP(theta, s):
     y = mdl.addVars(m2, lb=-GRB.INFINITY, vtype=GRB.CONTINUOUS, name='y')
     z = mdl.addVars(n, vtype=GRB.BINARY, name='z')
 
-    mdl.setObjective(quicksum(Qyy[i, j]*y[i]*y[j]
-                              for i in range(m2) for j in range(m2))
-                     + quicksum(Qyz[i, j]*y[i]*z[j]
-                                for i in range(m2) for j in range(n))
-                     + quicksum(qy[i]*y[i] for i in range(m2))
-                     + quicksum(qz[i]*z[i] for i in range(n)), GRB.MINIMIZE)
+    mdl.setObjective(
+        quicksum(Qyy[i, j]*y[i]*y[j] for i in range(m2) for j in range(m2))
+        + quicksum(Qyz[i, j]*y[i]*z[j] for i in range(m2) for j in range(n))
+        + quicksum(qy[i]*y[i] for i in range(m2))
+        + quicksum(qz[i]*z[i] for i in range(n)), GRB.MINIMIZE
+    )
 
-    mdl.addConstrs(quicksum(A[k, i]*y[i] for i in range(m2))
-                   + quicksum(B[k, j]*z[j] for j in range(n))
-                   <= c[k] for k in range(m1))
+    mdl.addConstrs(
+        quicksum(A[k, i]*y[i] for i in range(m2))
+        + quicksum(B[k, j]*z[j] for j in range(n)) <= c[k] for k in range(m1)
+    )
 
     mdl.optimize()
 
@@ -98,8 +99,9 @@ def FOP_MIQP(theta, s):
         y_opt = np.array([y[k].X for k in range(m2)])
         z_opt = np.array([z[k].X for k in range(n)])
     else:
-        raise Exception('Optimal solution not found. Gurobi status code '
-                        f'= {mdl.status}.')
+        raise Exception(
+            f'Optimal solution not found. Gurobi status code = {mdl.status}.'
+        )
 
     return (y_opt, z_opt)
 
@@ -118,9 +120,7 @@ def phi(s, x):
     """Transform phi1 and phi2 into phi for mixed_integer_quadratic case."""
     _, _, _, w = s
     y, z = x
-    return np.concatenate((np.kron(y, y),
-                           np.kron(phi1(w, z), y),
-                           phi2(w, z)))
+    return np.concatenate((np.kron(y, y), np.kron(phi1(w, z), y), phi2(w, z)))
 
 
 def dist_func(x1, x2):
@@ -173,16 +173,14 @@ for run in range(runs):
     Qyz_true = np.random.rand(n, n)
     qy_true = np.random.rand(n)
     qz_true = np.random.rand(n)
-    theta_true = np.concatenate((Qyy_true.flatten('F'),
-                                 Qyz_true.flatten('F'),
-                                 qy_true,
-                                 qz_true))
+    theta_true = np.concatenate(
+        (Qyy_true.flatten('F'), Qyz_true.flatten('F'), qy_true, qz_true)
+    )
     theta_true_runs.append(theta_true)
 
-    dataset_train, dataset_test = create_datasets(theta_true,
-                                                  FOP_MIQP,
-                                                  m, n, n,
-                                                  N_train, N_test)
+    dataset_train, dataset_test = create_datasets(
+        theta_true, FOP_MIQP, m, n, n, N_train, N_test
+    )
 
     dataset_train_runs.append(dataset_train)
     dataset_test_runs.append(dataset_test)
@@ -194,8 +192,8 @@ print('')
 # %%%%%%%%%%%%%%%%%%%%%%%%%%% Solve IO problem %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 # Tested approaches
-approaches = ['SL-MIQP', 'ASL-MIQP-z']
 # approaches = ['SL-MIQP', 'ASL-MIQP-z', 'ASL-MIQP-yz']
+approaches = ['SL-MIQP', 'ASL-MIQP-z']
 len_prob = len(approaches)
 
 theta_diff_hist = np.empty((len_prob, runs, resolution))
@@ -235,20 +233,15 @@ for p_index, approach in enumerate(approaches):
                                                    add_dist_func_y=add_y,
                                                    reg_param=reg_param)
 
-            x_diff_train, obj_diff_train, theta_diff = \
-                iop.evaluate(theta_IO,
-                             dataset_train[:N],
-                             FOP_MIQP,
-                             dist_func,
-                             theta_true=theta_true,
-                             phi=phi)
+            x_diff_train, obj_diff_train, theta_diff = iop.evaluate(
+                theta_IO, dataset_train[:N], FOP_MIQP, dist_func,
+                theta_true=theta_true, phi=phi
+            )
 
-            x_diff_test, obj_diff_test, _ = iop.evaluate(theta_IO,
-                                                         dataset_test,
-                                                         FOP_MIQP,
-                                                         dist_func,
-                                                         theta_true=theta_true,
-                                                         phi=phi)
+            x_diff_test, obj_diff_test, _ = iop.evaluate(
+                theta_IO, dataset_test, FOP_MIQP, dist_func,
+                theta_true=theta_true, phi=phi
+            )
 
             x_diff_train_hist[p_index, run, N_index] = x_diff_train
             obj_diff_train_hist[p_index, run, N_index] = obj_diff_train

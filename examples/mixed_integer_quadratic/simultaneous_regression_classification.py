@@ -49,10 +49,10 @@ def FOP_MIQP(theta, s):
     phi1_wz = [wi for wi in w] + [z] + [z*wi for wi in w] + [1]
     phi2_wz = [wi for wi in w] + [z] + [z*wi for wi in w] + [1]
 
-    mdl.setObjective(Qyy*y**2
-                     + y*gp.quicksum(Q[i]*phi1_wz[i] for i in range(cQ))
-                     + gp.quicksum(q[i]*phi2_wz[i] for i in range(cQ)),
-                     gp.GRB.MINIMIZE)
+    mdl.setObjective(
+        Qyy*y**2 + y*gp.quicksum(Q[i]*phi1_wz[i] for i in range(cQ))
+        + gp.quicksum(q[i]*phi2_wz[i] for i in range(cQ)), gp.GRB.MINIMIZE
+    )
 
     mdl.optimize()
 
@@ -67,8 +67,9 @@ def load_data(train_test_slip):
     # dataset = np.genfromtxt(path_to_invopt + r'\examples\mixed_integer_quadratic\breast-cancer-wisconsin-data\wpbc_data.csv',   # nopep8
     #                         delimiter=',')
 
-    dataset = np.genfromtxt(r'breast-cancer-wisconsin-data\wpbc_data.csv',
-                            delimiter=',')
+    dataset = np.genfromtxt(
+        r'breast-cancer-wisconsin-data\wpbc_data.csv', delimiter=','
+    )
 
     # Signal-response data
     S = dataset[:, 2:].copy()
@@ -180,8 +181,9 @@ tic = time.time()
 for run in range(runs):
     np.random.seed(run)  # Make sure the same random slipt is used
     S_train, X_train, S_test, X_test = load_data(train_test_slip)
-    dataset_train, dataset_test = IO_preprocessing(S_train, X_train,
-                                                   S_test, X_test)
+    dataset_train, dataset_test = IO_preprocessing(
+        S_train, X_train, S_test, X_test
+    )
 
     theta_IO = iop.mixed_integer_quadratic(dataset_train,
                                            ('binary', 1, None),
