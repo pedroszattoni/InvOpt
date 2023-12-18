@@ -93,10 +93,16 @@ def normalize(vec, norm):
     return vec
 
 
-def ASL(theta, dataset, FOP_aug, phi, dist_func,
-        regularizer='L2_squared',
-        reg_param=0,
-        theta_hat=None):
+def ASL(
+    theta,
+    dataset,
+    FOP_aug,
+    phi,
+    dist_func,
+    regularizer='L2_squared',
+    reg_param=0,
+    theta_hat=None,
+):
     """
     Evaluate Augmented Suboptimality loss.
 
@@ -226,10 +232,15 @@ def candidate_action(k, decision_space, n):
     return x
 
 
-def evaluate(theta, dataset, FOP, dist_func,
-             theta_true=None,
-             phi=None,
-             scale_obj_diff=True):
+def evaluate(
+    theta,
+    dataset,
+    FOP,
+    dist_func,
+    theta_true=None,
+    phi=None,
+    scale_obj_diff=True,
+):
     """
     Evaluate cost vector theta.
 
@@ -313,13 +324,17 @@ def evaluate(theta, dataset, FOP, dist_func,
     return results
 
 
-def discrete_consistent(dataset, X, phi,
-                        dist_func=None,
-                        Theta=None,
-                        regularizer='L2_squared',
-                        theta_hat=None,
-                        verbose=False,
-                        gurobi_params=None):
+def discrete_consistent(
+    dataset,
+    X,
+    phi,
+    dist_func=None,
+    Theta=None,
+    regularizer='L2_squared',
+    theta_hat=None,
+    verbose=False,
+    gurobi_params=None,
+):
     """
     Inverse optimization for discrete FOPs with consistent data.
 
@@ -483,14 +498,18 @@ def discrete_consistent(dataset, X, phi,
     return theta_opt
 
 
-def discrete(dataset, X, phi,
-             dist_func=None,
-             Theta=None,
-             regularizer='L2_squared',
-             reg_param=0,
-             theta_hat=None,
-             verbose=False,
-             gurobi_params=None):
+def discrete(
+    dataset,
+    X,
+    phi,
+    dist_func=None,
+    Theta=None,
+    regularizer='L2_squared',
+    reg_param=0,
+    theta_hat=None,
+    verbose=False,
+    gurobi_params=None,
+):
     """
     Inverse optimization for discrete FOPs.
 
@@ -567,29 +586,35 @@ def discrete(dataset, X, phi,
         x_hat_mod = (np.array([0]), x_hat)
         dataset_mod.append((s_hat_mod, x_hat_mod))
 
-    theta_opt_mod = mixed_integer_linear(dataset_mod, X,
-                                         phi2=phi,
-                                         dist_func_z=dist_func,
-                                         Theta=Theta,
-                                         regularizer=regularizer,
-                                         reg_param=reg_param,
-                                         theta_hat=theta_hat_mod,
-                                         verbose=verbose,
-                                         gurobi_params=gurobi_params)
+    theta_opt_mod = mixed_integer_linear(
+        dataset_mod,
+        X,
+        phi2=phi,
+        dist_func_z=dist_func,
+        Theta=Theta,
+        regularizer=regularizer,
+        reg_param=reg_param,
+        theta_hat=theta_hat_mod,
+        verbose=verbose,
+        gurobi_params=gurobi_params,
+    )
 
     theta_opt = theta_opt_mod[1:]
 
     return theta_opt
 
 
-def continuous_linear(dataset, phi1,
-                      add_dist_func_y=False,
-                      Theta=None,
-                      regularizer='L2_squared',
-                      reg_param=0,
-                      theta_hat=None,
-                      verbose=False,
-                      gurobi_params=None):
+def continuous_linear(
+    dataset,
+    phi1,
+    add_dist_func_y=False,
+    Theta=None,
+    regularizer='L2_squared',
+    reg_param=0,
+    theta_hat=None,
+    verbose=False,
+    gurobi_params=None,
+):
     """
     Inverse optimization for continuous linear FOPs.
 
@@ -653,29 +678,34 @@ def continuous_linear(dataset, phi1,
 
     def phi1_mod(w, z): return phi1(w)
 
-    theta_opt_mod = mixed_integer_linear(dataset_mod, Z,
-                                         add_dist_func_y=add_dist_func_y,
-                                         phi1=phi1_mod,
-                                         Theta=Theta,
-                                         regularizer=regularizer,
-                                         reg_param=reg_param,
-                                         theta_hat=theta_hat_mod,
-                                         verbose=verbose,
-                                         gurobi_params=gurobi_params)
+    theta_opt_mod = mixed_integer_linear(
+        dataset_mod,
+        Z,
+        add_dist_func_y=add_dist_func_y,
+        phi1=phi1_mod,
+        Theta=Theta,
+        regularizer=regularizer,
+        reg_param=reg_param,
+        theta_hat=theta_hat_mod,
+        verbose=verbose,
+        gurobi_params=gurobi_params,
+    )
 
     theta_opt = theta_opt_mod[:-1]
 
     return theta_opt
 
 
-def continuous_quadratic(dataset,
-                         phi1=None,
-                         add_dist_func_y=False,
-                         Theta=None,
-                         regularizer='L2_squared',
-                         reg_param=0,
-                         theta_hat=None,
-                         verbose=False):
+def continuous_quadratic(
+    dataset,
+    phi1=None,
+    add_dist_func_y=False,
+    Theta=None,
+    regularizer='L2_squared',
+    reg_param=0,
+    theta_hat=None,
+    verbose=False,
+):
     """
     Inverse optimization for continuous quadratic FOPs.
 
@@ -738,30 +768,37 @@ def continuous_quadratic(dataset,
 
     def phi1_mod(w, z): return phi1(w)
 
-    theta_opt_mod = mixed_integer_quadratic(dataset_mod, Z,
-                                            phi1=phi1_mod,
-                                            add_dist_func_y=add_dist_func_y,
-                                            Theta=Theta,
-                                            regularizer=regularizer,
-                                            reg_param=reg_param,
-                                            theta_hat=theta_hat_mod,
-                                            verbose=verbose)
+    theta_opt_mod = mixed_integer_quadratic(
+        dataset_mod,
+        Z,
+        phi1=phi1_mod,
+        add_dist_func_y=add_dist_func_y,
+        Theta=Theta,
+        regularizer=regularizer,
+        reg_param=reg_param,
+        theta_hat=theta_hat_mod,
+        verbose=verbose,
+    )
+
     theta_opt = theta_opt_mod[:-1]
 
     return theta_opt
 
 
-def mixed_integer_linear(dataset, Z,
-                         phi1=None,
-                         phi2=None,
-                         add_dist_func_y=False,
-                         dist_func_z=None,
-                         Theta=None,
-                         regularizer='L2_squared',
-                         reg_param=0,
-                         theta_hat=None,
-                         verbose=False,
-                         gurobi_params=None):
+def mixed_integer_linear(
+    dataset,
+    Z,
+    phi1=None,
+    phi2=None,
+    add_dist_func_y=False,
+    dist_func_z=None,
+    Theta=None,
+    regularizer='L2_squared',
+    reg_param=0,
+    theta_hat=None,
+    verbose=False,
+    gurobi_params=None,
+):
     """
     Inverse optimization for mixed-integer FOPs with linear continuous part.
 
@@ -1078,16 +1115,19 @@ def mixed_integer_linear(dataset, Z,
     return theta_opt
 
 
-def mixed_integer_quadratic(dataset, Z,
-                            phi1=None,
-                            phi2=None,
-                            add_dist_func_y=False,
-                            dist_func_z=None,
-                            Theta=None,
-                            regularizer='L2_squared',
-                            reg_param=0,
-                            theta_hat=None,
-                            verbose=False):
+def mixed_integer_quadratic(
+    dataset,
+    Z,
+    phi1=None,
+    phi2=None,
+    add_dist_func_y=False,
+    dist_func_z=None,
+    Theta=None,
+    regularizer='L2_squared',
+    reg_param=0,
+    theta_hat=None,
+    verbose=False
+):
     """
     Inverse optimization for mixed-integer FOPs with quadratic continuous part.
 
@@ -1319,17 +1359,25 @@ def mixed_integer_quadratic(dataset, Z,
     return theta_opt
 
 
-def FOM(dataset, phi, theta_0, FOP, step_size, T,
-        Theta=None,
-        step='standard',
-        regularizer='L2_squared',
-        reg_param=0,
-        theta_hat=None,
-        batch_type=1,
-        averaged=0,
-        callback=None,
-        normalize_grad=False,
-        verbose=False):
+def FOM(
+    dataset,
+    phi,
+    theta_0,
+    FOP,
+    step_size,
+    T,
+    Theta=None,
+    step='standard',
+    regularizer='L2_squared',
+    reg_param=0,
+    theta_hat=None,
+    batch_type=1,
+    averaged=0,
+    callback=None,
+    callback_resolution=1,
+    normalize_grad=False,
+    verbose=False
+):
     """
     Optimize (Augmented) Suboptimality loss using first-order methods.
 
@@ -1395,8 +1443,10 @@ def FOM(dataset, phi, theta_0, FOP, step_size, T,
         convergence rate for the projected stochastic subgradient method"). The
         default is 0.
     callback : {callable, None}, optional
-        If not None, callback(theta_t) is evaluated for t=0,...,T. The default
-        is None.
+        If not None, callback(theta_t) is evaluated for
+        t=0,callback_resolution,2*callback_resolution... . The default is None.
+    callback_resolution : int, optional
+        Callback function resolution. The default is 1.
     normalize_grad : bool, optional
         If True, subgradient vectors are normalized before each iteration of
         the algorithm. If step='standard', the L2 norm of the subgradient is
@@ -1491,7 +1541,7 @@ def FOM(dataset, phi, theta_0, FOP, step_size, T,
         elif averaged == 2:
             theta_avg = (2/(t+2))*theta_t + (t/(t+2))*theta_avg
 
-        if callback is not None:
+        if (callback is not None) and (np.mod(t+1, callback_resolution) == 0):
             callback_list.append(callback(theta_avg))
 
     # Check if the list callback_list is empty
@@ -1532,8 +1582,9 @@ def gradient_regularizer(theta_t, regularizer, reg_param, theta_hat):
     return grad
 
 
-def compute_grad(theta_t, samples, phi, FOP, regularizer, reg_param,
-                 theta_hat):
+def compute_grad(
+    theta_t, samples, phi, FOP, regularizer, reg_param, theta_hat
+):
     """
     Compute a (sub)gradient of the regularizer and the sum of losses.
 
@@ -1587,8 +1638,10 @@ def compute_grad(theta_t, samples, phi, FOP, regularizer, reg_param,
     return reg_grad, loss_grad
 
 
-def grad_step(theta_t, eta_t, reg_grad, loss_grad, reg_param, Theta, step,
-              normalize_grad):
+def grad_step(
+    theta_t, eta_t, reg_grad, loss_grad, reg_param, Theta, step,
+    normalize_grad
+):
     """
     Perform a subgradient step.
 
