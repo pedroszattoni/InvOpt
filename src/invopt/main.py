@@ -1478,10 +1478,10 @@ def FOM(
     # Warnings
     warning_theta_hat_reg_param(theta_hat, reg_param)
 
-    if (step == 'exponentiated') and (regularizer != 'L1'):
+    if (step == 'exponentiated') and (regularizer != 'L1') and (reg_param > 0):
         raise Exception(
-            'To use step = \'exponentiated\', regularizer = \'L1\' is'
-            'required.'
+            'To use step = \'exponentiated\' with reg_param > 0,'
+            'regularizer = \'L1\' is required.'
         )
 
     if (step == 'exponentiated') and (theta_hat is not None):
