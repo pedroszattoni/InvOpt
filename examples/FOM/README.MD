@@ -97,8 +97,6 @@ where $\hat{s}_ i = (\hat{A}_ i, \hat{b}_ i)$ and $\phi(\hat{s},x)=x$. The IO pr
 
 In the file `vrptw.py`, you will find an example usage of the `FOM` function for a VRPTW example. You can find the details of this example (i.e., modelling, datasets, algorithm, etc) in [this paper](https://arxiv.org/abs/2307.07357).
 
-In this [repository](https://github.com/pedroszattoni/amazon-challenge) and [accompanying paper](https://arxiv.org/abs/2307.07357), you will find an example usage of the `FOM` function for the Amazon Last Mile Routing Research Challenge.
-
 ## Example 3: Amazon Last Mile Routing Research Challenge
 
 In this [repository](https://github.com/pedroszattoni/amazon-challenge) and [accompanying paper](https://arxiv.org/abs/2307.07357), you will find an example usage of the `FOM` function for the Amazon Last Mile Routing Research Challenge.
