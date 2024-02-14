@@ -14,8 +14,9 @@ path_to_examples = dirname(dirname(abspath(__file__))) + '\\examples\\'
 def test_script(script_folder, script_name):
     script_path = script_folder + script_name
     try:
-        subprocess.check_output(['python', script_path],
-                                stderr=subprocess.STDOUT)
+        subprocess.check_output(
+            ['python', script_path], stderr=subprocess.STDOUT
+        )
     except subprocess.CalledProcessError as e:
         print(f"Error running script {script_name}: {e.output}")
         return False
@@ -51,6 +52,10 @@ class TestScript(unittest.TestCase):
 
     def test_first_order_methods(self):
         script_name = 'FOM\\first_order_methods.py'
+        self.assertTrue(test_script(path_to_examples, script_name))
+
+    def test_vrptw(self):
+        script_name = 'FOM\\vrptw.py'
         self.assertTrue(test_script(path_to_examples, script_name))
 
 
