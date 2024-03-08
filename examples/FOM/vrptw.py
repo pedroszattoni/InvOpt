@@ -32,13 +32,13 @@ def step_size_func(t):
 
 def phi(s, x):
     """Feature mapping."""
-    x_vec = routes_to_vec(x, n_total)
+    x_vec = routes_to_vec(x, n_clients)
     return x_vec
 
 
 def FOP(theta, s):
     """Forward optimization problem."""
-    new_instance = create_new_instance(instance, theta, s, n_total, M)
+    new_instance = create_new_instance(instance, theta, s, n_clients, M)
     result = solve_VRPTW(new_instance, iter_limit)
     routes_list = get_routes(result)
 
@@ -47,7 +47,7 @@ def FOP(theta, s):
 
 def FOP_approx(theta, s):
     """Approximate forward optimization problem."""
-    new_instance = create_new_instance(instance, theta, s, n_total, M)
+    new_instance = create_new_instance(instance, theta, s, n_clients, M)
     result = solve_VRPTW(new_instance, iter_limit_approx)
     routes_list = get_routes(result)
 
@@ -56,7 +56,7 @@ def FOP_approx(theta, s):
 
 def FOP_aug_approx(theta, s, x):
     """Approximate augmented FOP."""
-    x_vec = routes_to_vec(x, n_total)
+    x_vec = routes_to_vec(x, n_clients)
 
     theta_aug = theta + (2*x_vec - 1)
     x_aug = FOP_approx(theta_aug, s)
@@ -71,8 +71,8 @@ def callback(theta):
 
 def L1_dist(x1, x2):
     """L1 distance between two sets of routes."""
-    x1_vec = routes_to_vec(x1, n_total)
-    x2_vec = routes_to_vec(x2, n_total)
+    x1_vec = routes_to_vec(x1, n_clients)
+    x2_vec = routes_to_vec(x2, n_clients)
     return np.linalg.norm(x1_vec - x2_vec, 1)
 
 
@@ -105,7 +105,7 @@ def cutting_plane(dataset, T):
     theta_IO = theta_0
     theta_IO_list = [theta_IO]
     N = len(dataset)
-    n = n_total**2
+    n = (n_clients + 1)**2
     X_cuts = [[] for _ in range(N)]
     mdl = gp.Model()
     mdl.setParam('OutputFlag', 0)
@@ -170,21 +170,30 @@ theta_true = instance.distance_matrix().astype(float).flatten()
 
 M = 1e8
 n_clients = instance.num_clients
-n_total = n_clients + 1
 
 if theta_0_type == 'euclidean':
-    theta_0 = np.ones((n_total, n_total))
-    for i in range(n_total):
-        for j in range(n_total):
-            xi = instance.client(i).x
-            yi = instance.client(i).y
-            xj = instance.client(j).x
-            yj = instance.client(j).y
+    theta_0 = np.ones((n_clients + 1, n_clients + 1))
+    for i in range(n_clients + 1):
+        for j in range(n_clients + 1):
+            if i == 0:
+                xi = instance.depots()[0].x
+                yi = instance.depots()[0].y
+            else:
+                xi = instance.clients()[i-1].x
+                yi = instance.clients()[i-1].y
+
+            if j == 0:
+                xj = instance.depots()[0].x
+                yj = instance.depots()[0].y
+            else:
+                xj = instance.clients()[j-1].x
+                yj = instance.clients()[j-1].y
+
             theta_0[i, j] = np.sqrt((xi - xj)**2 + (yi - yj)**2)
     theta_0 = theta_0.flatten()
     theta_0 = (M/sum(theta_0))*theta_0
 elif theta_0_type == 'uniform':
-    theta_0 = np.ones((n_total, n_total))
+    theta_0 = np.ones((n_clients + 1, n_clients + 1))
     np.fill_diagonal(theta_0, 0)
     theta_0 = theta_0.flatten()
     theta_0 = (M/sum(theta_0))*theta_0

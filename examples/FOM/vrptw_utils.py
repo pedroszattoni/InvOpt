@@ -5,7 +5,6 @@ Author: Pedro Zattoni Scroccaro
 """
 
 import numpy as np
-from typing import List, Optional
 import pyvrp as pv
 
 np.random.seed(0)
@@ -14,73 +13,49 @@ colors = ['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00', '#808080',
           '#a65628', '#FFD700']
 
 
-def replace(
-    data: pv.ProblemData,
-    clients: Optional[List[pv.Client]] = None,
-    vehicle_types: Optional[List[pv.VehicleType]] = None,
-    distance_matrix: Optional[List[List[int]]] = None,
-    duration_matrix: Optional[List[List[int]]] = None,
-) -> pv.ProblemData:
-    """Return a customized version of the given ``pv.ProblemData`` object."""
-    if clients is None:
-        clients = [data.client(idx) for idx in range(data.num_clients + 1)]
-
-    if vehicle_types is None:
-        vehicle_types = [
-            data.vehicle_type(idx) for idx in range(data.num_vehicle_types)
-        ]
-
-    if distance_matrix is None:
-        distance_matrix = [
-            [data.dist(i, j) for j in range(data.num_clients + 1)]
-            for i in range(data.num_clients + 1)
-        ]
-
-    if duration_matrix is None:
-        duration_matrix = [
-            [data.duration(i, j) for j in range(data.num_clients + 1)]
-            for i in range(data.num_clients + 1)
-        ]
-
-    return pv.ProblemData(
-        clients=clients,
-        vehicle_types=vehicle_types,
-        distance_matrix=distance_matrix,
-        duration_matrix=duration_matrix,
-    )
-
-
-def new_clients_tw(instance, tw, n_total):
+def new_depot_clients_tw(instance, tw, n_clients):
     """."""
+    depot = instance.depots()[0]
+    depot_list = [
+        pv.Client(
+            x=depot.x,
+            y=depot.y,
+            demand=depot.demand,
+            service_duration=depot.service_duration,
+            tw_early=tw[0][1],
+            tw_late=tw[0][2]
+        )
+    ]
     clients_list = [
         pv.Client(
-            x=instance.client(idx).x,
-            y=instance.client(idx).y,
-            demand=instance.client(idx).demand,
-            service_duration=instance.client(idx).service_duration,
-            tw_early=tw[idx][1],
-            tw_late=tw[idx][2]
+            x=instance.clients()[idx].x,
+            y=instance.clients()[idx].y,
+            demand=instance.clients()[idx].demand,
+            service_duration=instance.clients()[idx].service_duration,
+            tw_early=tw[idx + 1][1],
+            tw_late=tw[idx + 1][2]
         )
-        for idx in range(n_total)
+        for idx in range(n_clients)
     ]
-    return clients_list
+    return depot_list, clients_list
 
 
-def create_new_instance(instance, theta, s, n_total, M):
+def create_new_instance(instance, theta, s, n_clients, M):
     """."""
-    theta_mat = (M/sum(theta))*theta.reshape(n_total, n_total)
+    theta_mat = (M/sum(theta))*theta.reshape(n_clients + 1, n_clients + 1)
     np.fill_diagonal(theta_mat, 0)
 
-    new_clients = new_clients_tw(instance, s, n_total)
+    new_depot, new_clients = new_depot_clients_tw(instance, s, n_clients)
 
     new_distance_matrix = [
-        [theta_mat[i, j] for j in range(n_total)]
-        for i in range(n_total)
+        [theta_mat[i, j] for j in range(n_clients + 1)]
+        for i in range(n_clients + 1)
     ]
 
-    new_instance = replace(
+    new_instance = pv.ProblemData.replace(
         instance,
         clients=new_clients,
+        depots=new_depot,
         distance_matrix=new_distance_matrix,
     )
     return new_instance
@@ -107,7 +82,7 @@ def solve_VRPTW(instance, iter_limit):
     return result
 
 
-def routes_to_vec(routes, n_total):
+def routes_to_vec(routes, n_clients):
     """
     Represent list of routes as a vector.
 
@@ -129,7 +104,7 @@ def routes_to_vec(routes, n_total):
         encoding the zone sequence.
 
     """
-    x_mat = np.zeros((n_total, n_total))
+    x_mat = np.zeros((n_clients + 1, n_clients + 1))
     for route in routes:
         n_route = len(route)
         x_mat[0, route[0]] = 1
