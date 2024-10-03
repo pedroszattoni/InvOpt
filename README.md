@@ -36,10 +36,10 @@ Contributions, pull requests and suggestions are very much welcome. The  [TODO](
 If you use InvOpt for research, please cite our accompanying paper:
 
 ```bibtex
-@article{zattoniscroccaro2023learning,
+@article{zattoniscroccaro2024learning,
   title={Learning in Inverse Optimization: Incenter Cost, Augmented Suboptimality Loss, and Algorithms},
   author={Zattoni Scroccaro, Pedro and Atasoy, Bilge and Mohajerin Esfahani, Peyman},
-  journal={https://arxiv.org/abs/2305.07730},
-  year={2023}
+  journal={Operations Research},
+  year={2024}
 }
 ```
