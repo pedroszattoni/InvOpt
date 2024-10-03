@@ -7,7 +7,7 @@ $$
 x_i \in \arg\min_ {x \in \mathbb{X}(\hat{s}_ i)} \ \langle \theta,\phi(\hat{s}_ i,x) \rangle
 $$
 
-reproduces (or in some sense approximates) the expert's action $\hat{x}_ i$. For a more detailed description of IO problems and their modeling, please refer to [Zattoni Scroccaro et al. (2023)](https://arxiv.org/abs/2305.07730) and the references therein. 
+reproduces (or in some sense approximates) the expert's action $\hat{x}_ i$. For a more detailed description of IO problems and their modeling, please refer to [Zattoni Scroccaro et al. (2024)](https://pubsonline.informs.org/doi/abs/10.1287/opre.2023.0254) and the references therein. 
 
 ## Installation
 
